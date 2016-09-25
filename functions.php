@@ -25,16 +25,12 @@
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
 
 		$sql = "UPDATE users SET banned=1 WHERE id={$id}";
-		$result = $mysqli->query($sql);
+		$result = $mysqli -> query($sql);
 
 		if($result == false)
 		{
@@ -42,145 +38,102 @@
 			return false;
 		}
 		else
-		{
 			error("User was banned successfully.");
-		}
 	}
 
 	function findUserbyName($name)
 	{
+		// Speed up many requests by avoiding duplicate mysql queries
+		static $user = array();
+		
+		if(isSet($user[$name]))
+			return $user[$name];
+		
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli->connect_error);
 
 		$name = mysqli_real_escape_string($mysqli, strToLower($name));
 		$sql = "SELECT * FROM users WHERE lower(username) = '{$name}'";
-		$result = $mysqli->query($sql);
+		$result = $mysqli -> query($sql);
 
 		if($numResults = $result->num_rows > 0)
 		{
 			while($row = $result->fetch_assoc())
 			{
+				$user[$name] = $row;
 				return $row;
 			}
+			
 			return false;
 		}
 		else
-		{
 			return false;
-		}
-		$mysqli->close();
 	}
 
 	function findUserbyID($ID)
 	{
+		static $user = array();
+		
+		if(isSet($user[$ID]))
+			return $user[$ID];
+		
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli->connect_error);
 
 		$ID = intVal($ID);
 		$sql = "SELECT * FROM users WHERE id = {$ID}";
-		$result = $mysqli->query($sql);
+		$result = $mysqli -> query($sql);
 
-		if($numResults = $result->num_rows > 0)
+		if($numResults = $result -> num_rows > 0)
 		{
-			while($row = $result->fetch_assoc())
+			while($row = $result -> fetch_assoc())
 			{
+				$user[$ID] = $row;
 				return $row;
 			}
 			return false;
 		}
 		else
-		{
 			return false;
-		}
-		$mysqli->close();
 	}
 
 	function getUserNameByID($id)
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+
+		if ($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli->connect_error);
 
 		$name = mysqli_real_escape_string($mysqli, strToLower($name));
 		$sql = "SELECT * FROM users WHERE id = '{$id}'";
-		$result = $mysqli->query($sql);
+		$result = $mysqli -> query($sql);
 
-		if($numResults = $result->num_rows > 0)
+		if($numResults = $result -> num_rows > 0)
 		{
-			while($row = $result->fetch_assoc())
+			while($row = $result -> fetch_assoc())
 			{
 				return $row['username'];
 			}
 			return false;
 		}
 		else
-		{
 			return false;
-		}
-		$mysqli->close();
-	}
-
-	function getUserBLIDByID($id)
-	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		//Select query
-		// Create connection
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
-
-		$id = intVal($id);
-		$sql = "SELECT * FROM users WHERE id = '{$id}'";
-		$result = $mysqli->query($sql);
-
-		if($numResults = $result->num_rows > 0)
-		{
-			while($row = $result->fetch_assoc())
-			{
-				return $row['BLID'];
-			}
-			return false;
-		}
-		else
-		{
-			return false;
-		}
-		$mysqli->close();
 	}
 
 	function getUserPostcountByID($id)
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		// Check connection
 		if ($mysqli->connect_error)
@@ -418,16 +371,16 @@
 
 	function fetchSinglePost($postID)
 	{
+		static $post = array();
+		
+		if(isSet($post[$postID]))
+			return $post[$postID];
+		
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
 		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+			exit("Connection failed: " . $mysqli->connect_error);
 
 		$postID = intVal($postID);
 		$sql = "SELECT * FROM posts WHERE postID={$postID}";
@@ -439,7 +392,8 @@
 			return false;
 		}
 
-		$row = $result->fetch_assoc();
+		$row = $result -> fetch_assoc();
+		$post[$postID] = $row;
 		return $row;
 	}
 
@@ -663,13 +617,9 @@
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
 		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+			exit("Connection failed: " . $mysqli -> connect_error);
 
 		date_default_timezone_set("America/Los_Angeles");
 		$date = mysqli_real_escape_string($mysqli, date("F j, Y G:i:s"));
@@ -677,8 +627,8 @@
         
         // Get thread info
         $sql = "SELECT topicID,posts FROM topics WHERE topicID = {$threadID}";
-		$result = $mysqli->query($sql);
-		if($result->num_rows < 1)
+		$result = $mysqli -> query($sql);
+		if($result -> num_rows < 1)
 		{
 			error("Could not find thread data.");
 			return;
@@ -698,7 +648,7 @@
 
         // Make entry in posts table
 		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed) VALUES ({$userID}, {$threadID}, '{$date}', '{$postData}', '{$parsedPost}');";
-		$result = $mysqli->query($sql);
+		$result = $mysqli -> query($sql);
 
 		if($result == false)
 		{
@@ -716,7 +666,7 @@
 
         // Update thread entry
 		$sql = "UPDATE topics SET posts='{$topicPosts}',lastposttime={$time},lastpostid={$postID},numposts={$numPosts} WHERE topicID={$threadID}";
-		$result = $mysqli->query($sql);
+		$result = $mysqli -> query($sql);
 		if($result == false)
 		{
 			error("Could not update thread.");
@@ -759,9 +709,9 @@
 
 		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID) VALUES ('{$post['changeID']}', '{$oldPostData}', '{$changeTime}', {$post['postID']});";
 
-		$result = $sqli->query($sql);
+		$result = $sqli -> query($sql);
 
-		if($result == false)
+		if($result === false)
 		{
 			error("Could not create change data.");
 			return;
@@ -774,7 +724,7 @@
 
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
 
-		$result = $sqli->query($sql);
+		$result = $sqli -> query($sql);
 
 		if($result == false)
 		{
@@ -798,14 +748,14 @@
 
 		$sql = "SELECT * FROM topics WHERE topicID={$post['threadID']}";
 
-		$result = $sqli->query($sql);
+		$result = $sqli -> query($sql);
 		if($result == false)
 		{
 			error("Failed to load thread.");
 			return false;
 		}
 
-		$row = $result->fetch_assoc();
+		$row = $result -> fetch_assoc();
 
 		if($row === false)
 		{
@@ -820,7 +770,7 @@
 			error("Trying to delete whole thread.");
 
 			$sql = "DELETE FROM topics WHERE topicID={$post['threadID']};";
-			$result = $sqli->query($sql);
+			$result = $sqli -> query($sql);
 
 			if($result == false)
 			{
@@ -831,7 +781,7 @@
 			foreach($posts as $thispost)
 			{
 				$sql = "DELETE FROM posts WHERE postID={$thispost};";
-				$result = $sqli->query($sql);
+				$result = $sqli -> query($sql);
 
 				if($result == false)
 					error("Failed to delete post ". $thispost . " trying to continue...");
@@ -853,7 +803,7 @@
 			if($newRow != $row['posts'])
 			{
 				$sql = "UPDATE topics SET posts='{$newRow}', lastPostID='{$lastPost}', lastposttime='{$lastPostTime}' WHERE topicID={$post['threadID']};";
-				$result = $sqli->query($sql);
+				$result = $sqli -> query($sql);
 
 				if($result == false)
 				{
@@ -868,7 +818,7 @@
 
 
 			$sql = "DELETE FROM posts WHERE postID={$id};";
-			$result = $sqli->query($sql);
+			$result = $sqli -> query($sql);
 
 			if($result == false)
 			{
