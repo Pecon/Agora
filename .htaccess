@@ -1,0 +1,3 @@
+<Directory ./data/>
+	deny from all
+</Directory>
