@@ -1,0 +1,6 @@
+{
+	"sqlserver" : "localhost",
+	"sqlusername" : "root",
+	"sqlpassword" : "password",
+	"sqldatabasename" : "forum"
+}
