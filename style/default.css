@@ -3,7 +3,7 @@
 body
 {
 	background-color: #111117;
-	background-image: url('./style/background.png');
+	/*background-image: url('./style/background.png');*/
 	color: #eeeeff;
 	font-family: Metrophobic, sans-serif;
 	font-size: 15px;
@@ -26,6 +26,66 @@ h2
 	text-shadow: 0px 0px 16px #000;
 	line-height: 2px;
 	padding-left: 1px;
+}
+
+table
+{
+	border-style: outset;
+	border-width: 4px;
+	border-color: #AAF;
+	border-collapse: collapse;
+}
+
+tr
+{
+	border-style: solid;
+	border-width: 2px;
+	padding: 1px;
+	padding-left: 3px;
+	border-color: #AAA;
+}
+
+td
+{
+	border-style: solid;
+	border-width: 2px;
+	padding: 1px;
+	padding-left: 3px;
+	border-color: #AAF;
+}
+
+input:valid.validate
+{
+	background-color: #1D1;
+}
+
+input:invalid.validate
+{
+	background-color: #D11;
+}
+
+a
+{
+	color: #66D;
+	text-decoration: none;
+}
+
+a:hover
+{
+	color: #99F;
+	text-decoration: none;
+}
+
+a:visited
+{
+	color: #66D;
+	text-decoration: none;
+}
+
+a:visited:hover
+{
+	color: #99F;
+	text-decoration: none;
 }
 
 .adminform
