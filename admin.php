@@ -9,12 +9,11 @@
 	?>
 		<h1>Admin</h1>
 <?php
-	include_once './functions.php';
+	require_once './functions.php';
 	
 	function adminLog($stuff)
 	{
 		$file = fopen("./admin.log", "a");
-		
 		$file.fwrite($file, time() . " " . $_SESSION['name'] . " " . $_SESSION['BL_ID'] . " " . $stuff . "\r\n");
 		
 		fclose($file);
@@ -42,7 +41,7 @@
 			if(isSet($_POST['fortext']));
 				$forreason = htmlentities($_POST['fortext']);
 
-			if($forpost > 100)
+			if($forpost > 0)
 			{
 				$postdata = fetchSinglePost($_POST['forpost']);
 
@@ -67,6 +66,7 @@
 				adminLog("Banned " . $_POST['ban'] . " (no reason)");
 			}
 		}
+		
 		if(isSet($_POST['deletepost']))
 		{
 			$post = fetchSinglePost($_POST['deletepost']);
@@ -87,13 +87,14 @@
 	}
 ?>
 
-<form method=POST>
-	Ban this person: <input type=text name=ban value=userid><input type=text name=forpost value=postid><input type=text name=fortext value=Reason><input type=submit value=BAN>
+<form method="POST">
+	Ban this person: <input type="text" name="ban" value="userid"><input type="text" name="forpost" value="postid"><input type="text" name="fortext" value="Reason"><input type="submit" value="BAN">
 </form>
 <br><br>
-<form method=POST>
-	Delete this post: <input type=text name=deletepost value=postid><input type=submit value=DELETE>
+<form method="POST">
+	Delete this post: <input type="text" name="deletepost" value="postid"><input type="submit" value="DELETE">
 </form>
 </center>
 </body>
 </html>
+

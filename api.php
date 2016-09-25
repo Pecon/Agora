@@ -2,7 +2,7 @@
 	require_once './functions.php';
 	require_once './data.php';
 	
-	$key = "6513541354";
+	$key = "6513541354"; 
 		
 	if(!$_GET['key'] == $key)
 	{

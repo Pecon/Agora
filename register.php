@@ -38,7 +38,7 @@ function goBack()
 					<td><input type=hidden name=registering value=true>
 					<input type=submit value=Register>");
 	}
-	else if(isSet($_POST['username']) && isSet($_POST['password']) && isSet($_POST['ingamename']))
+	else if(isSet($_POST['username']) && isSet($_POST['password']))
 	{
 		if($_POST['password'] !== $_POST['confirmpassword'])
 		{
@@ -51,7 +51,7 @@ function goBack()
 			error("Error: Password is too short. Use at least 8 characters. This is the only requirement aside from your password not being 'password'. <br><button onclick=\"goBack()\">Try again</button>");
 			return;
 		}
-		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 12)
+		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 16)
 		{
 			error("You've got to be kidding me. <br><button onclick=\"goBack()\">Try again</button>");
 			return;
@@ -59,7 +59,6 @@ function goBack()
 		
 		$username = normalize_special_characters(strip_tags($_POST['username']));
 		$password = password_hash(normalize_special_characters($_POST['password']), PASSWORD_BCRYPT);
-		$ingamename = $_POST['ingamename'];
 		
 		if(strLen($username) > 20)
 		{
@@ -83,9 +82,8 @@ function goBack()
 		$realUsername = $username;
 		$username = mysqli_real_escape_string($mysqli, $username);
 		$password = mysqli_real_escape_string($mysqli, $password);
-		$ingamename = mysqli_real_escape_string($mysqli, trim(strip_tags($ingamename)));
 
-		$sql = "INSERT INTO users (username, passkey) VALUES ('{$username}', '{$password}'')";
+		$sql = "INSERT INTO users (username, passkey) VALUES ('{$username}', '{$password}')";
 
 		if ($mysqli->query($sql) === TRUE) 
 		{

@@ -217,7 +217,6 @@
 			die("Connection failed: " . $mysqli->connect_error);
 		}
 
-		$BLID = intVal($BLID);
 		$username = mysqli_real_escape_string($mysqli, strToLower($username));
 		$sql = "SELECT * FROM users WHERE lower(username) = '{$username}'";
 		$result = $mysqli -> query($sql);
@@ -985,13 +984,20 @@
     }
 
 
-	function error($text, $noPrint)
+	function error()
 	{
-		if(isSet($noPrint))
-			if($noPrint)
-				print("<div class=errorText>" . $text . "</div>");
+		$numArgs = func_num_args();
 		
-		return "<div class=errorText>" . $text . "</div>";
+		if($numArgs < 1)
+			return;
+		
+		$text = func_get_arg(0);
+		
+		if($numArgs > 1)
+			if(func_get_arg(1))
+				return "<div class=errorText>" . $text . "</div>";
+			
+		print("<div class=errorText>" . $text . "</div>");
 	}
 	
 	function javascriptEscapeString($string)

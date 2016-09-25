@@ -34,7 +34,7 @@
 				</form>
 				<br><br>
 				...or <a href=register.php>register here</a>
-				<br><br><br><br><br><h2>Lost password?</h2><br>If your forget your password, simply type /resetForumPassword on Boss Battles to initiate a reset.");
+				<br><br><br><br><br><h2>Lost password?</h2><br>Too bad.");
 	}
 	else
 	{
