@@ -265,7 +265,7 @@
 			{
 				$updateProfileText = str_replace("<br>", "\n", $profileText);
 				print("Update profile text:<br>
-						<form action=\"./?action=updateprofile&finishForm=1\" method=POST accept-charset=\"ISO-8859-1\">
+						<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
 							<textarea class=postbox name=updateProfileText>{$updateProfileText}</textarea><br>
 							<input type=submit value=\"Update profile text\">
 						</form>");
@@ -579,7 +579,7 @@
 
 		print("<br><br>\n");
 
-		if(isSet($_SESSION['loggedin']))print("<form action=\"./?action=post&topic={$threadID}&page={$_GET['page']}\" method=POST>
+		if(isSet($_SESSION['loggedin']))print("<form action=\"./?action=post&topic={$threadID}&page={$page}\" method=POST>
 			<input type=hidden name=action value=newpost>
 			<textarea id=\"replytext\" class=postbox name=postcontent></textarea>
 			<br>
@@ -684,7 +684,7 @@
 			return;
 		}
 
-		$row = $result->fetch_assoc();
+		$row = $result -> fetch_assoc();
         if($row['locked'] == true)
         {
             error("This thread is locked. No further posts are permitted.");

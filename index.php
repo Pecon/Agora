@@ -108,7 +108,7 @@
 				else
 				{
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
-					print("Post edited.");
+					print("Post edited.<script> window.location = \"./?topic={$_GET['topic']}&page={$_GET['page']}#{$postID}\"; </script>");
 				}
 				break;
 				

@@ -3,9 +3,15 @@ if(isSet($_GET['finishForm']))
 {
 	if($_GET['finishForm'] == 1)
 	{
-		$pathinfo = $_SERVER['QUERY_STRING'];
-		$pathinfo = subStr($pathinfo, 0, -13);
-		header('Location: "./?' . $pathinfo . '"');
+		if(isSet($_GET['newAction']))
+			$pathinfo = "action=" . $_GET['newAction'];
+		else
+		{
+			$pathinfo = $_SERVER['QUERY_STRING'];
+			$pathinfo = subStr($pathinfo, 0, -13);
+		}
+		
+		header('Location: ./?' . $pathinfo);
 	}
 }
 ?>

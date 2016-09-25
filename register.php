@@ -87,7 +87,7 @@ function goBack()
 
 		if ($mysqli->query($sql) === TRUE) 
 		{
-			print("Registration completed successfully. Your username is {$realUsername}. <a href=\"./login.php\">Log in</a>");
+			print("Registration completed successfully. Your username is {$realUsername}.<br><a href=\"./login.php\">Log in</a>");
 		} 
 		else 
 			exit(error($mysqli -> error, true));

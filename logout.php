@@ -12,11 +12,11 @@
 	if(isSet($_SESSION['loggedin']))
 	{
 		session_destroy();
-		print("You are now logged out. <a href=\"./\">Back</a>");
+		print("You are now logged out.<br><a href=\"./\">Back</a>");
 	}
 	else
 	{
-		error("You cannot log out if you haven't logged in yet... <a href=\"./login.php\">Log in</a>");
+		error("You cannot log out if you haven't logged in yet...<br><a href=\"./login.php\">Log in</a>");
 	}
 ?>
 </body>

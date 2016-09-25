@@ -47,7 +47,7 @@
 		$userData = findUserByName(trim($_POST['username']));
 		if($userData === false)
 		{
-			error("No user exists by that name. <a href=\"./login.php\">Try again</a>");
+			error("No user exists by that name.<br><a href=\"./login.php\">Try again</a>");
 			exit();
 		}
 		
@@ -56,7 +56,7 @@
 		
 		if(!password_verify($_POST['password'], $passkey))
 		{
-			error("Incorrect password. <a href=\"./login.php\">Try again</a>");
+			error("Incorrect password.<br><a href=\"./login.php\">Try again</a>");
 			exit();
 		}
 		
@@ -77,7 +77,7 @@
 		if($_SESSION['admin'] == true)
 			print("Logged in as administrator.<br>\n");
 		
-		print("Logged in! <a href=\"./\">Continue</a>");
+		print("Logged in!<br><a href=\"./\">Continue</a>");
 	}
 ?>
 </center>
