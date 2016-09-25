@@ -204,65 +204,80 @@
 		$username = $userData['username'];
 		$lastActive = $userData['reg_date'];
 		$postCount = $userData['postCount'];
+		$tagLine = $userData['tagline'];
+		$website = $userData['website'];
 		$profileText = $userData['profiletext'];
-		$profileDisplayText = $userData['profiletextPreparsed'];		
-
-		print("<table class=forumTable border=1><tr><td>{$username}</td></tr>
-				<tr><td>Posts: {$postCount}<br>
-				Last activity: {$lastActive}<br>
-				</td></tr>
+		$profileDisplayText = $userData['profiletextPreparsed'];
+		
+		$websiteComps = parse_url($website);
+		$websitePretty = $websiteComps['host'] . (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "");
+		
+		print("<table class=forumTable border=1><tr><td>{$username}</td></tr><tr><td>" . 
+				(strLen($tagLine) > 0 ? "Tagline: ${tagLine}<br>" : "Tagline not set.<br>") . 
+				"Posts: {$postCount}<br>
+				Last activity: {$lastActive}<br>" . 
+				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br>" : "Website: None") . 
+				"</td></tr>
 				<tr><td>\n{$profileDisplayText}<br></td></tr></table><br>\n");
+				
+		if(strlen($website) == 0)
+			$website = "http://";
 		
 		if(isSet($_SESSION['userid']))
 			if($_SESSION['userid'] == $id)
 			{
 				$updateProfileText = str_replace("<br>", "\n", $profileText);
-				print("Update profile text:<br>
-						<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
-							<textarea class=postbox name=updateProfileText>{$updateProfileText}</textarea><br>
-							<input type=submit value=\"Update profile text\">
+				print("	<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
+							Tagline: <input type=text name=tagline maxLength=40 value=\"${tagLine}\"/><br>
+							Website: <input type=url name=website maxLength=200 class=validate value=\"${website}\"/><br>
+							<br>
+							Update profile text:<br>
+							<textarea class=postbox maxLength=300 name=updateProfileText>{$updateProfileText}</textarea><br>
+							<input type=submit value=\"Update profile\">
 						</form>");
 			}
 	}
 
-	function updateUserProfileText($id, $text)
+	function updateUserProfileText($id, $text, $tagLine, $website)
 	{
 		if(strlen($text) > 300)
 		{
-			error("Your profile text cannot exceed 300 characters.");
+			error("Your profile info text cannot exceed 300 characters.");
+			return false;
+		}
+		
+		// verify website and tagline are OK and then sql escape them
+		if(!filter_var($website, FILTER_VALIDATE_URL) || strlen($website) > 200)
+		{
+			error("Your website url is invalid or is too long");
+			return false;
+		}
+		
+		if(strlen($tagLine) > 40)
+		{
+			error("Your tagline is too long.");
 			return false;
 		}
 
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+
+		if ($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
 
 		$rawText = htmlentities(strip_tags($text));
-		$text = mysqli_real_escape_string($mysqli, trim(bb_parse(str_replace("\n", "<br>", strip_tags($rawText)))));
+		$text = mysqli_real_escape_string($mysqli, trim(bb_parse(str_replace("\n", "<br>", $rawText))));
 		$rawText = mysqli_real_escape_string($mysqli, $rawText);
+		$website = mysqli_real_escape_string($mysqli, trim($website));
+		$tagLine = mysqli_real_escape_string($mysqli, trim(htmlentities($tagLine)));
 
-		$sql = "UPDATE users SET profiletext='{$rawText}' WHERE id={$id}";
-		$result = $mysqli->query($sql);
-
-		if($result == false)
-		{
-			error("Could not update profile raw data.");
-			return false;
-		}
-
-
-		$sql = "UPDATE users SET profiletextPreparsed='{$text}' WHERE id={$id}";
-		$result = $mysqli->query($sql);
+		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
+		$result = $mysqli -> query($sql);
 
 		if($result == false)
 		{
-			error("Could not update profile text.");
+			error("Could not update profile data.");
 			return false;
 		}
 
@@ -359,7 +374,7 @@
 				$user = findUserByID($row['userID']);
 				$username = $user['username'];
 				
-				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext></div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${row['postDate']}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			print("</table>\n");
 		}
@@ -438,32 +453,28 @@
 
 	function displayThread($threadID, $page)
 	{
-		$start = $page*10;
-		$end = $start+10;
+		$start = $page * 10;
+		$end = $start + 10;
 
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
+		
+		if($mysqli -> connect_error)
 			die("Connection failed: " . $mysqli->connect_error);
-		}
 
 		$threadID = intVal($threadID);
 
 		$sql = "SELECT * FROM topics WHERE topicID={$threadID}";
 
-		$result = $mysqli->query($sql);
-		if($result == false)
+		$result = $mysqli -> query($sql);
+		if($result === false)
 		{
 			error("Failed to load thread.");
 			return;
 		}
 
-		$row = $result->fetch_assoc();
+		$row = $result -> fetch_assoc();
 		$posts = explode(" ", $row['posts']);
 		$rowPostCount = count($posts);
 		
@@ -499,7 +510,7 @@
 			else
 				$quoteData = "";
 
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>{$post['postDate']}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${post['postDate']}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 

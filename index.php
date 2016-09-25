@@ -234,7 +234,8 @@
 					error("Did you forget to put something here?");
 					break;
 				}
-				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText']);
+				
+				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText'], $_POST['tagline'], $_POST['website']);
 				displayUserProfile(intVal($_SESSION['userid']));
 				break;
 				
