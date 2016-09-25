@@ -14,7 +14,7 @@
 	function adminLog($stuff)
 	{
 		$file = fopen("./admin.log", "a");
-		$file.fwrite($file, time() . " " . $_SESSION['name'] . " " . $_SESSION['BL_ID'] . " " . $stuff . "\r\n");
+		$file.fwrite($file, time() . " " . $_SESSION['name'] . " " . $_SESSION['userid'] . " " . $stuff . "\r\n");
 		
 		fclose($file);
 	}
@@ -82,7 +82,7 @@
 			}
 
 			error("Post deleted. <br>");
-			adminLog("Deleted " . $_POST['ban'] . "Post author: " . $postAuthor . " Content: " . $postContent);
+			adminLog("Deleted post# " . $_POST['deletepost'] . ". Post author: " . $postAuthor . ". Content: " . $postContent);
 		}
 	}
 ?>

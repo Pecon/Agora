@@ -88,6 +88,14 @@ a:visited:hover
 	text-decoration: none;
 }
 
+.threadHeader
+{
+	text-align: left;
+	width: 75%;
+	margin-bottom: 4px;
+	padding-left: 5%;
+}
+
 .adminform
 {
 	background-color: #a0a0a0;
@@ -137,13 +145,30 @@ table.navmenu
 td.logocell
 {
 	width: 400px;
+	padding: 0px;
+}
+
+td.navmenu
+{
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+td.padding
+{
+	padding: 3px;
+	padding-left: 6px;
+	padding-right: 6px;
 }
 
 td.usernamerow
 {
-	width: 150px;
+	width: 160px;
 	vertical-align: text-top;
 	background-color: #414141;
+	
+	padding: 5px;
+	padding-top: 3px;
 }
 
 td.postdatarow

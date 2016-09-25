@@ -32,7 +32,7 @@
 					error("You are banned.");
 				}
 				
-				else if($_POST['preview'] == "Preview")
+				else if(isSet($_POST['preview']))
 				{
 					print("Here is a preview of your post.<br>\n<table border=1 class=forumtable><tr><td class=postcontent>\n");
 					$postStuff = htmlentities($_POST['postcontent']);
@@ -284,7 +284,7 @@
 				print("<br><a href=\"./admin.php\">Admin</a>");
 	}
 ?>
-
-</center><br><div class=finetext>REforum is &#169; 2016 pecon.us</div>
+<br><br><div class=finetext>REforum is &#169; 2016 pecon.us</div>
+</center>
 </body>
 </html>

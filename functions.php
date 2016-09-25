@@ -210,15 +210,15 @@
 		$profileDisplayText = $userData['profiletextPreparsed'];
 		
 		$websiteComps = parse_url($website);
-		$websitePretty = $websiteComps['host'] . (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "");
+		if(isSet($websiteComps['host']))
+			$websitePretty = $websiteComps['host'] . (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "");
 		
-		print("<table class=forumTable border=1><tr><td>{$username}</td></tr><tr><td>" . 
+		print("<table class=forumTable border=1><tr><td class=padding>{$username}</td></tr><tr><td class=padding>" . 
 				(strLen($tagLine) > 0 ? "Tagline: ${tagLine}<br>" : "Tagline not set.<br>") . 
 				"Posts: {$postCount}<br>
 				Last activity: {$lastActive}<br>" . 
 				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br>" : "Website: None") . 
-				"</td></tr>
-				<tr><td>\n{$profileDisplayText}<br></td></tr></table><br>\n");
+				"<hr><br>\n{$profileDisplayText}<br><br></td></tr></table><br>\n");
 				
 		if(strlen($website) == 0)
 			$website = "http://";
@@ -481,12 +481,12 @@
 		if(isSet($_SESSION['userid']))
 		{
 			$quotesEnabled = true;
-			print("<script>function insertQuote(postText, authorName){ var textbox = document.getElementById(\"replytext\"); textbox.value += (textbox.value == \"\" ? \"\" : \"\\r\\n\") + \"[quote \" + authorName + \"]\" + postText + \"[/quote]\"; }</script>");
+			print("<script>function insertQuote(postText, authorName){ var textbox = document.getElementById(\"replytext\"); textbox.value += (textbox.value == \"\" ? \"\" : \"\\r\\n\") + \"[quote \" + authorName + \"]\" + postText + \"[/quote]\"; }</script>\n");
 		}
 		else
 			$quotesEnabled = false;
 
-		print("Showing thread: {$row['topicName']}<br>\n<table class=forumTable border=1>\n");
+		print("<div class=threadHeader> &rarr; Displaying thread: {$row['topicName']}</div>\n<table class=forumTable border=1>\n");
 		for($i = $start; $i < $rowPostCount && $i < $end; $i++)
 		{
 			$post = fetchSinglePost($posts[$i]);
@@ -637,7 +637,7 @@
 		$mysqli->set_charset("utf8");
         
         // Get thread info
-        $sql = "SELECT topicID,posts FROM topics WHERE topicID = {$threadID}";
+        $sql = "SELECT locked, topicID, posts FROM topics WHERE topicID = {$threadID}";
 		$result = $mysqli -> query($sql);
 		if($result -> num_rows < 1)
 		{

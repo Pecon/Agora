@@ -3,7 +3,7 @@
 		<td class=logocell>
 			<a href="./"><img src="./style/logo.png"></a>
 		</td>
-		<td>
+		<td class=navmenu>
 			<?php
 				if(!isSet($_SESSION['loggedin']))
 				{
