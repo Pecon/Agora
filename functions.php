@@ -251,14 +251,17 @@
 		// verify website and tagline are OK and then sql escape them
 		if(!filter_var($website, FILTER_VALIDATE_URL) || strlen($website) > 200)
 		{
-			error("Your website url is invalid or is too long");
-			return false;
+			if(strToLower($website) != "http://")
+				error("Your website url is invalid or too long.");
+			
+			$website = findUserByID($id)['website'];
 		}
 		
 		if(strlen($tagLine) > 40)
 		{
 			error("Your tagline is too long.");
-			return false;
+			
+			$tagLine = findUserByID($id)['tagline'];
 		}
 
 		global $servername, $dbusername, $dbpassword, $dbname;
