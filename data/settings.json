@@ -1,6 +1,8 @@
 {
-	"sqlserver" : "localhost",
-	"sqlusername" : "root",
-	"sqlpassword" : "password",
-	"sqldatabasename" : "forum"
+	"sql_server_address" : "localhost",
+	"sql_username" : "root",
+	"sql_password" : "password",
+	"sql_database_name" : "reforum",
+	"min_password_length" : "8",
+	"require_email_verification" : "false"
 }

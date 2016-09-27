@@ -27,39 +27,24 @@ function goBack()
 	
 	if(!isSet($_POST['registering']))
 	{
-		print("Username:</td><td><input type=text name=username></td>
+		print("Username:</td><td><input type=text maxLength=20 name=username></td>
 					</tr>
 					<tr>
-					<td>Password:</td><td><input type=password name=password title=\"Use a minimum of 8 characters. I highly recommend using over 12 for better security.\"></td>
+					<td>Password:</td><td><input type=password class=validate minLength=${min_password_length} maxLength=72 name=password></td>
 					</tr>
 					<tr>
 					<td>Confirm:</td><td><input type=password name=confirmpassword></td>
+					</tr>
+					<tr>
+					<td>Email:</td><td><input class=validate type=email name=email></td>
 					</tr><tr>
 					<td><input type=hidden name=registering value=true>
 					<input type=submit value=Register>");
 	}
-	else if(isSet($_POST['username']) && isSet($_POST['password']))
+	else if(isSet($_POST['username']) && isSet($_POST['password']) && isSet($_POST['email']))
 	{
-		if($_POST['password'] !== $_POST['confirmpassword'])
-		{
-			error("Passwords do not match. <br><button onclick=\"goBack()\">Try again</button>");
-			exit();
-		}
-		
-		if(strlen($_POST['password']) < 8)
-		{
-			error("Error: Password is too short. Use at least 8 characters. This is the only requirement aside from your password not being 'password'. <br><button onclick=\"goBack()\">Try again</button>");
-			return;
-		}
-		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 16)
-		{
-			error("You've got to be kidding me. <br><button onclick=\"goBack()\">Try again</button>");
-			return;
-		}
-		
+		// Verify username is OK
 		$username = normalize_special_characters(strip_tags($_POST['username']));
-		$password = password_hash(normalize_special_characters($_POST['password']), PASSWORD_BCRYPT);
-		
 		if(strLen($username) > 20)
 		{
 			error("Username is too long. Pick something under 20 characters. <br><button onclick=\"goBack()\">Try again</button>");
@@ -72,9 +57,31 @@ function goBack()
 			exit();
 		}
 		
-		//global $servername, $dbusername, $dbpassword, $dbname;
+		// Verify email is OK
+		if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
+			exit(error("Email address is invalid. <br><button onclick=\"goBack()\">Try again</button>", true));
 		
-		//Insert query
+		// Verify password is OK
+		if($_POST['password'] !== $_POST['confirmpassword'])
+		{
+			error("Passwords do not match. <br><button onclick=\"goBack()\">Try again</button>");
+			exit();
+		}
+		
+		if(strlen($_POST['password']) < $min_password_length)
+		{
+			error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br><button onclick=\"goBack()\">Try again</button>");
+			exit();
+		}
+		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 16)
+		{
+			error("You've got to be kidding me. <br><button onclick=\"goBack()\">Try again</button>");
+			exit();
+		}
+		
+		
+		$password = password_hash(normalize_special_characters($_POST['password']), PASSWORD_BCRYPT);
+		
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		if($mysqli -> connect_error) 
 			exit(error("Connection failed: " . $mysqli -> connect_error, true));
@@ -82,13 +89,13 @@ function goBack()
 		$realUsername = $username;
 		$username = mysqli_real_escape_string($mysqli, $username);
 		$password = mysqli_real_escape_string($mysqli, $password);
+		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
+		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey) VALUES ('{$username}', '{$password}')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email) VALUES ('${username}', '${password}', ${regDate}, '${email}')";
 
-		if ($mysqli->query($sql) === TRUE) 
-		{
+		if ($mysqli -> query($sql) === TRUE) 
 			print("Registration completed successfully. Your username is {$realUsername}.<br><a href=\"./login.php\">Log in</a>");
-		} 
 		else 
 			exit(error($mysqli -> error, true));
 

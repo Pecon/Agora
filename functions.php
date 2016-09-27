@@ -202,7 +202,8 @@
 		}
 
 		$username = $userData['username'];
-		$lastActive = $userData['reg_date'];
+		$lastActive = $userData['lastActive'];
+		$reg_date = date('Y-m-d g:i:s', $userData['reg_date']);
 		$postCount = $userData['postCount'];
 		$tagLine = $userData['tagline'];
 		$website = $userData['website'];
@@ -214,8 +215,9 @@
 			$websitePretty = $websiteComps['host'] . (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "");
 		
 		print("<table class=forumTable border=1><tr><td class=padding>{$username}</td></tr><tr><td class=padding>" . 
-				(strLen($tagLine) > 0 ? "Tagline: ${tagLine}<br>" : "Tagline not set.<br>") . 
+				(strLen($tagLine) > 0 ? "Tagline: ${tagLine}<br>" : "<br>") . 
 				"Posts: {$postCount}<br>
+				Date registered: {$reg_date}<br>
 				Last activity: {$lastActive}<br>" . 
 				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br>" : "Website: None") . 
 				"<hr><br>\n{$profileDisplayText}<br><br></td></tr></table><br>\n");

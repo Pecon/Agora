@@ -34,6 +34,9 @@ table
 	border-width: 4px;
 	border-color: #AAF;
 	border-collapse: collapse;
+	
+	min-width: 300px;
+	vertical-align: middle;
 }
 
 tr
@@ -54,10 +57,10 @@ td
 	border-color: #AAF;
 }
 
-input:valid.validate
+/*input:valid.validate
 {
 	background-color: #1D1;
-}
+}*/
 
 input:invalid.validate
 {
