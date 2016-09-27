@@ -284,7 +284,7 @@
 				print("<br><a href=\"./admin.php\">Admin</a>");
 	}
 ?>
-<br><br><div class=finetext>REforum is &#169; 2016 pecon.us</div>
+<br><br><div class=finetext>REforum is &#169; 2016 pecon.us <a href="./about.html">About</a></div>
 </center>
 </body>
 </html>
