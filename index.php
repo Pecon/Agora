@@ -1,4 +1,5 @@
 <?php
+	ob_start();
 	session_start();
 	$pageTitle = "REforum";
 	$metaTags = "<meta HTTP-EQUIV=\"Pragma\" content=\"no-cache\">

@@ -66,14 +66,14 @@
 		
 		$issue = false;
 		
-		print("Webserver: " . $_SERVER['SERVER_SOFTWARE'] . " ... OK.");
-		// if(version_compare(PHP_VERSION, '5.5.0') >= 0)
-			// print("good.<br /><br />");
-		// else
-		// {
-			// $issue = true;
-			// print("bad. Minimum requirement is 5.5.0 <br /><br />");
-		// }
+		$software = $_SERVER['SERVER_SOFTWARE'];
+		print("Webserver: " . $software . " ... ");
+		if(stripos($software, "apache") > -1)
+			print("good.<br /><br />");
+		else if(stripos($software, "nginx") > -1)
+			print("good.<br /><br />");
+		else
+			print("OK.<br />" . error("Please make sure that you make the ./data directory protected from public view, as it will contain information like your mysql credentials.", true) . "<br /><br />");
 		
 		print("PHP version: " . PHP_VERSION . " ... ");
 		if(version_compare(PHP_VERSION, '5.5.0') >= 0)
@@ -155,7 +155,7 @@
 					MySQL server port: <input type="text" name="port" value="3306"/> <span class="finetext">3306 is the default port value for most configurations.</span><br />
 					MySQL server username: <input type="text" name="username" /> <span class="finetext"></span><br />
 					MySQL server password: <input type="password" name="password" /> <span class="finetext"></span><br />
-					MySQL database name: <input type="password" name="database" /> <span class="finetext">Make sure this name isn't the same as a database being used by other software.</span><br />
+					MySQL database name: <input type="text" name="database" /> <span class="finetext">Make sure this name isn't the same as a database being used by other software.</span><br />
 					<input type="submit" value="Save" />
 				</form>
 			</div>
@@ -230,11 +230,11 @@
 			flush();
 			
 			$sql = "CREATE TABLE IF NOT EXISTS `changes` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
-  `lastChange` int(10) DEFAULT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `lastChange` int(10) unsigned DEFAULT NULL,
   `postData` mediumtext NOT NULL,
   `changeTime` int(10) unsigned DEFAULT '0',
-  `postID` int(10) NOT NULL,
+  `postID` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -246,13 +246,13 @@
 			flush();
 			
 			$sql = "CREATE TABLE IF NOT EXISTS `posts` (
-  `postID` int(11) NOT NULL AUTO_INCREMENT,
-  `userID` int(6) DEFAULT NULL,
-  `threadID` int(6) DEFAULT NULL,
+  `postID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `userID` int(10) unsigned DEFAULT NULL,
+  `threadID` int(10) unsigned DEFAULT NULL,
   `postDate` int(10) unsigned DEFAULT '0',
   `postData` mediumtext,
   `postPreparsed` mediumtext NOT NULL,
-  `changeID` int(10) DEFAULT NULL,
+  `changeID` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`postID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -264,13 +264,13 @@
 			flush();
 			
 			$sql = "CREATE TABLE IF NOT EXISTS `topics` (
-  `topicID` int(6) NOT NULL AUTO_INCREMENT,
-  `creatorUserID` int(6) DEFAULT NULL,
+  `topicID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `creatorUserID` int(10) unsigned DEFAULT NULL,
   `topicName` varchar(130) DEFAULT NULL,
   `posts` mediumtext,
   `lastposttime` bigint(20) unsigned DEFAULT NULL,
-  `lastpostid` int(11) NOT NULL,
-  `numposts` int(10) NOT NULL,
+  `lastpostid` int(10) unsigned NOT NULL,
+  `numposts` int(10) unsigned NOT NULL,
   `sticky` tinyint(1) NOT NULL DEFAULT '0',
   `locked` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`topicID`)
@@ -284,7 +284,7 @@
 			flush();
 			
 			$sql = "CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(20) NOT NULL,
   `passkey` varchar(128) NOT NULL,
   `reg_date` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -294,14 +294,14 @@
   `verified` tinyint(1) NOT NULL,
   `banned` tinyint(1) DEFAULT NULL,
   `administrator` tinyint(1) DEFAULT NULL,
-  `postCount` int(6) unsigned NOT NULL,
+  `postCount` int(10) unsigned NOT NULL,
   `profiletext` varchar(300) DEFAULT NULL,
   `profiletextPreparsed` varchar(1000) NOT NULL,
   `tagline` varchar(40) NOT NULL DEFAULT '',
   `website` varchar(200) NOT NULL DEFAULT '',
   `avatar` mediumblob,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=186 ;";
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				exit(error("Failed to create users table. " . $mysqli -> error, true));
@@ -358,7 +358,7 @@
 	{
 		require_once './functions.php';
 		
-		if(findUserByID(0) !== false)
+		if(findUserByID(1) !== false)
 			exit("This step cannot be done again.");
 		
 		if(!isSet($_POST['username']))
@@ -426,7 +426,7 @@
 		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
 		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email) VALUES ('${username}', '${password}', ${regDate}, '${email}')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, administrator) VALUES ('${username}', '${password}', ${regDate}, '${email}', true)";
 
 		if($mysqli -> query($sql) === TRUE) 
 		{
