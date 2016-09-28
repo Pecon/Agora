@@ -233,7 +233,7 @@
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `lastChange` int(10) DEFAULT NULL,
   `postData` mediumtext NOT NULL,
-  `changeTime` varchar(30) NOT NULL,
+  `changeTime` int(10) unsigned DEFAULT '0',
   `postID` int(10) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
@@ -249,7 +249,7 @@
   `postID` int(11) NOT NULL AUTO_INCREMENT,
   `userID` int(6) DEFAULT NULL,
   `threadID` int(6) DEFAULT NULL,
-  `postDate` varchar(50) DEFAULT NULL,
+  `postDate` int(10) unsigned DEFAULT '0',
   `postData` mediumtext,
   `postPreparsed` mediumtext NOT NULL,
   `changeID` int(10) DEFAULT NULL,

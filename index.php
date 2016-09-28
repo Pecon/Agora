@@ -99,7 +99,7 @@
 				}
 				else if(!isSet($_POST['editpost']))
 				{
-					print("Editing post<br>\n<form method=post action=\"./?action=edit&post=" . $_GET['post'] . "\" accept-charset=\"ISO-8859-1\"><textarea name=editpost class=postbox>{$post['postData']}</textarea><br>\n<input type=submit value=Edit></form>\n");
+					print("Editing post<br>\n<form method=post action=\"./?action=edit&post={$_GET['post']}&topic={$_GET['topic']}&page={$_GET['page']}\" accept-charset=\"ISO-8859-1\"><textarea name=editpost class=postbox>{$post['postData']}</textarea><br>\n<input type=submit value=Edit></form>\n");
 				}
 				else if(strLen(trim($_POST['editpost'])) > 10000)
 				{
@@ -108,8 +108,9 @@
 				else
 				{
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
-					print("Post edited.<script> window.location = \"./?topic={$_GET['topic']}&page={$_GET['page']}#{$postID}\"; </script>");
+					print("Post edited.<script> window.location = \"./?topic={$_GET['topic']}&page={$_GET['page']}#{$post['postID']}\"; </script>");
 				}
+				
 				break;
 				
 			case "recentposts":

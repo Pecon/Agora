@@ -65,6 +65,7 @@
 		$_SESSION['admin'] = $userData['administrator'];
 		$_SESSION['banned'] = $userData['banned'];
 		$_SESSION['userid'] = $userData['id'];
+		$_SESSION['lastpostdata'] = "";
 		$_SESSION['lastpostingtime'] = time();
 		
 		if($_SESSION['banned'] == true)

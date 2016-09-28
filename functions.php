@@ -1,6 +1,8 @@
 <?php 
 	require_once './data.php';
 	
+	date_default_timezone_set("America/Los_Angeles"); // Should add this to the configuration at some point.
+	
 	function reauthuser()
 	{
 		if(!isSet($_SESSION['userid']))
@@ -114,7 +116,6 @@
 		if ($mysqli -> connect_error)
 			exit("Connection failed: " . $mysqli->connect_error);
 
-		$name = mysqli_real_escape_string($mysqli, strToLower($name));
 		$sql = "SELECT * FROM users WHERE id = '{$id}'";
 		$result = $mysqli -> query($sql);
 
@@ -325,7 +326,7 @@
 
 
 				$lastPost = fetchSinglePost($row['lastpostid']);
-				$lastPostTime = $lastPost['postDate'];
+				$lastPostTime = date("F n, Y H:i:s", $lastPost['postDate']);
 				$postUserName = findUserByID($lastPost['userID']);
 				$postUserNameIngame = $postUserName['username'];
 
@@ -378,8 +379,9 @@
 			{
 				$user = findUserByID($row['userID']);
 				$username = $user['username'];
+				$date = date("F n, Y H:i:s", $row['postDate']);
 				
-				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${row['postDate']}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			print("</table>\n");
 		}
@@ -449,8 +451,9 @@
 
 			$change = $result->fetch_assoc();
 			$changeID = $change['lastChange'];
+			$date = date("F n, Y H:i:s", $change['changeTime']);
 
-			print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><span class=finetext>{$change['changeTime']}</span></td><td class=postdatarow>{$change['postData']}</td></tr>\n");
+			print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><span class=finetext>${date}</span></td><td class=postdatarow>{$change['postData']}</td></tr>\n");
 		}
 
 		print("</table>\n");
@@ -466,7 +469,7 @@
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		
 		if($mysqli -> connect_error)
-			die("Connection failed: " . $mysqli->connect_error);
+			die("Connection failed: " . $mysqli -> connect_error);
 
 		$threadID = intVal($threadID);
 
@@ -508,14 +511,15 @@
 			
 			if(isSet($_SESSION['userid']))
 				if($post['userID'] == $_SESSION['userid'])
-					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}\">Edit post</a>   ";
+					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${threadID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
 			
 			if($quotesEnabled)
 				$quoteData = "<a class=inPostButtons onclick=\"insertQuote('" . javascriptEscapeString(htmlentities($post['postData'])) . "', '{$username}');\" href=\"#replytext\">Quote/Reply</a>   ";
 			else
 				$quoteData = "";
-
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${post['postDate']}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			
+			$date = date("F n, Y H:i:s", $post['postDate']);
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${date}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
@@ -637,16 +641,14 @@
 		if ($mysqli->connect_error)
 			exit("Connection failed: " . $mysqli -> connect_error);
 
-		date_default_timezone_set("America/Los_Angeles");
-		$date = mysqli_real_escape_string($mysqli, date("F j, Y G:i:s"));
-		$mysqli->set_charset("utf8");
+		$mysqli -> set_charset("utf8");
         
         // Get thread info
         $sql = "SELECT locked, topicID, posts FROM topics WHERE topicID = {$threadID}";
 		$result = $mysqli -> query($sql);
 		if($result -> num_rows < 1)
 		{
-			error("Could not find thread data.");
+			error("Could not find thread data. " . $mysqli -> error);
 			return;
 		}
 
@@ -659,16 +661,18 @@
 
         // Cleanse post data
 		$postData = htmlentities(strip_tags($postData));
-		$parsedPost = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "<br>", $postData)));
+		$parsedPost = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "\n<br>", $postData)));
 		$postData = mysqli_real_escape_string($mysqli, $postData);
+		
+		$date = time();
 
         // Make entry in posts table
 		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed) VALUES ({$userID}, {$threadID}, '{$date}', '{$postData}', '{$parsedPost}');";
 		$result = $mysqli -> query($sql);
 
-		if($result == false)
+		if($result === false)
 		{
-			error("Post failed. {$userID} {$threadID} {$postData}");
+			error("Post failed. {$userID} {$threadID} {$postData} " . $mysqli -> error);
 			return false;
 		}
 		$postID = $mysqli->insert_id;
@@ -683,9 +687,9 @@
         // Update thread entry
 		$sql = "UPDATE topics SET posts='{$topicPosts}',lastposttime={$time},lastpostid={$postID},numposts={$numPosts} WHERE topicID={$threadID}";
 		$result = $mysqli -> query($sql);
-		if($result == false)
+		if($result === false)
 		{
-			error("Could not update thread.");
+			error("Could not update thread. " . $mysqli -> error);
 			return;
 		}
 
@@ -694,9 +698,9 @@
 
 		$sql = "UPDATE users SET postCount='{$postCount}' WHERE id={$userID}";
 		$result = $mysqli->query($sql);
-		if($result == false)
+		if($result === false)
 		{
-			error("Could not update user postcount.");
+			error("Could not update user postcount. " . $mysqli -> error);
 			return;
 		}
 
@@ -720,7 +724,7 @@
 		global $servername, $dbusername, $dbpassword, $dbname;
 		$sqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
 
-		$changeTime = mysqli_real_escape_string($sqli, date("F j, Y G:i:s"));
+		$changeTime = time();
 		$oldPostData = mysqli_real_escape_string($sqli, $post['postPreparsed']);
 
 		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID) VALUES ('{$post['changeID']}', '{$oldPostData}', '{$changeTime}', {$post['postID']});";
@@ -814,7 +818,7 @@
 			$lastPost = explode(" ", $newRow);
 			$lastPost = $lastPost[count($lastPost) - 1];
 
-			$lastPostTime = strtotime(fetchSinglePost($lastPost)['postDate']);
+			$lastPostTime = fetchSinglePost($lastPost)['postDate'];
 
 			if($newRow != $row['posts'])
 			{
