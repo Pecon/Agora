@@ -1,7 +1,7 @@
 <?php
 	if(!file_exists("./data/settings.json"))
 	{
-		header("Location: \"./setup.php\"");
+		header("Location: ./setup.php");
 		exit();
 	}
 	
