@@ -428,7 +428,7 @@
 
 		$sql = "INSERT INTO users (username, passkey, reg_date, email, administrator) VALUES ('${username}', '${password}', ${regDate}, '${email}', true)";
 
-		if($mysqli -> query($sql) === TRUE) 
+		if($mysqli -> query($sql) === TRUE)
 		{
 			print("Registration completed successfully. Your username is {$realUsername}.<br><a href=\"./login.php\">Log in</a><br /><br /><br />Oh right. Yes, the setup is actually over now. Good job.");
 			unlink("./setup.php"); // Delete the setup file afterwards for security reasons.

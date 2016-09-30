@@ -44,7 +44,8 @@ function goBack()
 	else if(isSet($_POST['username']) && isSet($_POST['password']) && isSet($_POST['email']))
 	{
 		// Verify username is OK
-		$username = normalize_special_characters(strip_tags($_POST['username']));
+		$username = filter_var($_POST['username'], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_LOW);
+		$username = trim(normalize_special_characters(strip_tags(trim($username))));
 		if(strLen($username) > 20)
 		{
 			error("Username is too long. Pick something under 20 characters. <br><button onclick=\"goBack()\">Try again</button>");
