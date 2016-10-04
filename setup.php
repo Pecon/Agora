@@ -65,6 +65,7 @@
 		<?php
 		
 		$issue = false;
+		$problem = false;
 		
 		$software = $_SERVER['SERVER_SOFTWARE'];
 		print("Webserver: " . $software . " ... ");
@@ -73,7 +74,10 @@
 		else if(stripos($software, "nginx") > -1)
 			print("good.<br /><br />");
 		else
-			print("OK.<br />" . error("Please make sure that you make the ./data directory protected from public view, as it will contain information like your mysql credentials.", true) . "<br /><br />");
+		{
+			$problem = true;
+			warn("OK.<br />" . error("Please make sure that you make the ./data directory protected from public view, as it will contain information like your mysql credentials.", true) . "<br /><br />");
+		}
 		
 		print("PHP version: " . PHP_VERSION . " ... ");
 		if(version_compare(PHP_VERSION, '5.5.0') >= 0)
@@ -81,7 +85,7 @@
 		else
 		{
 			$issue = true;
-			print("bad. Minimum requirement is 5.5.0 <br /><br />");
+			print(error("bad. Minimum requirement is 5.5.0 <br /><br />", true));
 		}
 		
 		print("Checking mysqli is installed: ... ");
@@ -90,7 +94,7 @@
 		else
 		{
 			$issue = true;
-			print("No. mysqli extension must be installed for REforum to work.<br /><br />");
+			print(error("No. mysqli extension must be installed for REforum to work.<br /><br />", true));
 		}
 		
 		print("Checking json is installed: ... ");
@@ -99,17 +103,30 @@
 		else
 		{
 			$issue = true;
-			print("No. json extension must be installed for REforum to work.<br /><br />");
+			print(error("No. json extension must be installed for REforum to work.<br /><br />", true));
+		}
+		
+		print("Checking GD image library is installed: ... ");
+		if(extension_loaded('GD'))
+			print("Yes.<br /><br />");
+		else
+		{
+			$problem = true;
+			print(warn("No. GD image library is required for user avatars to work. This is optional, but you may run into issues.<br /><br />", true));
 		}
 		
 		if(!$issue)
 		{
+			if($problem)
+				print("REforum is probably compatible with this server. You should check the errors above to see if you can improve at all.");
+			else
+				print("REforum is compatible with this server.");
+			
 			?>
-			REforum is compatible with this server.
 			<br />
 			<form method="POST">
-				<input type="hidden" name="setup" value="2"/>
-				<input type="submit" value="Continue"/>
+				<input type="hidden" name="setup" value="2" />
+				<input type="submit" value="Continue" />
 			</form>
 		</center>
 	</body>
@@ -299,7 +316,7 @@
   `profiletextPreparsed` varchar(1000) NOT NULL,
   `tagline` varchar(40) NOT NULL DEFAULT '',
   `website` varchar(200) NOT NULL DEFAULT '',
-  `avatar` mediumblob,
+  `avatar` blob,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);

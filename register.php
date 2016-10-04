@@ -93,7 +93,7 @@ function goBack()
 		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
 		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email) VALUES ('${username}', '${password}', ${regDate}, '${email}')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user')";
 
 		if ($mysqli -> query($sql) === TRUE) 
 			print("Registration completed successfully. Your username is {$realUsername}.<br><a href=\"./login.php\">Log in</a>");

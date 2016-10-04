@@ -31,6 +31,7 @@
 		if($mysqli -> connect_error)
 			exit("Connection failed: " . $mysqli -> connect_error);
 
+		$id = intval($id);
 		$sql = "UPDATE users SET banned=1 WHERE id={$id}";
 		$result = $mysqli -> query($sql);
 
@@ -59,7 +60,7 @@
 			exit("Connection failed: " . $mysqli->connect_error);
 
 		$name = mysqli_real_escape_string($mysqli, strToLower($name));
-		$sql = "SELECT * FROM users WHERE lower(username) = '{$name}'";
+		$sql = "SELECT id, username, passkey, reg_date, lastActive, email, verification, verified, banned, administrator, postCount, profiletext, profiletextPreparsed, tagline, website FROM users WHERE lower(username) = '{$name}'";
 		$result = $mysqli -> query($sql);
 
 		if($numResults = $result->num_rows > 0)
@@ -91,7 +92,7 @@
 			exit("Connection failed: " . $mysqli->connect_error);
 
 		$ID = intVal($ID);
-		$sql = "SELECT * FROM users WHERE id = {$ID}";
+		$sql = "SELECT id, username, passkey, reg_date, lastActive, email, verification, verified, banned, administrator, postCount, profiletext, profiletextPreparsed, tagline, website FROM users WHERE id = {$ID}";
 		$result = $mysqli -> query($sql);
 
 		if($numResults = $result -> num_rows > 0)
@@ -115,8 +116,9 @@
 
 		if ($mysqli -> connect_error)
 			exit("Connection failed: " . $mysqli->connect_error);
-
-		$sql = "SELECT * FROM users WHERE id = '{$id}'";
+		
+		$id = intval($id);
+		$sql = "SELECT username FROM users WHERE id = '{$id}'";
 		$result = $mysqli -> query($sql);
 
 		if($numResults = $result -> num_rows > 0)
@@ -136,29 +138,219 @@
 		global $servername, $dbusername, $dbpassword, $dbname;
 
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
 
 		$id = intVal($id);
-		$sql = "SELECT * FROM users WHERE id = '{$id}'";
-		$result = $mysqli->query($sql);
+		$sql = "SELECT postCount FROM users WHERE id = '{$id}'";
+		$result = $mysqli -> query($sql);
 
-		if($numResults = $result->num_rows > 0)
+		if($numResults = $result -> num_rows > 0)
 		{
-			while($row = $result->fetch_assoc())
-			{
+			while($row = $result -> fetch_assoc())
 				return $row['postCount'];
-			}
 			return false;
 		}
 		else
-		{
 			return false;
+		
+		$mysqli -> close();
+	}
+	
+	function getAvatarByID($id)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
+		
+		$id = intval($id);
+		$sql = "SELECT avatar FROM users WHERE id=${id};";
+		
+		$result = $mysqli -> query($sql);
+		
+		if($result === false)
+			return false;
+		
+		$result = $result -> fetch_assoc();
+		
+		if(isSet($result['avatar']))
+			return $result['avatar'];
+		return false;
+	}
+	
+	function updateAvatarByID($id, $imagePath)
+	{
+		if(move_uploaded_file($_FILES['avatar']['tmp_name'], $imagePath))
+		{
+			$imgInfo = getimagesize($imagePath);
+			$width = $imgInfo[0];
+			$height = $imgInfo[0];
+			$imgType = $imgInfo['mime'];
+			$keepOriginal = false;
+			$scaled = false;
+			
+			if($imgType == "image/png")
+			{
+				$image = imagecreatefrompng($imagePath);
+				
+				if(filesize($imagePath) < 65000)
+					$keepOriginal = true;
+			}
+			else if($imgType == "image/jpeg")
+				$image = imagecreatefromjpeg($imagePath);
+			else if($imgType == "image/gif")
+				$image = imagecreatefromgif($imagePath);
+			else if($imgType == "image/bmp")
+				$image = imagecreatefromwbmp($imagePath);
+			else if($imgType == "image/webp")
+				$image = imagecreatefromwebp($imagePath);
+			else
+			{
+				unlink($imagePath);
+				exit(error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.", true));
+			}
+			
+			// Delete the raw uploaded image so it isn't left there if we exit from an error.
+			if(!$keepOriginal)
+				unlink($imagePath);
+			
+			if($image === false)
+				exit(error("Failed to load image.", true));
+			
+			if($height > 100 || $width > 100)
+			{
+				$newImage = imagecreatetruecolor(100, 100);
+				
+				// Make sure transparency is spared.
+				imagesavealpha($image, true);
+				imagesavealpha($newImage, true);
+				imagesetinterpolation($newImage, IMG_BICUBIC);
+				
+				$error = imagecopyresized($newImage, $image, 0, 0, 0, 0, 100, 100, $height, $width);
+				
+				if($error === false)
+					exit(error("Unable to scale image.", true));
+				
+				imagedestroy($image);
+				$image = $newImage;
+				$scaled = true;
+				
+				warn("Your image was scaled because it was too big. Some quality may have been lost.");
+			}
+			
+			// Save the converted image.
+			if(!$keepOriginal || $scaled)
+			{
+				$error = imagepng($image, $imagePath, 9, PNG_NO_FILTER);
+				
+				if($error === false)
+					exit(error("Unable to save converted image.", true));
+			}
+			
+			//Upload the avatar to the MySQL database
+			global $servername, $dbusername, $dbpassword, $dbname;
+
+			$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+			if($mysqli -> connect_error)
+			{
+				unlink($imagePath);
+				exit("Connection failed: " . $mysqli -> connect_error);
+			}
+			
+			$id = intval($id);
+			$inputData = mysqli_real_escape_string($mysqli, fread(fopen($imagePath, "rb"), filesize($imagePath)));
+			unlink($imagePath);
+			$sql = "UPDATE users SET avatar='${inputData}' WHERE id=${id};";
+			
+			$error = $mysqli -> query($sql);
+			if($error === false)
+				exit(error("Failed to save avatar. " . $mysqli -> error, true));
 		}
-		$mysqli->close();
+		else
+			error("Uploaded file could not be validated.");
+	}
+	
+	function getPasswordHashByID($ID)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
+		
+		$ID = intval($ID);
+		$sql = "SELECT passkey FROM users WHERE id=${ID};";
+		
+		$result = $mysqli -> query($sql);
+		
+		if($result === false)
+			exit(error("Could not get password hash. " . $mysqli -> error, true));
+		
+		return $result -> fetch_assoc()['passkey'];
+	}
+	
+	function updatePasswordByID($ID, $newHash)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
+		
+		$ID = intval($ID);
+		$newHash = mysqli_real_escape_string($mysqli, $newHash);
+		
+		$sql = "UPDATE users SET passkey='${newHash}' WHERE id=${ID};";
+		
+		$result = $mysqli -> query($sql);
+		
+		if($result === false)
+			exit(error("Could not update password. " . $mysqli -> error, true));
+	}
+	
+	function getEmailByID($ID)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
+		
+		$ID = intval($ID);
+		$sql = "SELECT email FROM users WHERE id=${ID};";
+		
+		$result = $mysqli -> query($sql);
+		
+		if($result === false)
+			exit(error("Could not get email. " . $mysqli -> error, true));
+		
+		return $result -> fetch_assoc()['email'];
+	}
+	
+	function updateEmailByID($ID, $newEmail)
+	{
+		if(filter_var($newEmail, FILTER_VALIDATE_EMAIL) === false)
+			return false;
+		
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
+		
+		$ID = intval($ID);
+		$newEmail = mysqli_real_escape_string($mysqli, trim($newEmail));
+		
+		$sql = "UPDATE users SET email='${newEmail}' WHERE id=${ID};";
+		
+		$result = $mysqli -> query($sql);
+		
+		if($result === false)
+			exit(error("Could not update email. " . $mysqli -> error, true));
+		
+		return true;
 	}
 
 	function checkUserExists($username)
@@ -166,10 +358,8 @@
 		global $servername, $dbusername, $dbpassword, $dbname;
 
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if ($mysqli -> connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
 
 		$username = mysqli_real_escape_string($mysqli, strToLower($username));
 		$sql = "SELECT * FROM users WHERE lower(username) = '{$username}'";
@@ -178,9 +368,7 @@
 		if($result -> num_rows > 0)
 		{
 			while($row = $result -> fetch_assoc())
-			{
 				return true;
-			}
 			
 			return false;
 		}
@@ -213,15 +401,16 @@
 		
 		$websiteComps = parse_url($website);
 		if(isSet($websiteComps['host']))
-			$websitePretty = $websiteComps['host'] . (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "");
+			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 		
 		print("<table class=forumTable border=1><tr><td class=padding>{$username}</td></tr><tr><td class=padding>" . 
-				(strLen($tagLine) > 0 ? "Tagline: ${tagLine}<br>" : "<br>") . 
-				"Posts: {$postCount}<br>
-				Date registered: {$reg_date}<br>
-				Last activity: {$lastActive}<br>" . 
-				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br>" : "Website: None") . 
-				"<hr><br>\n{$profileDisplayText}<br><br></td></tr></table><br>\n");
+				(strLen($tagLine) > 0 ? "${tagLine}<br />" : "<br />") . 
+				"<img class=avatar src=./avatar.php?user=${id} /><br />
+				Posts: {$postCount}<br />
+				Date registered: {$reg_date}<br />
+				Last activity: {$lastActive}<br />" . 
+				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />" : "Website: None") . 
+				"<hr><br />\n{$profileDisplayText}<br><br></td></tr></table><br />\n");
 				
 		if(strlen($website) == 0)
 			$website = "http://";
@@ -230,14 +419,35 @@
 			if($_SESSION['userid'] == $id)
 			{
 				$updateProfileText = str_replace("<br>", "\n", $profileText);
-				print("	<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
-							Tagline: <input type=text name=tagline maxLength=40 value=\"${tagLine}\"/><br>
-							Website: <input type=url name=website maxLength=200 class=validate value=\"${website}\"/><br>
-							<br>
-							Update profile text:<br>
-							<textarea class=postbox maxLength=300 name=updateProfileText>{$updateProfileText}</textarea><br>
-							<input type=submit value=\"Update profile\">
-						</form>");
+				?>	
+					
+				<table class="forumTable">
+					<tr>
+						<td class="padding" style="max-width: 30px; vertical-align: top;">
+							User settings<br />
+							<hr />
+							<a href="./?action=avatarchange">Change avatar</a><br />
+							<a href="./?action=emailchange">Change email</a><br />
+							<a href="./?action=passwordchange">Change password</a><br />
+						</td>
+						<td class="padding">
+							Profile info<br />
+							<hr />
+							<?php					
+									print("<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
+								Tagline: <input type=text name=tagline maxLength=40 value=\"${tagLine}\"/><br />
+								Website: <input type=url name=website maxLength=200 class=validate value=\"${website}\"/><br />
+								<br />
+								Update profile text:<br />
+								<textarea class=postbox maxLength=300 name=updateProfileText>{$updateProfileText}</textarea><br />
+								<input type=submit value=\"Update profile\">
+							</form>");
+							?>
+						</td>
+					</tr>
+				</table>
+						
+				<?php
 			}
 	}
 
@@ -272,11 +482,12 @@
 		if ($mysqli -> connect_error)
 			exit("Connection failed: " . $mysqli -> connect_error);
 
+		$id = intval($id);
 		$rawText = htmlentities(strip_tags($text));
 		$text = mysqli_real_escape_string($mysqli, trim(bb_parse(str_replace("\n", "<br>", $rawText))));
 		$rawText = mysqli_real_escape_string($mysqli, $rawText);
 		$website = mysqli_real_escape_string($mysqli, trim($website));
-		$tagLine = mysqli_real_escape_string($mysqli, trim(htmlentities($tagLine)));
+		$tagLine = mysqli_real_escape_string($mysqli, htmlentities(trim($tagLine)));
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
 		$result = $mysqli -> query($sql);
@@ -361,27 +572,22 @@
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli->connect_error);
 
 		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
 		$result = $mysqli->query($sql);
 		if($result->num_rows > 0)
 		{
 			print("<table class=forumTable border=1>\n");
-			while($row = $result->fetch_assoc())
+			while($row = $result -> fetch_assoc())
 			{
 				$user = findUserByID($row['userID']);
 				$username = $user['username'];
 				$date = date("F n, Y H:i:s", $row['postDate']);
 				
-				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			print("</table>\n");
 		}
@@ -401,7 +607,7 @@
 		global $servername, $dbusername, $dbpassword, $dbname;
 
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if ($mysqli->connect_error)
+		if ($mysqli -> connect_error)
 			exit("Connection failed: " . $mysqli->connect_error);
 
 		$postID = intVal($postID);
@@ -429,19 +635,20 @@
 			return;
 		}
 
+		$postID = intval($postID);
 		$username = getUserNameByID($post['userID']);
 
 		print("Viewing post edits<br>\n<table border=1 class=forumTable><tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br>Current</td><td class=postdatarow>{$post['postPreparsed']}</td></tr>\n");
 
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		$sqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		$changeID = $post['changeID'];
 
 		while($changeID > 0)
 		{
 			$sql = "SELECT * FROM changes WHERE id={$changeID}";
-			$result = $sqli->query($sql);
+			$result = $mysqli -> query($sql);
 
 			if($result == false)
 			{
@@ -519,7 +726,7 @@
 				$quoteData = "";
 			
 			$date = date("F n, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br>${date}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
@@ -566,15 +773,12 @@
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+		if($mysqli -> connect_error)
+			exit("Connection failed: " . $mysqli -> connect_error);
 
-		$mysqli->set_charset("utf8");
+		$mysqli -> set_charset("utf8");
+		$userID = intval($userID);
 		$topic = mysqli_real_escape_string($mysqli, htmlentities(strip_tags($topic)));
 
 		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
@@ -641,6 +845,8 @@
 		if ($mysqli->connect_error)
 			exit("Connection failed: " . $mysqli -> connect_error);
 
+		$userID = intval($userID);
+		$threadID = intval($threadID);
 		$mysqli -> set_charset("utf8");
         
         // Get thread info
@@ -722,14 +928,16 @@
 		}
 
 		global $servername, $dbusername, $dbpassword, $dbname;
-		$sqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
+		$mysqli = new mymysqli($servername, $dbusername, $dbpassword, $dbname);
 
 		$changeTime = time();
-		$oldPostData = mysqli_real_escape_string($sqli, $post['postPreparsed']);
+		$userID = intval($userID);
+		$postID = intval($postID);
+		$oldPostData = mysqli_real_escape_string($mysqli, $post['postPreparsed']);
 
 		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID) VALUES ('{$post['changeID']}', '{$oldPostData}', '{$changeTime}', {$post['postID']});";
 
-		$result = $sqli -> query($sql);
+		$result = $mysqli -> query($sql);
 
 		if($result === false)
 		{
@@ -737,14 +945,14 @@
 			return;
 		}
 
-		$changeID = $sqli->insert_id;
+		$changeID = $mysqli -> insert_id;
 		$newPostData = htmlentities(strip_tags($newPostData));
-		$newPostParsed = mysqli_real_escape_string($sqli, bb_parse(str_replace("\n", "<br>", $newPostData)));
-		$newPostData = mysqli_real_escape_string($sqli, $newPostData);
+		$newPostParsed = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "<br>", $newPostData)));
+		$newPostData = mysqli_real_escape_string($mysqli, $newPostData);
 
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
 
-		$result = $sqli -> query($sql);
+		$result = $mysqli -> query($sql);
 
 		if($result == false)
 		{
@@ -764,11 +972,11 @@
 		}
 
 		global $servername, $dbusername, $dbpassword, $dbname;
-		$sqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
+		$mysqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
 
 		$sql = "SELECT * FROM topics WHERE topicID={$post['threadID']}";
 
-		$result = $sqli -> query($sql);
+		$result = $mysqli -> query($sql);
 		if($result == false)
 		{
 			error("Failed to load thread.");
@@ -790,7 +998,7 @@
 			error("Trying to delete whole thread.");
 
 			$sql = "DELETE FROM topics WHERE topicID={$post['threadID']};";
-			$result = $sqli -> query($sql);
+			$result = $mysqli -> query($sql);
 
 			if($result == false)
 			{
@@ -801,7 +1009,7 @@
 			foreach($posts as $thispost)
 			{
 				$sql = "DELETE FROM posts WHERE postID={$thispost};";
-				$result = $sqli -> query($sql);
+				$result = $mysqli -> query($sql);
 
 				if($result == false)
 					error("Failed to delete post ". $thispost . " trying to continue...");
@@ -823,7 +1031,7 @@
 			if($newRow != $row['posts'])
 			{
 				$sql = "UPDATE topics SET posts='{$newRow}', lastPostID='{$lastPost}', lastposttime='{$lastPostTime}' WHERE topicID={$post['threadID']};";
-				$result = $sqli -> query($sql);
+				$result = $mysqli -> query($sql);
 
 				if($result == false)
 				{
@@ -838,7 +1046,7 @@
 
 
 			$sql = "DELETE FROM posts WHERE postID={$id};";
-			$result = $sqli -> query($sql);
+			$result = $mysqli -> query($sql);
 
 			if($result == false)
 			{
@@ -970,6 +1178,22 @@
 		print("<div class=errorText>" . $text . "</div>");
 	}
 	
+	function warn()
+	{
+		$numArgs = func_num_args();
+		
+		if($numArgs < 1)
+			return;
+		
+		$text = func_get_arg(0);
+		
+		if($numArgs > 1)
+			if(func_get_arg(1))
+				return "<div class=warningText>" . $text . "</div>";
+			
+		print("<div class=warningText>" . $text . "</div>");
+	}
+	
 	function javascriptEscapeString($string)
 	{
 		$string = str_replace("\\", "\\\\", $string);
@@ -981,4 +1205,3 @@
 		return $string;
 	}
 ?>
- 

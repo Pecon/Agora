@@ -241,6 +241,97 @@
 				displayUserProfile(intVal($_SESSION['userid']));
 				break;
 				
+			case "avatarchange":
+				if(isSet($_FILES['avatar']))
+				{
+					if($_FILES['avatar']['error'] !== UPLOAD_ERR_OK)
+						error("An error occurred while uploading your avatar. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=avatarchange\";}, 3000);</script>");
+					else if($_FILES['avatar']['size'] > 1024000)
+						error("Your avatar file is too large. Try to keep it under 1MB.<br /><a href=\"./?action=avatarchange\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=avatarchange\";}, 3000);</script>");
+					else
+					{
+						$location = "./data/avatartemp_${_SESSION['userid']}.dat";
+						
+						updateAvatarByID($_SESSION['userid'], $location);
+						
+						print("Avatar uploaded successfully.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
+					}
+				}
+				else
+				{
+					?>
+					<form enctype="multipart/form-data" method="POST">
+						Avatar upload: <input type="file" accept=".jpg,.png,.gif" name="avatar" />
+						<input type="submit" value="Upload" />
+					</form><br />
+					png, jpg, bmp, and gif files supported<br />
+					Non-PNG images will be converted to PNG.<br />
+					For best results, make your avatar a PNG of 100x100px or smaller.
+					<?php
+				}
+				break;
+				
+			case "passwordchange":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You have to be logged in to do this action.");
+					break;
+				}
+				
+				if(isSet($_POST['oldpassword']) && isSet($_POST['newpassword']) && isSet($_POST['confirmnewpassword']))
+				{
+					if(password_verify($_POST['oldpassword'], getPasswordHashByID($_SESSION['userid'])))
+					{
+						if($_POST['newpassword'] == $_POST['confirmnewpassword'])
+						{
+							updatePasswordByID($_SESSION['userid'], password_hash($_POST['newpassword'], PASSWORD_BCRYPT));
+							print("Your password has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
+						}
+						else
+							error("The new passwords you entered didn't match.<br /><a href=\"./?action=passwordchange\">Try again</a> <script> window.setTimeout(function(){window.location.href = \"./?action=passwordchange\";}, 3000);</script>");
+					}
+					else
+						error("Incorrect password.<br /><a href=\"./?action=passwordchange\">Try again</a> <script> window.setTimeout(function(){window.location.href = \"./?action=passwordchange\";}, 3000);</script>");
+				}
+				else
+				{
+					?>
+					<form action="./?action=passwordchange" method="POST">
+						Old password: <input type="password" name="oldpassword" /><br />
+						New password: <input type="password" name="newpassword" /><br />
+						Confirm new password: <input type="password" name="confirmnewpassword" /><br />
+						<input type="submit" value="Update password" />
+					</form>
+					<?php
+				}
+				break;
+			
+			case "emailchange":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You have to be logged in to do this action.");
+					break;
+				}
+				
+				if(isSet($_POST['newemail']))
+				{
+					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
+						print("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a> <script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
+					else
+						error("That is not a valid email address.<br /><a href=\"./?action=emailchange\">Try again</a> <script> window.setTimeout(function(){window.location.href = \"./?action=emailchange\";}, 3000);</script>");
+						
+				}
+				else
+				{
+					?>
+					<form action="./?action=emailchange" method="POST">
+						Enter new email address: <input class="validate" type="email" name="newemail" />
+						<input type="submit" value="Update email" />
+					</form>
+					<?php
+				}
+				break;
+				
 			case "search":
 				print("");
 				break;

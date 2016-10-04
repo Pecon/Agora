@@ -109,6 +109,11 @@ a:visited:hover
 	color: #FF0000;
 }
 
+.warningText
+{
+	color: #FFFF00;
+}
+
 .finetext
 {
 	font-size: 9pt;
@@ -207,6 +212,14 @@ a.bottomstuff
 img
 {
 	max-width: 1000px;
+}
+
+img.avatar
+{
+	max-height: 100px;
+	max-width: 100px;
+	
+	border-radius: 10px;
 }
 
 .inPostButtons
