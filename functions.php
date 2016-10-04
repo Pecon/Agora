@@ -537,7 +537,7 @@
 
 
 				$lastPost = fetchSinglePost($row['lastpostid']);
-				$lastPostTime = date("F n, Y H:i:s", $lastPost['postDate']);
+				$lastPostTime = date("F d, Y H:i:s", $lastPost['postDate']);
 				$postUserName = findUserByID($lastPost['userID']);
 				$postUserNameIngame = $postUserName['username'];
 
@@ -585,7 +585,7 @@
 			{
 				$user = findUserByID($row['userID']);
 				$username = $user['username'];
-				$date = date("F n, Y H:i:s", $row['postDate']);
+				$date = date("F d, Y H:i:s", $row['postDate']);
 				
 				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
@@ -658,7 +658,7 @@
 
 			$change = $result->fetch_assoc();
 			$changeID = $change['lastChange'];
-			$date = date("F n, Y H:i:s", $change['changeTime']);
+			$date = date("F d, Y H:i:s", $change['changeTime']);
 
 			print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><span class=finetext>${date}</span></td><td class=postdatarow>{$change['postData']}</td></tr>\n");
 		}
@@ -725,8 +725,8 @@
 			else
 				$quoteData = "";
 			
-			$date = date("F n, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow>{$post['postPreparsed']}<div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			$date = date("F d, Y H:i:s", $post['postDate']);
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow><div style=\"min-height: 130px;\">{$post['postPreparsed']}</div><div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
@@ -866,7 +866,7 @@
         }
 
         // Cleanse post data
-		$postData = htmlentities(strip_tags($postData));
+		$postData = htmlentities(strip_tags(html_entity_decode($postData)));
 		$parsedPost = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "\n<br>", $postData)));
 		$postData = mysqli_real_escape_string($mysqli, $postData);
 		
@@ -888,10 +888,9 @@
 		$topicPosts = trim($topicPosts . " " . $postID);
 		$numPosts = count(explode(" ", $topicPosts));
 		$topicPosts = mysqli_real_escape_string($mysqli, $topicPosts);
-		$time = time();
 
         // Update thread entry
-		$sql = "UPDATE topics SET posts='{$topicPosts}',lastposttime={$time},lastpostid={$postID},numposts={$numPosts} WHERE topicID={$threadID}";
+		$sql = "UPDATE topics SET posts='{$topicPosts}',lastposttime={$date},lastpostid={$postID},numposts={$numPosts} WHERE topicID={$threadID}";
 		$result = $mysqli -> query($sql);
 		if($result === false)
 		{
@@ -928,7 +927,7 @@
 		}
 
 		global $servername, $dbusername, $dbpassword, $dbname;
-		$mysqli = new mymysqli($servername, $dbusername, $dbpassword, $dbname);
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 
 		$changeTime = time();
 		$userID = intval($userID);
@@ -946,7 +945,7 @@
 		}
 
 		$changeID = $mysqli -> insert_id;
-		$newPostData = htmlentities(strip_tags($newPostData));
+		$newPostData = htmlentities(strip_tags(html_entity_decode($newPostData)));
 		$newPostParsed = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "<br>", $newPostData)));
 		$newPostData = mysqli_real_escape_string($mysqli, $newPostData);
 

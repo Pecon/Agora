@@ -37,7 +37,7 @@
 				{
 					print("Here is a preview of your post.<br>\n<table border=1 class=forumtable><tr><td class=postcontent>\n");
 					$postStuff = htmlentities($_POST['postcontent']);
-					$preview = bb_parse(str_replace("\n", "<br>", $postStuff));
+					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
 					
 					print($preview);
 					print("\n</td></tr></table><br>\n<form action=\"./?action=post&topic={$_GET['topic']}&page={$_GET['page']}\" method=POST accept-charset=\"ISO-8859-1\">
@@ -261,7 +261,7 @@
 				{
 					?>
 					<form enctype="multipart/form-data" method="POST">
-						Avatar upload: <input type="file" accept=".jpg,.png,.gif" name="avatar" />
+						Avatar upload: <input type="file" accept=".jpg,.png,.gif,.bmp" name="avatar" />
 						<input type="submit" value="Upload" />
 					</form><br />
 					png, jpg, bmp, and gif files supported<br />
