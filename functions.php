@@ -186,7 +186,7 @@
 		{
 			$imgInfo = getimagesize($imagePath);
 			$width = $imgInfo[0];
-			$height = $imgInfo[0];
+			$height = $imgInfo[1];
 			$imgType = $imgInfo['mime'];
 			$keepOriginal = false;
 			$scaled = false;
@@ -201,7 +201,12 @@
 			else if($imgType == "image/jpeg")
 				$image = imagecreatefromjpeg($imagePath);
 			else if($imgType == "image/gif")
+			{
 				$image = imagecreatefromgif($imagePath);
+				
+				if(filesize($imagePath) < 65000)
+					$keepOriginal = true;
+			}
 			else if($imgType == "image/bmp")
 				$image = imagecreatefromwbmp($imagePath);
 			else if($imgType == "image/webp")
@@ -221,14 +226,25 @@
 			
 			if($height > 100 || $width > 100)
 			{
-				$newImage = imagecreatetruecolor(100, 100);
+				if($height > $width)
+				{
+					$newHeight = 100;
+					$newWidth = round($width * ($newHeight / $height));
+				}
+				else
+				{
+					$newWidth = 100;
+					$newHeight = round($height * ($newWidth / $width));
+				}
+				
+				$newImage = imagecreatetruecolor($newWidth, $newHeight);
 				
 				// Make sure transparency is spared.
 				imagesavealpha($image, true);
 				imagesavealpha($newImage, true);
 				imagesetinterpolation($newImage, IMG_BICUBIC);
 				
-				$error = imagecopyresized($newImage, $image, 0, 0, 0, 0, 100, 100, $height, $width);
+				$error = imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 				
 				if($error === false)
 					exit(error("Unable to scale image.", true));
@@ -247,7 +263,12 @@
 				
 				if($error === false)
 					exit(error("Unable to save converted image.", true));
+				
+				if(!$scaled)
+					warn("Your image was converted to PNG format.");
 			}
+			
+			imagedestroy($image);
 			
 			//Upload the avatar to the MySQL database
 			global $servername, $dbusername, $dbpassword, $dbname;
@@ -726,7 +747,7 @@
 				$quoteData = "";
 			
 			$date = date("F d, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow><div style=\"min-height: 130px;\">{$post['postPreparsed']}</div><div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
@@ -881,7 +902,7 @@
 			error("Post failed. {$userID} {$threadID} {$postData} " . $mysqli -> error);
 			return false;
 		}
-		$postID = $mysqli->insert_id;
+		$postID = $mysqli -> insert_id;
 
         // Make new data for thread entry
 		$topicPosts = $row['posts'];
@@ -1095,8 +1116,8 @@
                 case 'b': $replacement = "<strong>$innertext</strong>"; break;
                 case 'it': $replacement = "<em>$innertext</em>"; break;
                 case 'un': $replacement = "<u>$innertext</u>"; break;
-                case 'size': $replacement = "<span style=\"font-size: $param;\">$innertext</span>"; break;
-                case 'color': $replacement = "<span style=\"color: $param;\">$innertext</span>"; break;
+                case 'size': $replacement = "<span style=\"font-size: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
+                case 'color': $replacement = "<span style=\"color: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
                 case 'center': $replacement = "<div style=\"text-align: center;\">$innertext</div>"; break;
 				case 'delete': $replacement = "<span style=\"text-decoration: line-through;\">$innertext</span>"; break;
                 case 'quote': $replacement = ($param ? "<br><span class=finetext>Quote from: {$param}</span>" : "<span class=finetext>Quote:</span>") . "<blockquote>{$innertext}</blockquote>"; break;

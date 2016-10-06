@@ -78,7 +78,7 @@
 		if($_SESSION['admin'] == true)
 			print("Logged in as administrator.<br>\n");
 		
-		print("Logged in!<br><a href=\"./\">Continue</a>");
+		print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 3000);</script>");
 	}
 ?>
 </center>

@@ -246,8 +246,8 @@
 				{
 					if($_FILES['avatar']['error'] !== UPLOAD_ERR_OK)
 						error("An error occurred while uploading your avatar. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=avatarchange\";}, 3000);</script>");
-					else if($_FILES['avatar']['size'] > 1024000)
-						error("Your avatar file is too large. Try to keep it under 1MB.<br /><a href=\"./?action=avatarchange\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=avatarchange\";}, 3000);</script>");
+					else if($_FILES['avatar']['size'] > 2024000)
+						error("Your avatar file is too large. Try to keep it under 2MB.<br /><a href=\"./?action=avatarchange\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=avatarchange\";}, 3000);</script>");
 					else
 					{
 						$location = "./data/avatartemp_${_SESSION['userid']}.dat";

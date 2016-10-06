@@ -8,7 +8,14 @@
 		if($avatar === false)
 			exit();
 		
-		header("Content-type: image/png");
+		if(strstr(substr($avatar, 0, 6), "PNG") !== false)
+			$mime = "image/png";
+		else if(strstr(substr($avatar, 0, 6), "GIF") !== false)
+			$mime = "image/gif";
+		else
+			$mime = "application/octet-stream";
+		
+		header("Content-type: ${mime}");
 		header("Cache-control: max-age=1800");
 		
 		print($avatar);
