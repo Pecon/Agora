@@ -504,11 +504,11 @@
 			exit("Connection failed: " . $mysqli -> connect_error);
 
 		$id = intval($id);
-		$rawText = htmlentities(strip_tags($text));
+		$rawText = htmlentities(mb_convert_encoding($text, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$text = mysqli_real_escape_string($mysqli, trim(bb_parse(str_replace("\n", "<br>", $rawText))));
 		$rawText = mysqli_real_escape_string($mysqli, $rawText);
 		$website = mysqli_real_escape_string($mysqli, trim($website));
-		$tagLine = mysqli_real_escape_string($mysqli, htmlentities(trim($tagLine)));
+		$tagLine = mysqli_real_escape_string($mysqli, htmlentities(mb_convert_encoding(trim($tagLine), 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
 		$result = $mysqli -> query($sql);
@@ -742,7 +742,7 @@
 					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${threadID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
 			
 			if($quotesEnabled)
-				$quoteData = "<a class=inPostButtons onclick=\"insertQuote('" . javascriptEscapeString(htmlentities($post['postData'])) . "', '{$username}');\" href=\"#replytext\">Quote/Reply</a>   ";
+				$quoteData = "<a class=inPostButtons onclick=\"insertQuote('" . javascriptEscapeString(htmlentities(mb_convert_encoding($post['postData'], 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8")) . "', '{$username}');\" href=\"#replytext\">Quote/Reply</a>   ";
 			else
 				$quoteData = "";
 			
@@ -800,7 +800,7 @@
 
 		$mysqli -> set_charset("utf8");
 		$userID = intval($userID);
-		$topic = mysqli_real_escape_string($mysqli, htmlentities(strip_tags($topic)));
+		$topic = mysqli_real_escape_string($mysqli, htmlentities(mb_convert_encoding($topic, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
 
@@ -887,7 +887,7 @@
         }
 
         // Cleanse post data
-		$postData = htmlentities(strip_tags(html_entity_decode($postData)));
+		$postData = htmlentities(mb_convert_encoding($postData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$parsedPost = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "\n<br>", $postData)));
 		$postData = mysqli_real_escape_string($mysqli, $postData);
 		
@@ -966,7 +966,7 @@
 		}
 
 		$changeID = $mysqli -> insert_id;
-		$newPostData = htmlentities(strip_tags(html_entity_decode($newPostData)));
+		$newPostData = htmlentities(mb_convert_encoding($newPostData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");;
 		$newPostParsed = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "<br>", $newPostData)));
 		$newPostData = mysqli_real_escape_string($mysqli, $newPostData);
 
