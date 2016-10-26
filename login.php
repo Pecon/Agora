@@ -11,7 +11,7 @@
 		<h1>Forum Login</h1>
 		<br>
 		<form method=POST>
-		<table border=1 style="align: center; padding: 3px;">
+		<table border=1 style="padding: 3px;">
 			<tr>
 				<td>
 <?php
@@ -34,8 +34,7 @@
 				</form>
 				<br><br>
 				...or <a href=register.php>register here</a>
-				<br><br><br><br><br><h2>Lost password?</h2><br>
-				<a href=\"./index.php?action=resetpassword\">Reset your password</a>");
+				<br><br><br><br><br><h2>Lost password?</h2><br>Too bad.");
 	}
 	else
 	{
@@ -44,29 +43,23 @@
 			error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.");
 			exit();
 		}
-
+		
 		$userData = findUserByName(trim($_POST['username']));
 		if($userData === false)
 		{
 			error("No user exists by that name.<br><a href=\"./login.php\">Try again</a>");
 			exit();
 		}
-
+		
 		$username = $userData['username'];
 		$passkey = $userData['passkey'];
-
+		
 		if(!password_verify($_POST['password'], $passkey))
 		{
 			error("Incorrect password.<br><a href=\"./login.php\">Try again</a>");
 			exit();
 		}
-
-		if($require_email_verification && $userData['verified'] == 0)
-		{
-			error("You must verify your email address before logging in.");
-			exit();
-		}
-
+		
 		$_SESSION['loggedin'] = true;
 		$_SESSION['name'] = $username;
 		$_SESSION['admin'] = $userData['administrator'];
@@ -74,18 +67,18 @@
 		$_SESSION['userid'] = $userData['id'];
 		$_SESSION['lastpostdata'] = "";
 		$_SESSION['lastpostingtime'] = time();
-
+		
 		if($_SESSION['banned'] == true)
 		{
 			error("Your account is banned. Goodbye.");
 			session_destroy();
 			return;
 		}
-
+		
 		if($_SESSION['admin'] == true)
-			print("Logged in as administrator.<br><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
-
-		print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
+			print("Logged in as administrator.<br>\n");
+		
+		print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 3000);</script>");
 	}
 ?>
 </center>
