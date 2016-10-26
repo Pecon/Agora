@@ -16,29 +16,29 @@
 		{
 			case "post":
 				reauthuser();
-				
+
 				if(!isSet($_POST['postcontent']))
 				{
 					error("Form error.");
 					return;
 				}
-				
+
 				else if(!isSet($_SESSION['loggedin']))
 				{
 					error("You don't have permission to do this action.");
 				}
-				
+
 				else if($_SESSION['banned'] == true)
 				{
 					error("You are banned.");
 				}
-				
+
 				else if(isSet($_POST['preview']))
 				{
 					print("Here is a preview of your post.<br>\n<table border=1 class=forumtable><tr><td class=postcontent>\n");
 					$postStuff = htmlentities($_POST['postcontent']);
 					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
-					
+
 					print($preview);
 					print("\n</td></tr></table><br>\n<form action=\"./?action=post&topic={$_GET['topic']}&page={$_GET['page']}\" method=POST accept-charset=\"ISO-8859-1\">
 						<textarea name=postcontent class=postbox>{$postStuff}</textarea>
@@ -48,12 +48,12 @@
 						</form><br>
 						");
 				}
-				
+
 				else if($_SESSION['lastpostingtime'] > time() - 20)
 				{
 					error("Please wait a minute before posting.");
 				}
-				
+
 				else if(!isSet($_GET['topic']))
 				{
 					error("You need to be in a topic to post.");
@@ -78,9 +78,9 @@
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
 					$_SESSION['lastpostingtime'] = time();
 				}
-				
+
 				break;
-				
+
 			case "edit":
 				if(!isSet($_SESSION['loggedin']))
 				{
@@ -111,33 +111,33 @@
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
 					print("Post edited.<script> window.location = \"./?topic={$_GET['topic']}&page={$_GET['page']}#{$post['postID']}\"; </script>");
 				}
-				
+
 				break;
-				
+
 			case "recentposts":
 				getRecentPosts(0, 40);
 				break;
-				
+
 			case "newtopic":
 				reauthuser();
-				
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You don't have permission to do this action.");
 				}
-				
+
 				else if($_SESSION['banned'] == true)
 				{
 					error("You are banned.");
 					break;
 				}
-				
+
 				else if($_SESSION['lastpostingtime'] > time() - 20)
 				{
 					error("Please wait a minute before posting.");
 					break;
 				}
-				
+
 				else if(isSet($_POST['newtopicsubject']) && isSet($_POST['newtopicpost']))
 				{
 					if(strLen(trim($_POST['newtopicsubject'])) < 3)
@@ -184,9 +184,9 @@
 						$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 						print("<script> window.location = \"./?topic={$threadID}\"; </script>");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
-					}	
+					}
 				}
-				
+
 				else
 				{
 					print("<form action=\"./?action=newtopic\" method=POST accept-charset=\"ISO-8859-1\">
@@ -197,17 +197,17 @@
 						</form>");
 				}
 				break;
-				
+
 			case "viewprofile":
 				if(!isSet($_GET['user']))
 				{
 					error("No profile was specified.");
 					break;
 				}
-				
+
 				displayUserProfile(intVal($_GET['user']));
 				break;
-				
+
 			case "viewedits":
 				if(!isSet($_SESSION['loggedin']))
 				{
@@ -224,7 +224,7 @@
 					displayPostEdits(intVal($_GET['post']));
 				}
 				break;
-				
+
 			case "updateprofile":
 				if(!isSet($_SESSION['loggedin']))
 				{
@@ -236,11 +236,11 @@
 					error("Did you forget to put something here?");
 					break;
 				}
-				
+
 				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText'], $_POST['tagline'], $_POST['website']);
 				displayUserProfile(intVal($_SESSION['userid']));
 				break;
-				
+
 			case "avatarchange":
 				if(isSet($_FILES['avatar']))
 				{
@@ -251,9 +251,9 @@
 					else
 					{
 						$location = "./data/avatartemp_${_SESSION['userid']}.dat";
-						
+
 						updateAvatarByID($_SESSION['userid'], $location);
-						
+
 						print("Avatar uploaded successfully.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
 					}
 				}
@@ -270,14 +270,14 @@
 					<?php
 				}
 				break;
-				
+
 			case "passwordchange":
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You have to be logged in to do this action.");
 					break;
 				}
-				
+
 				if(isSet($_POST['oldpassword']) && isSet($_POST['newpassword']) && isSet($_POST['confirmnewpassword']))
 				{
 					if(password_verify($_POST['oldpassword'], getPasswordHashByID($_SESSION['userid'])))
@@ -305,21 +305,21 @@
 					<?php
 				}
 				break;
-			
+
 			case "emailchange":
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You have to be logged in to do this action.");
 					break;
 				}
-				
+
 				if(isSet($_POST['newemail']))
 				{
 					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
 						print("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a> <script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
 					else
 						error("That is not a valid email address.<br /><a href=\"./?action=emailchange\">Try again</a> <script> window.setTimeout(function(){window.location.href = \"./?action=emailchange\";}, 3000);</script>");
-						
+
 				}
 				else
 				{
@@ -331,11 +331,96 @@
 					<?php
 				}
 				break;
-				
+
+			case "verify":
+				$error = verifyAccount($_GET['code']);
+
+				if($error === false)
+				{
+					error("Unable to verify account.");
+					break;
+				}
+
+				print("Account verified!");
+				break;
+
+			case "resetpassword":
+				if(isSet($_GET['code']) && isSet($_GET['id']))
+				{
+					if(getVerificationByID($_GET['id']) !== $_GET['code'])
+					{
+						error("This verifcation code is invalid.");
+						break;
+					}
+					if(!isSet($_POST['newpassword']))
+					{
+						?>
+						<h1>Complete Password Reset</h1>
+						<table border=1 style="align: center; padding: 3px;">
+							<form method="POST">
+								New password: <input type="password" name="newpassword" /><br />
+								Confirm password: <input type="password" name="confirmpassword" /><br />
+								<input type="submit" value="Change password">
+							</form>
+						</table>
+						<?php
+						break;
+					}
+					else
+					{
+						if($_POST['newpassword'] !== $_POST['confirmpassword'])
+						{
+							error("The passwords you entered did not match.");
+							break;
+						}
+						else if(strlen($_POST['newpassword']) < $min_password_length)
+						{
+							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br><button onclick=\"goBack()\">Try again</button>");
+							break;
+						}
+						else if(stripos($_POST['newpassword'], "password") !== false && strlen($_POST['password']) < 16)
+						{
+							error("You've got to be kidding me. <br><button onclick=\"goBack()\">Try again</button>");
+							break;
+						}
+
+						$newPassword = password_hash($_POST['newpassword'], PASSWORD_BCRYPT);
+						updatePasswordByID($_GET['id'], $newPassword);
+						clearVerificationByID($_GET['id']);
+						
+						print("Password reset completed successfully!");
+						break;
+					}
+				}
+				if(!isSet($_POST['email']))
+				{
+					?>
+					<h1>Reset Password</h1>
+					<table border=1 style="align: center; padding: 3px;">
+						<form method="POST">
+							Email address: <input type="text" name="email" class="validate" /><br />
+							<input type="submit" value="Send reset email">
+						</form>
+					</table>
+					<?php
+					break;
+				}
+				$error = sendResetEmail($_POST['email']);
+
+				if($error === false)
+				{
+					error("Couldn't send reset email. Contact the system administrator.");
+					break;
+				}
+
+				print("Reset email sent! Please follow the link in the email to reset your password.");
+
+				break;
+
 			case "search":
 				print("");
 				break;
-				
+
 			default:
 				error("Unknown action.");
 				break;
@@ -357,9 +442,9 @@
 		showRecentThreads(0, 20);
 		if(isSet($_SESSION['loggedin']))
 			print("<br><br><a href=\"./?action=newtopic\">Post a new topic</a>\n");
-		
+
 		print("<br><br><a href=\"./?action=recentPosts\">Show all recent posts</a>\n");
-		
+
 		if(isSet($_SESSION['admin']))
 			if($_SESSION['admin'])
 				print("<br><a href=\"./admin.php\">Admin</a>");
