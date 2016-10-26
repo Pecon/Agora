@@ -10,7 +10,7 @@ if(isSet($_GET['finishForm']))
 			$pathinfo = $_SERVER['QUERY_STRING'];
 			$pathinfo = subStr($pathinfo, 0, -13);
 		}
-		
+
 		header('Location: ./?' . $pathinfo);
 	}
 }
@@ -22,7 +22,7 @@ if(isSet($_GET['finishForm']))
 
 <head>
 	<title>
-		<?php	
+		<?php
 			if(isSet($pageTitle))
 				print($pageTitle);
 			else
@@ -31,7 +31,7 @@ if(isSet($_GET['finishForm']))
 	</title>
 	<link rel="stylesheet" type="text/css" href="./style/default.css"/>
 	<link rel="icon" type="image/png" href="./style/favicon.png"/>
-		  
+
 	<?php
 		if(isSet($metaTags))
 			print($metaTags);
@@ -40,6 +40,12 @@ if(isSet($_GET['finishForm']))
 	if(window.location.protocol != "https:")
 		window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
 	</script>-->
-	
+
 </head>
+<script>
+function goBack()
+{
+    window.history.back();
+}
+</script>
 <body>
