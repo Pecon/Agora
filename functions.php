@@ -136,6 +136,7 @@
 			return false;
 		}
 
+		$realEmail = $email;
 		$email = mysqli_real_escape_string($mysqli, $email);
 		$sql = "SELECT id FROM users WHERE email='${email}'";
 
@@ -180,7 +181,7 @@ EOF;
 			return false;
 		}
 
-		$error = mail($_POST['email'], "REforum password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+		$error = mail($realEmail, "REforum password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
 		if($error === false)
 		{
 			error("Failed to send verification email. Please try again later.");
@@ -227,7 +228,7 @@ EOF;
 			exit("Connection failed: " . $mysqli->connect_error);
 
 		$name = mysqli_real_escape_string($mysqli, strToLower($name));
-		$sql = "SELECT id, username, passkey, reg_date, lastActive, email, verification, verified, banned, administrator, postCount, profiletext, profiletextPreparsed, tagline, website FROM users WHERE lower(username) = '{$name}'";
+		$sql = "SELECT * FROM users WHERE lower(username) = '{$name}'";
 		$result = $mysqli -> query($sql);
 
 		if($numResults = $result->num_rows > 0)
@@ -259,7 +260,7 @@ EOF;
 			exit("Connection failed: " . $mysqli->connect_error);
 
 		$ID = intVal($ID);
-		$sql = "SELECT id, username, passkey, reg_date, lastActive, email, verification, verified, banned, administrator, postCount, profiletext, profiletextPreparsed, tagline, website FROM users WHERE id = {$ID}";
+		$sql = "SELECT * FROM users WHERE id = {$ID}";
 		$result = $mysqli -> query($sql);
 
 		if($numResults = $result -> num_rows > 0)
@@ -522,21 +523,110 @@ EOF;
 		if(filter_var($newEmail, FILTER_VALIDATE_EMAIL) === false)
 			return false;
 
+		global $require_email_verification;
+
+		if($require_email_verification)
+		{
+			$verification = bin2hex(openssl_random_pseudo_bytes(32));
+			$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
+
+			$uri =  $_SERVER['REQUEST_URI'];
+			$uripos = strrchr($uri, '/');
+			if($uripos === false)
+				$uri = "/";
+			else
+				$uri = substr($uri, 0, $uripos + 1);
+
+
+			$url = "http://" . $domain . $uri . "index.php?action=emailchange&code=" . $verification . "&id=" . $ID;
+			$user = getUserNameByID($ID);
+
+			$message = <<<EOF
+	This email was sent to you because an email change was initiated on your account, ${user}. If you intended to do this, please click the link below to confirm the new email:<br />
+	<br />
+	<a href="${url}">${url}</a><br />
+	<br />
+	If you are not the owner of the account, pleae disregard this email.<br />
+EOF;
+			global $servername, $dbusername, $dbpassword, $dbname;
+			$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+			if($mysqli -> connect_error)
+			{
+				error("Connection failed: " . $mysqli -> connect_error);
+				return false;
+			}
+
+			$verificationCode = mysqli_real_escape_string($mysqli, $verification);
+			$newEmail = mysqli_real_escape_string($mysqli, $newEmail);
+			$ID = intval($ID);
+			$sql = "UPDATE users SET emailVerification='${verificationCode}', newEmail='${newEmail}' WHERE id='${ID}';";
+			$result = $mysqli -> query($sql);
+
+			if($result === false)
+			{
+				error($mysqli -> error);
+				return false;
+			}
+
+			$error = mail($newEmail, "REforum email change", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+			if($error === false)
+			{
+				error("Failed to send verification email. Please try again later.");
+				return false;
+			}
+
+			return true;
+		}
+		else
+		{
+			global $servername, $dbusername, $dbpassword, $dbname;
+
+			$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+			if($mysqli -> connect_error)
+				exit("Connection failed: " . $mysqli -> connect_error);
+
+			$ID = intval($ID);
+			$newEmail = mysqli_real_escape_string($mysqli, trim($newEmail));
+
+			$sql = "UPDATE users SET email='${newEmail}' WHERE id=${ID};";
+
+			$result = $mysqli -> query($sql);
+
+			if($result === false)
+				exit(error("Could not update email. " . $mysqli -> error, true));
+
+			return true;
+		}
+	}
+
+	function verifyEmailChange($ID, $verification)
+	{
+		$ID = intval($ID);
+		$user = findUserByID($ID);
+
+		if($verification !== $user['emailVerification'])
+		{
+			error("Invalid verification code.");
+			return false;
+		}
+
 		global $servername, $dbusername, $dbpassword, $dbname;
 
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
+		{
+			error("Connection failed: " . $mysqli -> connect_error);
+			return false;
+		}
 
-		$ID = intval($ID);
-		$newEmail = mysqli_real_escape_string($mysqli, trim($newEmail));
-
-		$sql = "UPDATE users SET email='${newEmail}' WHERE id=${ID};";
-
+		$sql = "UPDATE users SET email='${user['newEmail']}', newEmail='', emailVerification=0 WHERE id='${ID}';";
 		$result = $mysqli -> query($sql);
 
 		if($result === false)
-			exit(error("Could not update email. " . $mysqli -> error, true));
+		{
+			error($mysqli -> error);
+			return false;
+		}
 
 		return true;
 	}
@@ -612,12 +702,12 @@ EOF;
 
 				<table class="forumTable">
 					<tr>
-						<td class="padding" style="max-width: 30px; vertical-align: top;">
-							User settings<br />
+						<td class="padding" style="min-width: 30px; max-width: 50px; vertical-align: top;">
+							User&nbsp;settings<br />
 							<hr />
-							<a href="./?action=avatarchange">Change avatar</a><br />
-							<a href="./?action=emailchange">Change email</a><br />
-							<a href="./?action=passwordchange">Change password</a><br />
+							<a href="./?action=avatarchange">Change&nbsp;avatar</a><br />
+							<a href="./?action=emailchange">Change&nbsp;email</a><br />
+							<a href="./?action=passwordchange">Change&nbsp;password</a><br />
 						</td>
 						<td class="padding">
 							Profile info<br />

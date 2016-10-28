@@ -327,6 +327,8 @@
   `email` varchar(200) NOT NULL DEFAULT '',
   `verification` varchar(64) NOT NULL DEFAULT '0',
   `verified` tinyint(1) NOT NULL DEFAULT '1',
+  `newEmail` varchar(200) NOT NULL,
+  `emailVerification` varchar(64) NOT NULL DEFAULT '0',
   `banned` tinyint(1) DEFAULT NULL,
   `administrator` tinyint(1) DEFAULT NULL,
   `postCount` int(10) unsigned NOT NULL,

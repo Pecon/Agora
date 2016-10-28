@@ -88,10 +88,12 @@
 			$verification = bin2hex(openssl_random_pseudo_bytes(32));
 			$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
-			$uri = $_SERVER['REQUST_URI'];
-			$uri = substr($uri, 0, strrchr($uri, '/') + 1);
-			if(strlen($uri) == 0)
+			$uri =  $_SERVER['REQUEST_URI'];
+			$uripos = strrchr($uri, '/');
+			if($uripos === false)
 				$uri = "/";
+			else
+				$uri = substr($uri, 0, $uripos + 1);
 
 			$url = "http://" . $domain . $uri . "index.php?action=verify&code=" . $verification;
 

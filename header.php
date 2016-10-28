@@ -42,7 +42,7 @@ if(isSet($_GET['finishForm']))
 	</script>-->
 
 </head>
-<script>
+<script type="text/javascript">
 function goBack()
 {
     window.history.back();

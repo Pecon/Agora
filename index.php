@@ -1,4 +1,7 @@
 <?php
+	error_reporting(E_ALL);
+	ini_set("log_errors", true);
+	ini_set("error_log", "./php-error.log");
 	ob_start();
 	session_start();
 	$pageTitle = "REforum";
@@ -20,7 +23,6 @@
 				if(!isSet($_POST['postcontent']))
 				{
 					error("Form error.");
-					return;
 				}
 
 				else if(!isSet($_SESSION['loggedin']))
@@ -307,7 +309,20 @@
 				break;
 
 			case "emailchange":
-				if(!isSet($_SESSION['loggedin']))
+				if(isSet($_GET['code']) && isSet($_GET['id']))
+				{
+					if(verifyEmailChange($_GET['id'], $_GET['code']))
+					{
+						print("Your new email was successfully verified!");
+						break;
+					}
+					else
+					{
+						error("Email verification failed.");
+						break;
+					}
+				}
+				else if(!isSet($_SESSION['loggedin']))
 				{
 					error("You have to be logged in to do this action.");
 					break;
@@ -316,10 +331,14 @@
 				if(isSet($_POST['newemail']))
 				{
 					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
-						print("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a> <script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
+					{
+						if($require_email_verification)
+							print("A confirmation email has been sent to the new email address. Please click the link in the email to confirm this change.");
+						else
+							print("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a> <script> window.setTimeout(function(){window.location.href = \"./?action=viewprofile&user=${_SESSION['userid']}\";}, 3000);</script>");
+					}
 					else
 						error("That is not a valid email address.<br /><a href=\"./?action=emailchange\">Try again</a> <script> window.setTimeout(function(){window.location.href = \"./?action=emailchange\";}, 3000);</script>");
-
 				}
 				else
 				{
@@ -387,7 +406,7 @@
 						$newPassword = password_hash($_POST['newpassword'], PASSWORD_BCRYPT);
 						updatePasswordByID($_GET['id'], $newPassword);
 						clearVerificationByID($_GET['id']);
-						
+
 						print("Password reset completed successfully!");
 						break;
 					}
