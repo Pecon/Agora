@@ -6,7 +6,7 @@
 		$avatar = getAvatarByID($_GET['user']);
 		
 		if($avatar === false)
-			exit();
+			exit(readfile("./style/defaultavatar.png"));
 		
 		if(strstr(substr($avatar, 0, 6), "PNG") !== false)
 			$mime = "image/png";
