@@ -84,6 +84,8 @@
 				break;
 
 			case "edit":
+				reauthuser();
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You don't have permission to do this action.");
@@ -436,6 +438,34 @@
 
 				break;
 
+			case "lockthread":
+				if(!isSet($_GET['thread']))
+				{
+					error("No topic specified.");
+					return;
+				}
+
+				$result = lockThread($_GET['thread']);
+				if($result === -1)
+					break;
+
+				print(($result ? "Locked" : "Unlocked") . " thread! <script> window.setTimeout(function(){window.location.href = \"./?topic=${_GET['thread']}\";}, 1500);</script>");
+				break;
+
+				case "stickythread":
+					if(!isSet($_GET['thread']))
+					{
+						error("No topic specified.");
+						return;
+					}
+
+					$result = stickyThread($_GET['thread']);
+					if($result === -1)
+						break;
+
+					print(($result ? "Sticky'd" : "Unsticky'd") . " thread! <script> window.setTimeout(function(){window.location.href = \"./?topic=${_GET['thread']}\";}, 1500);</script>");
+					break;
+
 			case "search":
 				print("");
 				break;
@@ -469,7 +499,10 @@
 				print("<br><a href=\"./admin.php\">Admin</a>");
 	}
 ?>
-<br><br><div class=finetext>REforum is &#169; 2016 pecon.us <a href="./about.html">About</a></div>
+
+<br />
+<br />
+<div class=finetext>REforum is &#169; 2016 pecon.us <a href="./about.html">About</a></div>
 </center>
 </body>
 </html>

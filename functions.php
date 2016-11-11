@@ -191,6 +191,37 @@ EOF;
 		return true;
 	}
 
+	function findTopicbyID($ID)
+	{
+		static $topic = array();
+
+		if(isSet($topic[$ID]))
+			return $topic[$ID];
+
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+
+		if($mysqli -> connect_error)
+			exit(error("Connection failed: " . $mysqli -> connect_error, true));
+
+		$ID = intVal($ID);
+		$sql = "SELECT * FROM topics WHERE topicID = ${ID}";
+		$result = $mysqli -> query($sql);
+
+		if($numResults = $result -> num_rows > 0)
+		{
+			while($row = $result -> fetch_assoc())
+			{
+				$topic[$ID] = $row;
+				return $row;
+			}
+			return false;
+		}
+		else
+			return false;
+	}
+
 	function banUserByID($id)
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
@@ -682,14 +713,14 @@ EOF;
 		if(isSet($websiteComps['host']))
 			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 
-		print("<table class=forumTable border=1><tr><td class=padding>{$username}</td></tr><tr><td class=padding>" .
+		print("<table class=forumTable border=1><tr><td class=padding style=\"background-color: #414141;\">{$username}</td></tr><tr><td class=padding style=\"background-color: #414141;\">" .
 				(strLen($tagLine) > 0 ? "${tagLine}<br />" : "<br />") .
 				"<img class=avatar src=./avatar.php?user=${id} /><br />
 				Posts: {$postCount}<br />
 				Date registered: {$reg_date}<br />
 				Last activity: {$lastActive}<br />" .
 				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />" : "Website: None") .
-				"<hr><br />\n{$profileDisplayText}<br><br></td></tr></table><br />\n");
+				"</td></tr><tr><td class=padding><br />\n{$profileDisplayText}<br><br></td></tr></table><br />\n");
 
 		if(strlen($website) == 0)
 			$website = "http://";
@@ -784,14 +815,9 @@ EOF;
 	{
 		global $servername, $dbusername, $dbpassword, $dbname;
 
-		//Select query
-		// Create connection
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		// Check connection
-		if ($mysqli->connect_error)
-		{
-			die("Connection failed: " . $mysqli->connect_error);
-		}
+		if ($mysqli -> connect_error)
+			die(error("Connection failed: " . $mysqli -> connect_error, true));
 
 		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
 		$result = $mysqli -> query($sql);
@@ -806,13 +832,18 @@ EOF;
 		{
 			print("<table class=forumTable border=1>\n");
 			print("<tr><td>Topic name</td><td class=startedby>Author</td><td>Last post by</td></tr>\n");
-			while($row = $result->fetch_assoc())
+			while($row = $result -> fetch_assoc())
 			{
 				$topicID = $row['topicID'];
 				$topicName = $row['topicName'];
 				$numPosts = $row['numposts'];
 				$creator = findUserByID($row['creatorUserID']);
 				$creatorName = $creator['username'];
+
+				if(!boolval($row['locked']) && !boolval($row['sticky']))
+					$threadStatus = "";
+				else
+					$threadStatus = (boolval($row['sticky']) ? "&#128204; " : "") . (boolval($row['locked']) ? "&#128274; " : "");
 
 
 				$lastPost = fetchSinglePost($row['lastpostid']);
@@ -837,7 +868,7 @@ EOF;
 
 				$quickPages = $quickPages . " &raquo;";
 
-				print("<tr><td><a href=\"./?topic={$topicID}\">{$topicName}</a> <span class=finetext>{$quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&user={$lastPost['userID']}\">{$postUserNameIngame}</a> on {$lastPostTime}</td></tr>\n");
+				print("<tr><td>${threadStatus}<a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&user={$lastPost['userID']}\">{$postUserNameIngame}</a> on {$lastPostTime}</td></tr>\n");
 			}
 			print("</table>");
 		}
@@ -949,41 +980,47 @@ EOF;
 	{
 		$start = $page * 10;
 		$end = $start + 10;
+		$threadID = intVal($threadID);
+
+		$row = findTopicbyID($threadID);
+		if($row === false)
+		{
+			error("Failed to load thread.");
+			return;
+		}
+		$threadControls = "";
 
 		global $servername, $dbusername, $dbpassword, $dbname;
-
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 
 		if($mysqli -> connect_error)
 			die("Connection failed: " . $mysqli -> connect_error);
 
-		$threadID = intVal($threadID);
-
-		$sql = "SELECT * FROM topics WHERE topicID={$threadID}";
-
-		$result = $mysqli -> query($sql);
-		if($result === false)
-		{
-			error("Failed to load thread.");
-			return;
-		}
-
-		$row = $result -> fetch_assoc();
-		$posts = explode(" ", $row['posts']);
-		$rowPostCount = count($posts);
+		$sql = "SELECT * FROM posts WHERE threadID='${threadID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
+		$posts = $mysqli -> query($sql);
 
 		if(isSet($_SESSION['userid']))
 		{
 			$quotesEnabled = true;
-			print("<script>function insertQuote(postText, authorName){ var textbox = document.getElementById(\"replytext\"); textbox.value += (textbox.value == \"\" ? \"\" : \"\\r\\n\") + \"[quote \" + authorName + \"]\" + postText + \"[/quote]\"; }</script>\n");
+			print("<script type=\"text/javascript\">function insertQuote(postText, authorName){ var textbox = document.getElementById(\"replytext\"); textbox.value += (textbox.value == \"\" ? \"\" : \"\\r\\n\") + \"[quote \" + authorName + \"]\" + postText + \"[/quote]\"; }</script>\n");
+
+			if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
+				$threadControls = "<a href=\"./?action=lockthread&thread=${threadID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
+
+			if($_SESSION['admin'])
+				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${threadID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp;"; // Someday add delete topic button. Need to do admin controls internalization.
 		}
 		else
 			$quotesEnabled = false;
 
-		print("<div class=threadHeader> &rarr; Displaying thread: {$row['topicName']}</div>\n<table class=forumTable border=1>\n");
-		for($i = $start; $i < $rowPostCount && $i < $end; $i++)
+		if(!boolval($row['locked']) && !boolval($row['sticky']))
+			$threadStatus = "&rarr;";
+		else
+			$threadStatus = (boolval($row['sticky']) ? "&#128204;" : "") . (boolval($row['locked']) ? "&#128274;" : "");
+
+		print("<div class=threadHeader> ${threadStatus} Displaying thread: {$row['topicName']} &nbsp;&nbsp;${threadControls}</div>\n<table class=forumTable border=1>\n");
+		while($post = $posts -> fetch_assoc())
 		{
-			$post = fetchSinglePost($posts[$i]);
 			$user = findUserByID($post['userID']);
 
 			$username = $user['username'];
@@ -995,7 +1032,7 @@ EOF;
 
 			$makeEdit = "";
 
-			if(isSet($_SESSION['userid']))
+			if(isSet($_SESSION['userid']) && !boolval($row['locked']))
 				if($post['userID'] == $_SESSION['userid'])
 					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${threadID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
 
@@ -1021,9 +1058,9 @@ EOF;
 			print("<a href=\"./?topic={$threadID}&page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
-		print("[{$page}] ");
+		print("[${page}] ");
 
-		$highestPage = floor(($rowPostCount - 1) / 10);
+		$highestPage = floor(($row['numposts'] - 1) / 10);
 
 		if($page + 1 <= $highestPage)
 		{
@@ -1039,7 +1076,8 @@ EOF;
 
 		print("<br><br>\n");
 
-		if(isSet($_SESSION['loggedin']))print("<form action=\"./?action=post&topic={$threadID}&page={$page}\" method=POST>
+		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
+			print("<form action=\"./?action=post&topic={$threadID}&page={$page}\" method=POST>
 			<input type=hidden name=action value=newpost>
 			<textarea id=\"replytext\" class=postbox name=postcontent></textarea>
 			<br>
@@ -1062,59 +1100,95 @@ EOF;
 
 		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
 
-		if($result = $mysqli->query($sql) === true)
+		if($result = $mysqli -> query($sql) === true)
 		{
-			$topicID = $mysqli->insert_id;
+			$topicID = $mysqli -> insert_id;
 		}
 		else
 		{
-			error("Error: " . $mysqli->error);
+			error("Error: " . $mysqli -> error);
 			return;
 		}
 
 		createPost($userID, $topicID, $postData);
 		return $topicID;
-    }
+   }
 
-    function lockThread($threadID, $lockBool)
-    {
+   function lockThread($threadID)
+   {
 		$threadID = intval($threadID);
-		$lockBool = boolval($lockBool);
+		$topic = findTopicbyID($threadID);
 
-        global $servername, $dbusername, $dbpassword, $dbname;
+		if($topic === false)
+		{
+			error("That thread does not exist.");
+			return -1;
+		}
 
+		if($_SESSION['userid'] != $topic['creatorUserID'] && !$_SESSION['admin'])
+		{
+			error("You do not have permission to do this action.");
+			return -1;
+		}
+
+		$newValue = !$topic['locked'];
+
+      global $servername, $dbusername, $dbpassword, $dbname;
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 
 		if($mysqli -> connect_error)
 			die("Connection failed: " . $mysqli -> connect_error);
 
-		$sql = "SELECT * FROM threads WHERE threadID='{$threadID}'";
+		$sql = "UPDATE topics SET locked='${newValue}' WHERE topicID='{$threadID}';";
 
 		$result = $mysqli -> query($sql);
 
-		if($result -> num_rows < 1)
+		if($result  === false)
+		{
+			error($mysqli -> error);
+			return -1;
+		}
+
+		return $newValue;
+   }
+
+	function stickyThread($threadID)
+	{
+		$threadID = intval($threadID);
+		$topic = findTopicbyID($threadID);
+
+		if($topic === false)
 		{
 			error("That thread does not exist.");
-			return false;
+			return -1;
 		}
 
-		$result = $result -> fetch_assoc();
+		if(!$_SESSION['admin'])
+		{
+			error("You do not have permission to do this action.");
+			return -1;
+		}
 
-		if($lockBool == $result['locked'])
-			return true;
+		$newValue = !$topic['sticky'];
 
-		$sql = "UPDATE threads SET locked='{$lockBool}' WHERE topicID='{$threadID}'";
+		global $servername, $dbusername, $dbpassword, $dbname;
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+
+		if($mysqli -> connect_error)
+			die("Connection failed: " . $mysqli -> connect_error);
+
+		$sql = "UPDATE topics SET sticky='${newValue}' WHERE topicID='{$threadID}';";
 
 		$result = $mysqli -> query($sql);
 
-		if($result === false)
+		if($result  === false)
 		{
-			error("Could not update thread to locked status.");
-			return false;
+			error($mysqli -> error);
+			return -1;
 		}
 
-		return true;
-    }
+		return $newValue;
+	}
 
 	function createPost($userID, $threadID, $postData)
 	{
@@ -1128,31 +1202,27 @@ EOF;
 		$threadID = intval($threadID);
 		$mysqli -> set_charset("utf8");
 
-        // Get thread info
-        $sql = "SELECT locked, topicID, posts FROM topics WHERE topicID = {$threadID}";
-		$result = $mysqli -> query($sql);
-		if($result -> num_rows < 1)
+		$row = findTopicbyID($threadID);
+		if($row === false)
 		{
-			error("Could not find thread data. " . $mysqli -> error);
+			error("Could not find thread data.");
 			return;
 		}
 
-		$row = $result -> fetch_assoc();
-        if($row['locked'] == true)
-        {
-            error("This thread is locked. No further posts are permitted.");
-            return false;
-        }
+		if($row['locked'] == true)
+		{
+			error("This thread is locked. No further posts are permitted.");
+			return false;
+		}
 
         // Cleanse post data
 		$postData = htmlentities(mb_convert_encoding($postData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$parsedPost = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "\n<br>", $postData)));
 		$postData = mysqli_real_escape_string($mysqli, $postData);
-
 		$date = time();
 
-        // Make entry in posts table
-		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed) VALUES ({$userID}, {$threadID}, '{$date}', '{$postData}', '{$parsedPost}');";
+      // Make entry in posts table
+		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, previousPost, nextPost, threadIndex) VALUES (${userID}, ${threadID}, '${date}', '${postData}', '${parsedPost}', '${row['lastpostid']}', '0', '${row['numposts']}');";
 		$result = $mysqli -> query($sql);
 
 		if($result === false)
@@ -1162,14 +1232,11 @@ EOF;
 		}
 		$postID = $mysqli -> insert_id;
 
-        // Make new data for thread entry
-		$topicPosts = $row['posts'];
-		$topicPosts = trim($topicPosts . " " . $postID);
-		$numPosts = count(explode(" ", $topicPosts));
-		$topicPosts = mysqli_real_escape_string($mysqli, $topicPosts);
+      // Make new data for thread entry
+		$numPosts = $row['numposts'] + 1;
 
-        // Update thread entry
-		$sql = "UPDATE topics SET posts='{$topicPosts}',lastposttime={$date},lastpostid={$postID},numposts={$numPosts} WHERE topicID={$threadID}";
+      // Update thread entry
+		$sql = "UPDATE topics SET lastposttime='${date}', lastpostid='${postID}', numposts='${numPosts}' WHERE topicID=${threadID}";
 		$result = $mysqli -> query($sql);
 		if($result === false)
 		{
@@ -1180,7 +1247,7 @@ EOF;
         // Update user post count
 		$postCount = getUserPostcountByID($userID) + 1;
 
-		$sql = "UPDATE users SET postCount='{$postCount}' WHERE id={$userID}";
+		$sql = "UPDATE users SET postCount='${postCount}' WHERE id=${userID}";
 		$result = $mysqli->query($sql);
 		if($result === false)
 		{
@@ -1202,6 +1269,12 @@ EOF;
 		if(!$post = fetchSinglePost($postID))
 		{
 			error("This post does not exist.");
+			return;
+		}
+
+		if(boolval(findTopicbyID($post['threadID'])['locked']))
+		{
+			error("You can't edit posts in a locked thread.");
 			return;
 		}
 

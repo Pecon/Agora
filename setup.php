@@ -9,7 +9,41 @@
 		<center>
 
 <?php
+function _error()
+{
+	$numArgs = func_num_args();
 
+	if($numArgs < 1)
+		return;
+
+	$text = func_get_arg(0);
+
+	if($numArgs > 1)
+		if(func_get_arg(1))
+			return "<div class=errorText>" . $text . "</div>";
+
+	print("<div class=errorText>" . $text . "</div>");
+}
+
+function _warn()
+{
+	$numArgs = func_num_args();
+
+	if($numArgs < 1)
+		return;
+
+	$text = func_get_arg(0);
+
+	if($numArgs > 1)
+		if(func_get_arg(1))
+			return "<div class=warningText>" . $text . "</div>";
+
+	print("<div class=warningText>" . $text . "</div>\r\n");
+}
+
+error_reporting(E_ALL);
+ini_set("log_errors", true);
+ini_set("error_log", "./php-error.log");
 	if(!isSet($_POST['setup']))
 	{
 		?>
@@ -76,7 +110,7 @@
 		else
 		{
 			$problem = true;
-			warn("OK.<br />" . error("Please make sure that you make the ./data directory protected from public view, as it will contain information like your mysql credentials.", true) . "<br /><br />");
+			_warn("OK.<br />" . _error("Please make sure that you make the ./data directory protected from public view, as it will contain information like your mysql credentials.", true) . "<br /><br />");
 		}
 
 		print("PHP version: " . PHP_VERSION . " ... ");
@@ -85,7 +119,7 @@
 		else
 		{
 			$issue = true;
-			print(error("bad. Minimum requirement is 5.5.0 <br /><br />", true));
+			print(_error("bad. Minimum requirement is 5.5.0 <br /><br />", true));
 		}
 
 		print("Checking mysqli is installed: ... ");
@@ -94,7 +128,7 @@
 		else
 		{
 			$issue = true;
-			print(error("No. mysqli extension must be installed for REforum to work.<br /><br />", true));
+			print(_error("No. mysqli extension must be installed for REforum to work.<br /><br />", true));
 		}
 
 		print("Checking json is installed: ... ");
@@ -103,7 +137,16 @@
 		else
 		{
 			$issue = true;
-			print(error("No. json extension must be installed for REforum to work.<br /><br />", true));
+			print(_error("No. json extension must be installed for REforum to work.<br /><br />", true));
+		}
+
+		print("Checking mbstring is installed: ... ");
+		if(extension_loaded('mbstring'))
+			print("Yes.<br /><br />\r\n");
+		else
+		{
+			$issue = true;
+			print(_error("No. mbstring extension must be installed for REforum to work.<br /><br />", true));
 		}
 
 		print("Checking GD image library is installed: ... ");
@@ -112,7 +155,7 @@
 		else
 		{
 			$problem = true;
-			print(warn("No. GD image library is required for user avatars to work. This is optional, but the avatar system will likely be non functional.<br /><br />", true));
+			print(_warn("No. GD image library is required for user avatars to work. This is optional, but the avatar system will likely be non functional.<br /><br />", true));
 		}
 
 		print("Checking crypto function strength: ... ");
@@ -120,7 +163,7 @@
 		if($strong === false)
 		{
 			$problem = true;
-			warn("Poor. Email registration and password reset systems may be more susceptible to prediction attacks. Consider upgrading your operating system or installing a newer version of openssl.");
+			_warn("Poor. Email registration and password reset systems may be more susceptible to prediction attacks. Consider upgrading your operating system or installing a newer version of openssl.");
 		}
 		else
 			print("Strong. <br /><br />\r\n");
@@ -153,22 +196,6 @@
 
 	else if($step == 2)
 	{
-		function error()
-		{
-			$numArgs = func_num_args();
-
-			if($numArgs < 1)
-				return;
-
-			$text = func_get_arg(0);
-
-			if($numArgs > 1)
-				if(func_get_arg(1))
-					return "<div class=errorText>" . $text . "</div>";
-
-			print("<div class=errorText>" . $text . "</div>");
-		}
-
 		if(!isSet($_POST['server_addr']))
 		{
 			?>
@@ -214,7 +241,7 @@
 
 			if($mysqli -> connect_error)
 			{
-				print(error("MySQL connection failed. Please double check the connection settings.<br />", true));
+				print(_error("MySQL connection failed. Please double check the connection settings.<br />", true));
 
 				?>
 			<form method="POST">
@@ -238,30 +265,30 @@
 
 			if(($connectTime = (microtime() - $timer) * 1000) > 50)
 			{
-				print(error("Warning: The MySQL server took a significant amount of time to respond (${connectTime} ms). Forum performance may be sub-optimal.<br />", true));
+				print(_error("Warning: The MySQL server took a significant amount of time to respond (${connectTime} ms). Forum performance may be sub-optimal.<br />", true));
 
 				if(strtolower($server) != "localhost")
-					print(error("Using a remote MySQL server will probably degrade performance. Consider using a local one.", true));
+					print(_error("Using a remote MySQL server will probably degrade performance. Consider using a local one.", true));
 			}
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			$sql = "CREATE DATABASE IF NOT EXISTS ${database};";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				exit(error("Failed to create database. " . $mysqli -> error, true));
+				exit(_error("Failed to create database. " . $mysqli -> error, true));
 			else
 				print("Database is created...<br />\n");
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			$sql = "USE ${database};";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				exit(error("Failed to select database. " . $mysqli -> error, true));
+				exit(_error("Failed to select database. " . $mysqli -> error, true));
 			else
 				print("Selected database...<br />\n");
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			$sql = "CREATE TABLE IF NOT EXISTS `changes` (
@@ -274,10 +301,10 @@
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				exit(error("Failed to create changes table. " . $mysqli -> error, true));
+				exit(_error("Failed to create changes table. " . $mysqli -> error, true));
 			else
 				print("Created changes table...<br />\n");
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			$sql = "CREATE TABLE IF NOT EXISTS `posts` (
@@ -287,35 +314,37 @@
   `postDate` int(10) unsigned DEFAULT '0',
   `postData` mediumtext,
   `postPreparsed` mediumtext NOT NULL,
+  `previousPost` int(10) unsigned NOT NULL,
+  `nextPost` int(10) unsigned NOT NULL,
+  `threadIndex` int(10) unsigned DEFAULT '0',
   `changeID` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`postID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				exit(error("Failed to create posts table. " . $mysqli -> error, true));
+				exit(_error("Failed to create posts table. " . $mysqli -> error, true));
 			else
 				print("Created posts table...<br />\n");
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			$sql = "CREATE TABLE IF NOT EXISTS `topics` (
   `topicID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `creatorUserID` int(10) unsigned DEFAULT NULL,
   `topicName` varchar(130) DEFAULT NULL,
-  `posts` mediumtext,
-  `lastposttime` bigint(20) unsigned DEFAULT NULL,
-  `lastpostid` int(10) unsigned NOT NULL,
-  `numposts` int(10) unsigned NOT NULL,
+  `lastposttime` bigint(20) unsigned DEFAULT '0',
+  `lastpostid` int(10) unsigned DEFAULT '0',
+  `numposts` int(10) unsigned DEFAULT '0',
   `sticky` tinyint(1) NOT NULL DEFAULT '0',
   `locked` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`topicID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				exit(error("Failed to create topics table. " . $mysqli -> error, true));
+				exit(_error("Failed to create topics table. " . $mysqli -> error, true));
 			else
 				print("Created topics table...<br />\n");
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			$sql = "CREATE TABLE IF NOT EXISTS `users` (
@@ -327,13 +356,13 @@
   `email` varchar(200) NOT NULL DEFAULT '',
   `verification` varchar(64) NOT NULL DEFAULT '0',
   `verified` tinyint(1) NOT NULL DEFAULT '1',
-  `newEmail` varchar(200) NOT NULL,
+  `newEmail` varchar(200) DEFAULT NULL,
   `emailVerification` varchar(64) NOT NULL DEFAULT '0',
-  `banned` tinyint(1) DEFAULT NULL,
-  `administrator` tinyint(1) DEFAULT NULL,
-  `postCount` int(10) unsigned NOT NULL,
-  `profiletext` varchar(300) DEFAULT NULL,
-  `profiletextPreparsed` varchar(1000) NOT NULL,
+  `banned` tinyint(1) DEFAULT '0',
+  `administrator` tinyint(1) DEFAULT '0',
+  `postCount` int(10) unsigned DEFAULT '0',
+  `profiletext` varchar(300) DEFAULT '',
+  `profiletextPreparsed` varchar(1000) DEFAULT '',
   `tagline` varchar(40) NOT NULL DEFAULT '',
   `website` varchar(200) NOT NULL DEFAULT '',
   `avatar` blob DEFAULT NULL,
@@ -341,10 +370,10 @@
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				exit(error("Failed to create users table. " . $mysqli -> error, true));
+				exit(_error("Failed to create users table. " . $mysqli -> error, true));
 			else
 				print("Created users table...<br />\n");
-			ob_flush();
+			// ob_flush();
 			flush();
 
 			// Make configuration file
@@ -354,19 +383,19 @@
 			$json['sql_password'] = $pass;
 			$json['sql_database_name'] = $database;
 			$json['min_password_length'] = $passwordMinimum; // Make this part of the setup at some point plz me
-			$json['require_email_verification'] = emailVerify;
+			$json['require_email_verification'] = $emailVerify;
 
 			$jsonText = json_encode($json, JSON_PRETTY_PRINT);
 
 			if($jsonText === false)
-				exit(error("Fatal error: Unable to encode json file."));
+				exit(_error("Fatal error: Unable to encode json file."));
 
 			if(!file_exists("./data"))
 				if(mkdir("./data") === false)
-					exit(error("Fatal error: Unable to create data directory. Make sure the directory REforum is installed in is writable."));
+					exit(_error("Fatal error: Unable to create data directory. Make sure the directory REforum is installed in is writable."));
 
 			if(file_put_contents("./data/settings.json", $jsonText) === false)
-				exit(error("Fatal error: Unable to save settings file. Make sure the ./data directory is writable."));
+				exit(_error("Fatal error: Unable to save settings file. Make sure the ./data directory is writable."));
 
 			?>
 			<br /><br />
@@ -424,29 +453,29 @@
 		$username = normalize_special_characters(strip_tags($_POST['username']));
 		if(strLen($username) > 20)
 		{
-			error("Username is too long. Pick something under 20 characters.");
+			_error("Username is too long. Pick something under 20 characters.");
 			exit();
 		}
 
 		// Verify email is OK
 		if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
-			exit(error("Email address is invalid.", true));
+			exit(_error("Email address is invalid.", true));
 
 		// Verify password is OK
 		if($_POST['password'] !== $_POST['confirmpassword'])
 		{
-			error("Passwords do not match.");
+			_error("Passwords do not match.");
 			exit();
 		}
 
 		if(strlen($_POST['password']) < $min_password_length)
 		{
-			error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
+			_error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
 			exit();
 		}
 		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 16)
 		{
-			error("You've got to be kidding me.");
+			_error("You've got to be kidding me.");
 			exit();
 		}
 
@@ -455,7 +484,7 @@
 
 		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
+			exit(_error("Connection failed: " . $mysqli -> connect_error, true));
 
 		$realUsername = $username;
 		$username = mysqli_real_escape_string($mysqli, $username);
@@ -471,7 +500,7 @@
 			unlink("./setup.php"); // Delete the setup file afterwards for security reasons.
 		}
 		else
-			exit(error($mysqli -> error, true));
+			exit(_error($mysqli -> error, true));
 	}
 
 ?>
