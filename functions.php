@@ -231,7 +231,7 @@ EOF;
 			exit(error("Connection failed: " . $mysqli -> connect_error, true));
 
 		$id = intval($id);
-		$sql = "UPDATE users SET banned=1 WHERE id={$id}";
+		$sql = "UPDATE users SET banned=1, tagline='<span class=errorText>Banned user</span>' WHERE id={$id}";
 		$result = $mysqli -> query($sql);
 
 		if($result == false)
@@ -241,6 +241,43 @@ EOF;
 		}
 		else
 			error("User was banned successfully.");
+	}
+
+	function unbanUserByID($id)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit(error("Connection failed: " . $mysqli -> connect_error, true));
+
+		$id = intval($id);
+		$sql = "UPDATE users SET banned=0, tagline='' WHERE id='${id}'";
+		$result = $mysqli -> query($sql);
+
+		if($result == false)
+		{
+			error("Could not unban user.");
+			return false;
+		}
+		else
+			error("User was unbanned successfully.");
+	}
+
+	function toggleBanUserByID($id)
+	{
+		$user = findUserByID($id);
+
+		if($user === false)
+		{
+			error("No user exists by that id.");
+			return;
+		}
+
+		if($user['banned'])
+			unbanUserByID($id);
+		else
+			banUserByID($id);
 	}
 
 	function findUserbyName($name)
@@ -700,6 +737,13 @@ EOF;
 			return;
 		}
 
+		if($_SESSION['admin'])
+		{
+			$adminControl = "<a href=\"./?action=ban&id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a><br >\n";
+		}
+		else
+			$adminControl = "";
+
 		$username = $userData['username'];
 		$lastActive = $userData['lastActive'];
 		$reg_date = date('Y-m-d g:i:s', $userData['reg_date']);
@@ -713,7 +757,7 @@ EOF;
 		if(isSet($websiteComps['host']))
 			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 
-		print("<table class=forumTable border=1><tr><td class=padding style=\"background-color: #414141;\">{$username}</td></tr><tr><td class=padding style=\"background-color: #414141;\">" .
+		print("${adminControl}<table class=forumTable border=1><tr><td class=padding style=\"background-color: #414141;\">{$username}</td></tr><tr><td class=padding style=\"background-color: #414141;\">" .
 				(strLen($tagLine) > 0 ? "${tagLine}<br />" : "<br />") .
 				"<img class=avatar src=./avatar.php?user=${id} /><br />
 				Posts: {$postCount}<br />
@@ -1008,7 +1052,13 @@ EOF;
 				$threadControls = "<a href=\"./?action=lockthread&thread=${threadID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
 
 			if($_SESSION['admin'])
-				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${threadID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp;"; // Someday add delete topic button. Need to do admin controls internalization.
+			{
+				$sql = "SELECT postID FROM posts WHERE threadID='${threadID}' AND threadIndex='0';";
+				$result = $mysqli -> query($sql);
+				$result = $result -> fetch_assoc();
+
+				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${threadID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
+			}
 		}
 		else
 			$quotesEnabled = false;
@@ -1041,8 +1091,15 @@ EOF;
 			else
 				$quoteData = "";
 
+			$deletePost = "";
+			if(isSet($_SESSION['loggedin']))
+			{
+				if($_SESSION['admin'])
+					$deletePost = "<a class=inPostButtons href=\"./?action=deletepost&post=${post['postID']}\">Delete</a>";
+			}
+
 			$date = date("F d, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$deletePost} {$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
@@ -1222,7 +1279,7 @@ EOF;
 		$date = time();
 
       // Make entry in posts table
-		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, previousPost, nextPost, threadIndex) VALUES (${userID}, ${threadID}, '${date}', '${postData}', '${parsedPost}', '${row['lastpostid']}', '0', '${row['numposts']}');";
+		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${threadID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
 		$result = $mysqli -> query($sql);
 
 		if($result === false)
@@ -1286,7 +1343,7 @@ EOF;
 		$postID = intval($postID);
 		$oldPostData = mysqli_real_escape_string($mysqli, $post['postPreparsed']);
 
-		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID) VALUES ('{$post['changeID']}', '{$oldPostData}', '{$changeTime}', {$post['postID']});";
+		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, threadID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['threadID']}');";
 
 		$result = $mysqli -> query($sql);
 
@@ -1325,89 +1382,108 @@ EOF;
 		global $servername, $dbusername, $dbpassword, $dbname;
 		$mysqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
 
-		$sql = "SELECT * FROM topics WHERE topicID={$post['threadID']}";
-
-		$result = $mysqli -> query($sql);
-		if($result == false)
+		if($post['threadIndex'] == 0)
 		{
-			error("Failed to load thread.");
-			return false;
-		}
+			// Delete the thread entry as well
+			$thread = findTopicByID($post['threadID']);
+			$threadCreator = findUserByID($thread['creatorUserID']);
 
-		$row = $result -> fetch_assoc();
-
-		if($row === false)
-		{
-			error("Failed to load thread listing.");
-			return false;
-		}
-		$posts = explode(" ", $row['posts']);
-
-		if($posts[0] == $id)
-		{
-			// Delete the whole thread
-			error("Trying to delete whole thread.");
-
-			$sql = "DELETE FROM topics WHERE topicID={$post['threadID']};";
+			$sql = "DELETE FROM topics WHERE topicID='${post['threadID']}';";
 			$result = $mysqli -> query($sql);
 
-			if($result == false)
+			if($result === false)
 			{
-				error("Failed to remove thread.");
+				error("Failed to delete thread entry... aborting. <br>" . $mysqli -> error);
 				return false;
 			}
 
-			foreach($posts as $thispost)
-			{
-				$sql = "DELETE FROM posts WHERE postID={$thispost};";
-				$result = $mysqli -> query($sql);
+			$sql = "DELETE FROM posts WHERE threadID='${post['threadID']}';";
+			$result = $mysqli -> query($sql);
 
-				if($result == false)
-					error("Failed to delete post ". $thispost . " trying to continue...");
+			if($result === false)
+			{
+				error("Failed to delete posts... continuing anyways I guess. <br>" . $mysqli -> error);
 			}
 
-			return true;
+			$sql = "DELETE FROM changes WHERE threadID='${post['threadID']}';";
+			$result = $mysqli -> query($sql);
+
+			if($result === false)
+			{
+				error("Failed to delete changes... continuing anyways I guess. <br>" . $mysqli -> error);
+			}
+
+			adminLog("Deleted thread by ${threadCreator['id']} ${threadCreator['username']}: ${post['threadID']} . ${thread['topicName']}");
 		}
 		else
 		{
-			// Just delete this post
-			error("Only deleting this post.");
+			// Check if we need to update the latest post data
+			$topic = findTopicByID($post['threadID']);
 
-			$newRow = str_replace(" " . $id, "", $row['posts']);
-			$lastPost = explode(" ", $newRow);
-			$lastPost = $lastPost[count($lastPost) - 1];
-
-			$lastPostTime = fetchSinglePost($lastPost)['postDate'];
-
-			if($newRow != $row['posts'])
+			if($topic['lastpostid'] == $id)
 			{
-				$sql = "UPDATE topics SET posts='{$newRow}', lastPostID='{$lastPost}', lastposttime='{$lastPostTime}' WHERE topicID={$post['threadID']};";
+				// Find the last existing post in the thread.
+				$sql = "SELECT postID, threadIndex, postDate FROM posts WHERE threadID='${post['threadID']}' ORDER BY threadIndex DESC LIMIT 0,2";
 				$result = $mysqli -> query($sql);
 
-				if($result == false)
+				if($result === false)
 				{
-					error("Failed to update thread listing.");
+					error("Failed to fetch post information. <br>" . $mysqli -> error);
+					return false;
+				}
+
+				// Skip the first result since it's going to be the post we're about to delete. We want the one after it.
+				$result -> fetch_assoc();
+				$newLastPost = $result -> fetch_assoc();
+				$newPostCount = $newLastPost['threadIndex'] + 1;
+
+				// Update the thread with the new values
+				$sql = "UPDATE topics SET lastpostid='${newLastPost['postID']}', lastposttime='${newLastPost['postDate']}', numposts='${newPostCount}' WHERE topicID='${post['threadID']}';";
+				$result = $mysqli -> query($sql);
+
+				if($result === false)
+				{
+					error("Failed to update thread data. <br>" . $mysqli -> error);
 					return false;
 				}
 			}
-			else
-			{
-				error("Post is not in a thread, skipping thread listing update.");
-			}
 
+			// Delete just this post out of the thread
+			$post = fetchSinglePost($id);
+			$postStuff = str_replace(array("\r", "\n"), " ", $post['postData']);
+			$user = findUserByID($post['userID'])['username'];
 
-			$sql = "DELETE FROM posts WHERE postID={$id};";
+			$sql = "DELETE FROM posts WHERE postID='${id}';";
 			$result = $mysqli -> query($sql);
 
-			if($result == false)
+			if($result === false)
 			{
-				error("Could not delete post, but has already been removed from thread listing. Success?");
+				error("Failed to delete post. <br>" . $mysqli -> error);
 				return false;
 			}
-			return true;
+
+			// De-increment user post count
+			$postCount = findUserByID($post['userID'])['postCount'] - 1;
+			$sql = "UPDATE users SET postCount='${postCount}' WHERE id='${post['userID']}';";
+			$result = $mysqli -> query($sql);
+
+			if($result === false)
+			{
+				error("Failed to update user post count... continuing anyways I guess. <br>" . $mysqli -> error);
+			}
+
+			$sql = "DELETE FROM changes WHERE postID='${id}';";
+			$result = $mysqli -> query($sql);
+
+			if($result === false)
+			{
+				error("Failed to delete post changes... continuing anyways I guess. <br>" . $mysqli -> error);
+			}
+
+			adminLog("Deleted post by ${user} (${post['userID']}): (${id}) ${postStuff}");
 		}
 
-
+		return true;
 	}
 
 	function normalize_special_characters($str)
@@ -1543,6 +1619,40 @@ EOF;
 				return "<div class=warningText>" . $text . "</div>";
 
 		print("<div class=warningText>" . $text . "</div>\r\n");
+	}
+
+	function adminLog($stuff)
+	{
+		$file = fopen("./admin.log", "a");
+		$file.fwrite($file, time() . " " . $_SESSION['userid'] . " " . $stuff . "\r\n");
+
+		fclose($file);
+	}
+
+	function adminLogParse($log)
+	{
+		$return = "";
+		$lines = explode("\n", $log);
+
+		foreach($lines as $line)
+		{
+			$words = explode(" ", $line);
+			$wordCount = count($words);
+
+			if($wordCount < 3)
+				continue;
+
+			$return = $return . date("r", intval($words[0]));
+			$user = findUserByID(intval($words[1]));
+			$return = $return . " ${user['username']} (${words[1]})";
+
+			for($i = 2; $i < $wordCount; $i++)
+			{
+				$return = $return . " " . $words[$i];
+			}
+		}
+
+		return $return;
 	}
 
 	function javascriptEscapeString($string)

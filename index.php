@@ -442,7 +442,7 @@
 				if(!isSet($_GET['thread']))
 				{
 					error("No topic specified.");
-					return;
+					break;
 				}
 
 				$result = lockThread($_GET['thread']);
@@ -452,19 +452,58 @@
 				print(($result ? "Locked" : "Unlocked") . " thread! <script> window.setTimeout(function(){window.location.href = \"./?topic=${_GET['thread']}\";}, 1500);</script>");
 				break;
 
-				case "stickythread":
-					if(!isSet($_GET['thread']))
-					{
-						error("No topic specified.");
-						return;
-					}
-
-					$result = stickyThread($_GET['thread']);
-					if($result === -1)
-						break;
-
-					print(($result ? "Sticky'd" : "Unsticky'd") . " thread! <script> window.setTimeout(function(){window.location.href = \"./?topic=${_GET['thread']}\";}, 1500);</script>");
+			case "stickythread":
+				if(!isSet($_GET['thread']))
+				{
+					error("No topic specified.");
 					break;
+				}
+
+				$result = stickyThread($_GET['thread']);
+				if($result === -1)
+					break;
+
+				print(($result ? "Sticky'd" : "Unsticky'd") . " thread! <script> window.setTimeout(function(){window.location.href = \"./?topic=${_GET['thread']}\";}, 1500);</script>");
+				break;
+
+			case "deletepost":
+				if(!$_SESSION['admin'])
+				{
+					error("You do not have permission to do this action.");
+					break;
+				}
+
+				if(!isSet($_GET['post']))
+				{
+					error("No post specified.");
+					break;
+				}
+
+				$result = deletePost($_GET['post']);
+
+				if(!$result)
+				{
+					error("Failed to delete post.");
+					break;
+				}
+
+				error("Post deleted successfully.");
+				break;
+
+			case "ban":
+				if(!$_SESSION['admin'])
+				{
+					error("You do not have permission to do this action.");
+					break;
+				}
+
+				if(!isSet($_GET['id']))
+				{
+					error("No user id specified.");
+					break;
+				}
+
+				toggleBanUserByID($_GET['id']);
 
 			case "search":
 				print("");

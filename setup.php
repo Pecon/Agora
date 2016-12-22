@@ -297,6 +297,7 @@ ini_set("error_log", "./php-error.log");
   `postData` mediumtext NOT NULL,
   `changeTime` int(10) unsigned DEFAULT '0',
   `postID` int(10) unsigned NOT NULL,
+  `threadID` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -314,8 +315,6 @@ ini_set("error_log", "./php-error.log");
   `postDate` int(10) unsigned DEFAULT '0',
   `postData` mediumtext,
   `postPreparsed` mediumtext NOT NULL,
-  `previousPost` int(10) unsigned NOT NULL,
-  `nextPost` int(10) unsigned NOT NULL,
   `threadIndex` int(10) unsigned DEFAULT '0',
   `changeID` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`postID`)

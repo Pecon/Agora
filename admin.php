@@ -10,14 +10,8 @@
 		<h1>Admin</h1>
 <?php
 	require_once './functions.php';
-	
-	function adminLog($stuff)
-	{
-		$file = fopen("./admin.log", "a");
-		$file.fwrite($file, time() . " " . $_SESSION['name'] . " " . $_SESSION['userid'] . " " . $stuff . "\r\n");
-		
-		fclose($file);
-	}
+
+
 
 	if(!isSet($_SESSION['loggedin']))
 	{
@@ -66,13 +60,13 @@
 				adminLog("Banned " . $_POST['ban'] . " (no reason)");
 			}
 		}
-		
+
 		if(isSet($_POST['deletepost']))
 		{
 			$post = fetchSinglePost($_POST['deletepost']);
 			$postContent = str_replace("\r", "", str_replace("\n", "  ", $post['postData']));
 			$postAuthor = $post['userID'];
-			
+
 			$success = deletePost(intval($_POST['deletepost']));
 
 			if($success === false)
@@ -90,11 +84,15 @@
 <form method="POST">
 	Ban this person: <input type="text" name="ban" value="userid"><input type="text" name="forpost" value="postid"><input type="text" name="fortext" value="Reason"><input type="submit" value="BAN">
 </form>
-<br><br>
+<br /><br />
 <form method="POST">
 	Delete this post: <input type="text" name="deletepost" value="postid"><input type="submit" value="DELETE">
 </form>
+<br /><br />
+Admin log:<br />
+<textarea style="width: 800px; height: 300px; color: #aaa;" readonly wrap=off>
+<?php print(adminLogParse(file_get_contents("./admin.log"))); ?>
+</textarea>
 </center>
 </body>
 </html>
-

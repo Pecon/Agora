@@ -6,7 +6,13 @@
 		$avatar = getAvatarByID($_GET['user']);
 		
 		if($avatar === false)
-			exit(readfile("./style/defaultavatar.png"));
+		{
+			$defaultAvatar = "./style/defaultavatar.png";
+			
+			header("Cache-control: max-age=1800");
+			header("Content-type: " . mime_content_type($defaultAvatar));
+			readfile($defaultAvatar);
+		}
 		
 		if(strstr(substr($avatar, 0, 6), "PNG") !== false)
 			$mime = "image/png";
