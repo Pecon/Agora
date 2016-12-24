@@ -790,7 +790,7 @@ EOF;
 							<?php
 									print("<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
 								Tagline: <input type=text name=tagline maxLength=40 value=\"${tagLine}\"/><br />
-								Website: <input type=url name=website maxLength=200 class=validate value=\"${website}\"/><br />
+								Website: <input type=text name=website maxLength=200 value=\"${website}\"/><br />
 								<br />
 								Update profile text:<br />
 								<textarea class=postbox maxLength=300 name=updateProfileText>{$updateProfileText}</textarea><br />
@@ -816,10 +816,12 @@ EOF;
 		// verify website and tagline are OK and then sql escape them
 		if(!filter_var($website, FILTER_VALIDATE_URL) || strlen($website) > 200)
 		{
-			if(strToLower($website) != "http://")
+			if(strToLower($website) != "http://" && strlen($website) > 1)
 				error("Your website url is invalid or too long.");
-
-			$website = findUserByID($id)['website'];
+			else if(strToLower($website) == "http://")
+				$website = findUserByID($id)['website'];
+			else
+				$website = "";
 		}
 
 		if(strlen($tagLine) > 40)
