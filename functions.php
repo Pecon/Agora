@@ -20,6 +20,7 @@
 		{
 			error("Oh no. You're banned.");
 			session_destroy();
+			die();
 		}
 	}
 
@@ -231,7 +232,7 @@ EOF;
 			exit(error("Connection failed: " . $mysqli -> connect_error, true));
 
 		$id = intval($id);
-		$sql = "UPDATE users SET banned=1, tagline='<span class=errorText>Banned user</span>' WHERE id={$id}";
+		$sql = "UPDATE users SET banned=1, tagline='Banned user' WHERE id={$id}";
 		$result = $mysqli -> query($sql);
 
 		if($result == false)
@@ -240,7 +241,11 @@ EOF;
 			return false;
 		}
 		else
-			error("User was banned successfully.");
+		{
+			$user = findUserByID($id);
+			adminLog("Banned user (${id}) ${user['username']}.");
+			return true;
+		}
 	}
 
 	function unbanUserByID($id)
@@ -261,7 +266,11 @@ EOF;
 			return false;
 		}
 		else
-			error("User was unbanned successfully.");
+		{
+			$user = findUserByID($id);
+			adminLog("Unbanned user (${id}) ${user['username']}.");
+			return true;
+		}
 	}
 
 	function toggleBanUserByID($id)
@@ -275,10 +284,89 @@ EOF;
 		}
 
 		if($user['banned'])
+		{
 			unbanUserByID($id);
+			return false;
+		}
 		else
+		{
 			banUserByID($id);
+			return true;
+		}
 	}
+
+	function promoteUserByID($id)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit(error("Connection failed: " . $mysqli -> connect_error, true));
+
+		$id = intval($id);
+		$sql = "UPDATE users SET administrator=1, tagline='Administrator' WHERE id={$id}";
+		$result = $mysqli -> query($sql);
+
+		if($result == false)
+		{
+			error("Could not promote user.");
+			return false;
+		}
+		else
+		{
+			$user = findUserByID($id);
+			adminLog("Promoted user (${id}) ${user['username']} to admin.");
+			return true;
+		}
+	}
+
+	function demoteUserByID($id)
+	{
+		global $servername, $dbusername, $dbpassword, $dbname;
+
+		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+		if($mysqli -> connect_error)
+			exit(error("Connection failed: " . $mysqli -> connect_error, true));
+
+		$id = intval($id);
+		$sql = "UPDATE users SET administrator=0, tagline='' WHERE id='${id}'";
+		$result = $mysqli -> query($sql);
+
+		if($result == false)
+		{
+			error("Could not demote user.");
+			return false;
+		}
+		else
+		{
+			$user = findUserByID($id);
+			adminLog("Demoted user (${id}) ${user['username']} from admin.");
+			return true;
+		}
+	}
+
+	function togglePromoteUserByID($id)
+	{
+		$user = findUserByID($id);
+
+		if($user === false)
+		{
+			error("No user exists by that id.");
+			return;
+		}
+
+		if($user['administrator'])
+		{
+			demoteUserByID($id);
+			return false;
+		}
+		else
+		{
+			promoteUserByID($id);
+			return true;
+		}
+	}
+
 
 	function findUserbyName($name)
 	{
@@ -737,12 +825,17 @@ EOF;
 			return;
 		}
 
-		if($_SESSION['admin'])
-		{
-			$adminControl = "<a href=\"./?action=ban&id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a><br >\n";
-		}
-		else
+
+		if(!isSet($_SESSION['loggedin']))
 			$adminControl = "";
+		else
+		{
+			if($_SESSION['admin'])
+				$adminControl = "<a href=\"./?action=ban&id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&id=${id}\">" . ($userData['administrator'] ? "Demote" : "Promote") . " this user</a><br >\n";
+			else
+				$adminControl = "";
+		}
+
 
 		$username = $userData['username'];
 		$lastActive = $userData['lastActive'];
@@ -753,18 +846,33 @@ EOF;
 		$profileText = $userData['profiletext'];
 		$profileDisplayText = $userData['profiletextPreparsed'];
 
+		$taglineColor = "#FFFFFF";
+		if($userData['administrator'])
+			$taglineColor = "#FFFF00";
+		if($userData['banned'])
+			$taglineColor = "#FF0000";
+
 		$websiteComps = parse_url($website);
 		if(isSet($websiteComps['host']))
 			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 
-		print("${adminControl}<table class=forumTable border=1><tr><td class=padding style=\"background-color: #414141;\">{$username}</td></tr><tr><td class=padding style=\"background-color: #414141;\">" .
-				(strLen($tagLine) > 0 ? "${tagLine}<br />" : "<br />") .
-				"<img class=avatar src=./avatar.php?user=${id} /><br />
+		print("\n${adminControl}<table class=forumTable border=1>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n{$username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
+				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
+				"<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
 				Posts: {$postCount}<br />
 				Date registered: {$reg_date}<br />
 				Last activity: {$lastActive}<br />" .
-				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />" : "Website: None") .
-				"</td></tr><tr><td class=padding><br />\n{$profileDisplayText}<br><br></td></tr></table><br />\n");
+				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />\n" : "Website: None") .
+				"</td>
+				</tr>
+				<tr>
+				<td class=padding>
+				<br />
+				{$profileDisplayText}
+				<br \><br \>
+				</td>
+				</tr>
+				</table><br />\n");
 
 		if(strlen($website) == 0)
 			$website = "http://";
@@ -1093,6 +1201,12 @@ EOF;
 			else
 				$quoteData = "";
 
+			$taglineColor = "#FFFFFF";
+			if($user['administrator'])
+				$taglineColor = "#FFFF00";
+			if($user['banned'])
+				$taglineColor = "#FF0000";
+
 			$deletePost = "";
 			if(isSet($_SESSION['loggedin']))
 			{
@@ -1101,7 +1215,7 @@ EOF;
 			}
 
 			$date = date("F d, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br />${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$deletePost} {$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext style=\"color:${taglineColor}\">${user['tagline']}</div><br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=finetext>${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$deletePost} {$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
@@ -1208,6 +1322,7 @@ EOF;
 			return -1;
 		}
 
+		adminLog("set thread (${threadID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
 		return $newValue;
    }
 
@@ -1246,6 +1361,7 @@ EOF;
 			return -1;
 		}
 
+		adminLog("set thread (${threadID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
 		return $newValue;
 	}
 
@@ -1530,7 +1646,7 @@ EOF;
                 case 'center': $replacement = "<div style=\"text-align: center;\">$innertext</div>"; break;
 				case 'delete': $replacement = "<span style=\"text-decoration: line-through;\">$innertext</span>"; break;
                 case 'quote': $replacement = ($param ? "<br><span class=finetext>Quote from: {$param}</span>" : "<span class=finetext>Quote:</span>") . "<blockquote>{$innertext}</blockquote>"; break;
-                case 'url': $replacement = '<a href="' . ($param? $param : $innertext) . "\" target=\"_blank\">$innertext</a>"; break;
+                case 'url': $replacement = '<a href="' . ($param ? $param : $innertext) . "\" target=\"_blank\">$innertext</a>"; break;
                 case 'img':
                     list($width, $height) = preg_split('`[Xx]`', $param);
                     $replacement = "<img src=\"$innertext\" " . (is_numeric($width)? "width=\"$width\" " : '') . (is_numeric($height)? "height=\"$height\" " : '') . '/>';

@@ -106,6 +106,10 @@
 				{
 					print("Editing post<br>\n<form method=post action=\"./?action=edit&post={$_GET['post']}&topic={$_GET['topic']}&page={$_GET['page']}\" accept-charset=\"ISO-8859-1\"><textarea name=editpost class=postbox>{$post['postData']}</textarea><br>\n<input type=submit value=Edit></form>\n");
 				}
+				else if(strLen(trim($_POST['editpost'])) < 3)
+				{
+					error("Please make your post longer.");
+				}
 				else if(strLen(trim($_POST['editpost'])) > 10000)
 				{
 					error("Your post is over the 10000 character limit.");
@@ -503,7 +507,26 @@
 					break;
 				}
 
-				toggleBanUserByID($_GET['id']);
+				$result = toggleBanUserByID($_GET['id']);
+				print(($result ? "Banned" : "Unbanned") . " user! <script> window.setTimeout(function(){window.location.href = \"./?action=viewProfile&user=${_GET['id']}\";}, 1500);</script>");
+				break;
+
+				case "promote":
+					if(!$_SESSION['admin'])
+					{
+						error("You do not have permission to do this action.");
+						break;
+					}
+
+					if(!isSet($_GET['id']))
+					{
+						error("No user id specified.");
+						break;
+					}
+
+					$result = togglePromoteUserByID($_GET['id']);
+					print(($result ? "Promoted" : "Demoted") . " user! <script> window.setTimeout(function(){window.location.href = \"./?action=viewProfile&user=${_GET['id']}\";}, 1500);</script>");
+					break;
 
 			case "search":
 				print("");
