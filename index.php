@@ -1,4 +1,5 @@
 <?php
+	$_script_start = microtime(true);
 	error_reporting(E_ALL);
 	ini_set("log_errors", true);
 	ini_set("error_log", "./php-error.log");
@@ -12,6 +13,7 @@
 <center>
 <?php
 	include_once 'functions.php';
+	include_once 'database.php';
 	include_once 'navmenu.php';
 	if(isSet($_GET['action']))
 	{
@@ -550,7 +552,33 @@
 	}
 	else if(!isSet($_GET['action']))
 	{
-		showRecentThreads(0, 20);
+		if(!isSet($_GET['page']))
+			$page = 0;
+		else
+			$page = intVal($_GET['page']);
+
+		$sql = "SELECT COUNT(*) FROM topics;";
+		$result = querySQL($sql) -> fetch_assoc();
+		$totalPages = (int)$result["COUNT(*)"] / 20;
+
+		showRecentThreads(20 * $page, 20 * ($page + 1));
+
+		if($page > 2)
+			print('<a href="./">0</a> ... <a href="./?page=' . $page - 2 . '">' . $page - 2 . '</a> <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a>');
+		else if($page == 2)
+			print(' <a href="./?page=' . $page - 2 . '">' . $page - 2 . '</a> <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a>');
+		else if($page == 1)
+			print(' <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a> ');
+
+		print("[${page}]");
+
+		if($page < $totalPages - 3)
+			print('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a> <a href="./?page=' . $page + 2 . '">' . $page + 2 . '</a> ... <a href="./?page=' . $totalPages - 1 . '">' . $totalPages - 1 . '</a>');
+		else if($page == $totalPages - 3)
+			print('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a> <a href="./?page=' . $page + 2 . '">' . $page + 2 . '</a>');
+		else if($page == $totalPages - 2)
+			print('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a>');
+
 		if(isSet($_SESSION['loggedin']))
 			print("<br><br><a href=\"./?action=newtopic\">Post a new topic</a>\n");
 
@@ -560,11 +588,20 @@
 			if($_SESSION['admin'])
 				print("<br><a href=\"./admin.php\">Admin</a>");
 	}
+
+	// End of possible actions, close mysql connection.
+	disconnectSQL();
+
+	$_script_time = microtime(true) - $_script_start;
 ?>
 
 <br />
 <br />
-<div class=finetext>REforum is &#169; 2016 pecon.us <a href="./about.html">About</a></div>
+<div class=finetext>
+REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
+<br>
+Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?> queries.
+</div>
 </center>
 </body>
 </html>

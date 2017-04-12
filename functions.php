@@ -1,5 +1,6 @@
 <?php
 	require_once './data.php';
+	require_once './database.php';
 
 	date_default_timezone_set("America/Los_Angeles"); // Should add this to the configuration at some point.
 
@@ -28,23 +29,8 @@
 	{
 		$ID = intval($ID);
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-		{
-			error("Connection failed: " . $mysqli -> connect_error);
-			return false;
-		}
-
 		$sql = "SELECT verification FROM users WHERE id='${ID}';";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error($mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		$result = $result -> fetch_assoc();
 		return $result['verification'];
@@ -54,23 +40,8 @@
 	{
 		$ID = intval($ID);
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-		{
-			error("Connection failed: " . $mysqli -> connect_error);
-			return false;
-		}
-
 		$sql = "UPDATE users SET verification='0' WHERE id='${ID}';";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error($mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		return true;
 	}
@@ -83,24 +54,9 @@
 			return false;
 		}
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-		{
-			error("Connection failed: " . $mysqli -> connect_error);
-			return false;
-		}
-
-		$code = mysqli_real_escape_string($mysqli, $code);
+		$code = sanitizeSQL($code);
 		$sql = "SELECT id FROM users WHERE verification='${code}'";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error($mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		$result = $result -> fetch_assoc();
 		if(!isSet($result['id']))
@@ -109,13 +65,7 @@
 		$ID = intval($result['id']);
 
 		$sql = "UPDATE users SET verified=1, verification=0 WHERE id='${ID}'";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error("Could not update users. " . $mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		return true;
 	}
@@ -128,26 +78,11 @@
 			return false;
 		}
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-		{
-			error("Connection failed: " . $mysqli -> connect_error);
-			return false;
-		}
-
 		$realEmail = $email;
-		$email = mysqli_real_escape_string($mysqli, $email);
+		$email = sanitizeSQL($email);
 		$sql = "SELECT id FROM users WHERE email='${email}'";
 
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error($mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		$result = $result -> fetch_assoc();
 		if(!isSet($result['id']))
@@ -172,15 +107,9 @@ This email was sent to you because a password reset was initiated on your accoun
 <br />
 If you did not initiate this reset, you may safely disregard this email.<br />
 EOF;
-		$verificationCode = mysqli_real_escape_string($mysqli, $verification);
+		$verificationCode = sanitizeSQL($verification);
 		$sql = "UPDATE users SET verification='${verificationCode}' WHERE id='${result['id']}'";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error($mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		$error = mail($realEmail, "REforum password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
 		if($error === false)
@@ -199,16 +128,9 @@ EOF;
 		if(isSet($topic[$ID]))
 			return $topic[$ID];
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
-
 		$ID = intVal($ID);
 		$sql = "SELECT * FROM topics WHERE topicID = ${ID}";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
 		if($numResults = $result -> num_rows > 0)
 		{
@@ -225,52 +147,25 @@ EOF;
 
 	function banUserByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
-
 		$id = intval($id);
 		$sql = "UPDATE users SET banned=1, tagline='Banned user' WHERE id={$id}";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
-		if($result == false)
-		{
-			error("Could not ban user.");
-			return false;
-		}
-		else
-		{
-			$user = findUserByID($id);
-			adminLog("Banned user (${id}) ${user['username']}.");
-			return true;
-		}
+		$user = findUserByID($id);
+		adminLog("Banned user (${id}) ${user['username']}.");
+		return true;
 	}
 
 	function unbanUserByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
 
 		$id = intval($id);
 		$sql = "UPDATE users SET banned=0, tagline='' WHERE id='${id}'";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
-		if($result == false)
-		{
-			error("Could not unban user.");
-			return false;
-		}
-		else
-		{
-			$user = findUserByID($id);
-			adminLog("Unbanned user (${id}) ${user['username']}.");
-			return true;
-		}
+		$user = findUserByID($id);
+		adminLog("Unbanned user (${id}) ${user['username']}.");
+		return true;
 	}
 
 	function toggleBanUserByID($id)
@@ -297,52 +192,24 @@ EOF;
 
 	function promoteUserByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
-
 		$id = intval($id);
 		$sql = "UPDATE users SET administrator=1, tagline='Administrator' WHERE id={$id}";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
-		if($result == false)
-		{
-			error("Could not promote user.");
-			return false;
-		}
-		else
-		{
-			$user = findUserByID($id);
-			adminLog("Promoted user (${id}) ${user['username']} to admin.");
-			return true;
-		}
+		$user = findUserByID($id);
+		adminLog("Promoted user (${id}) ${user['username']} to admin.");
+		return true;
 	}
 
 	function demoteUserByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
-
 		$id = intval($id);
 		$sql = "UPDATE users SET administrator=0, tagline='' WHERE id='${id}'";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
-		if($result == false)
-		{
-			error("Could not demote user.");
-			return false;
-		}
-		else
-		{
-			$user = findUserByID($id);
-			adminLog("Demoted user (${id}) ${user['username']} from admin.");
-			return true;
-		}
+		$user = findUserByID($id);
+		adminLog("Demoted user (${id}) ${user['username']} from admin.");
+		return true;
 	}
 
 	function togglePromoteUserByID($id)
@@ -376,20 +243,13 @@ EOF;
 		if(isSet($user[$name]))
 			return $user[$name];
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli->connect_error);
-
-		$name = mysqli_real_escape_string($mysqli, strToLower($name));
+		$name = sanitizeSQL(strToLower($name));
 		$sql = "SELECT * FROM users WHERE lower(username) = '{$name}'";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
-		if($numResults = $result->num_rows > 0)
+		if($numResults = $result -> num_rows > 0)
 		{
-			while($row = $result->fetch_assoc())
+			while($row = $result -> fetch_assoc())
 			{
 				$user[$name] = $row;
 				return $row;
@@ -408,16 +268,9 @@ EOF;
 		if(isSet($user[$ID]))
 			return $user[$ID];
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli->connect_error);
-
 		$ID = intVal($ID);
 		$sql = "SELECT * FROM users WHERE id = {$ID}";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
 		if($numResults = $result -> num_rows > 0)
 		{
@@ -434,16 +287,9 @@ EOF;
 
 	function getUserNameByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if ($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli->connect_error);
-
 		$id = intval($id);
 		$sql = "SELECT username FROM users WHERE id = '{$id}'";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
 		if($numResults = $result -> num_rows > 0)
 		{
@@ -459,15 +305,9 @@ EOF;
 
 	function getUserPostcountByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$id = intVal($id);
 		$sql = "SELECT postCount FROM users WHERE id = '{$id}'";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
 		if($numResults = $result -> num_rows > 0)
 		{
@@ -477,26 +317,14 @@ EOF;
 		}
 		else
 			return false;
-
-		$mysqli -> close();
 	}
 
 	function getAvatarByID($id)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$id = intval($id);
 		$sql = "SELECT avatar FROM users WHERE id=${id};";
 
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-			return false;
-
+		$result = querySQL($sql);
 		$result = $result -> fetch_assoc();
 
 		if(isSet($result['avatar']))
@@ -595,23 +423,12 @@ EOF;
 			imagedestroy($image);
 
 			//Upload the avatar to the MySQL database
-			global $servername, $dbusername, $dbpassword, $dbname;
-
-			$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-			if($mysqli -> connect_error)
-			{
-				unlink($imagePath);
-				exit("Connection failed: " . $mysqli -> connect_error);
-			}
-
 			$id = intval($id);
-			$inputData = mysqli_real_escape_string($mysqli, fread(fopen($imagePath, "rb"), filesize($imagePath)));
+			$inputData = sanitizeSQL(fread(fopen($imagePath, "rb"), filesize($imagePath)));
 			unlink($imagePath);
 			$sql = "UPDATE users SET avatar='${inputData}' WHERE id=${id};";
 
-			$error = $mysqli -> query($sql);
-			if($error === false)
-				exit(error("Failed to save avatar. " . $mysqli -> error, true));
+			querySQL($sql);
 		}
 		else
 			error("Uploaded file could not be validated.");
@@ -619,57 +436,30 @@ EOF;
 
 	function getPasswordHashByID($ID)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$ID = intval($ID);
 		$sql = "SELECT passkey FROM users WHERE id=${ID};";
 
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-			exit(error("Could not get password hash. " . $mysqli -> error, true));
+		$result = querySQL($sql);
 
 		return $result -> fetch_assoc()['passkey'];
 	}
 
 	function updatePasswordByID($ID, $newHash)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$ID = intval($ID);
-		$newHash = mysqli_real_escape_string($mysqli, $newHash);
+		$newHash = sanitizeSQL($newHash);
 
 		$sql = "UPDATE users SET passkey='${newHash}' WHERE id=${ID};";
 
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-			exit(error("Could not update password. " . $mysqli -> error, true));
+		querySQL($sql);
 	}
 
 	function getEmailByID($ID)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$ID = intval($ID);
 		$sql = "SELECT email FROM users WHERE id=${ID};";
 
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-			exit(error("Could not get email. " . $mysqli -> error, true));
+		$result = querySQL($sql);
 
 		return $result -> fetch_assoc()['email'];
 	}
@@ -704,25 +494,12 @@ EOF;
 	<br />
 	If you are not the owner of the account, pleae disregard this email.<br />
 EOF;
-			global $servername, $dbusername, $dbpassword, $dbname;
-			$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-			if($mysqli -> connect_error)
-			{
-				error("Connection failed: " . $mysqli -> connect_error);
-				return false;
-			}
 
-			$verificationCode = mysqli_real_escape_string($mysqli, $verification);
-			$newEmail = mysqli_real_escape_string($mysqli, $newEmail);
+			$verificationCode = sanitizeSQL($verification);
+			$newEmail = sanitizeSQL($newEmail);
 			$ID = intval($ID);
 			$sql = "UPDATE users SET emailVerification='${verificationCode}', newEmail='${newEmail}' WHERE id='${ID}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error($mysqli -> error);
-				return false;
-			}
+			querySQL($sql);
 
 			$error = mail($newEmail, "REforum email change", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
 			if($error === false)
@@ -735,22 +512,12 @@ EOF;
 		}
 		else
 		{
-			global $servername, $dbusername, $dbpassword, $dbname;
-
-			$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-			if($mysqli -> connect_error)
-				exit("Connection failed: " . $mysqli -> connect_error);
-
 			$ID = intval($ID);
-			$newEmail = mysqli_real_escape_string($mysqli, trim($newEmail));
+			$newEmail = sanitizeSQL(trim($newEmail));
 
 			$sql = "UPDATE users SET email='${newEmail}' WHERE id=${ID};";
 
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-				exit(error("Could not update email. " . $mysqli -> error, true));
-
+			querySQL($sql);
 			return true;
 		}
 	}
@@ -766,39 +533,18 @@ EOF;
 			return false;
 		}
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-		{
-			error("Connection failed: " . $mysqli -> connect_error);
-			return false;
-		}
-
 		$sql = "UPDATE users SET email='${user['newEmail']}', newEmail='', emailVerification=0 WHERE id='${ID}';";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error($mysqli -> error);
-			return false;
-		}
+		$result = querySQL($sql);
 
 		return true;
 	}
 
 	function checkUserExists($username, $email)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
-		$username = mysqli_real_escape_string($mysqli, strToLower($username));
-		$email = mysqli_real_escape_string($mysqli, strToLower($email));
+		$username = sanitizeSQL(strToLower($username));
+		$email = sanitizeSQL(strToLower($email));
 		$sql = "SELECT * FROM users WHERE lower(username) = '{$username}' AND lower(email) = '${email}';";
-		$result = $mysqli -> query($sql);
+		$result = querySQL($sql);
 
 		if($result -> num_rows > 0)
 		{
@@ -810,8 +556,6 @@ EOF;
 
 		else
 			return false;
-
-		$mysqli -> close();
 	}
 
 	function displayUserProfile($id)
@@ -848,7 +592,7 @@ EOF;
 
 		$taglineColor = "#FFFFFF";
 		if($userData['administrator'])
-			$taglineColor = "#FFFF00";
+			$taglineColor = "#FFFF00; text-shadow: 0px 0px 1px #FFFFAA"; // subtle xss ((just kidding))
 		if($userData['banned'])
 			$taglineColor = "#FF0000";
 
@@ -939,48 +683,23 @@ EOF;
 			$tagLine = findUserByID($id)['tagline'];
 		}
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if ($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$id = intval($id);
 		$rawText = htmlentities(mb_convert_encoding($text, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$text = mysqli_real_escape_string($mysqli, trim(bb_parse(str_replace("\n", "<br>", $rawText))));
-		$rawText = mysqli_real_escape_string($mysqli, $rawText);
-		$website = mysqli_real_escape_string($mysqli, trim($website));
-		$tagLine = mysqli_real_escape_string($mysqli, htmlentities(mb_convert_encoding(trim($tagLine), 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$text = sanitizeSQL(trim(bb_parse(str_replace("\n", "<br>", $rawText))));
+		$rawText = sanitizeSQL($rawText);
+		$website = sanitizeSQL(trim($website));
+		$tagLine = sanitizeSQL(htmlentities(mb_convert_encoding(trim($tagLine), 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
-		$result = $mysqli -> query($sql);
-
-		if($result == false)
-		{
-			error("Could not update profile data.");
-			return false;
-		}
+		$result = querySQL($sql);
 
 		return true;
 	}
 
 	function showRecentThreads($start, $num)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if ($mysqli -> connect_error)
-			die(error("Connection failed: " . $mysqli -> connect_error, true));
-
 		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			print("There are no threads to display!");
-			return;
-		}
+		$result = querySQL($sql);
 
 		if($result -> num_rows > 0)
 		{
@@ -1034,15 +753,10 @@ EOF;
 
 	function getRecentPosts($start, $num)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli->connect_error);
-
 		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
-		$result = $mysqli->query($sql);
-		if($result->num_rows > 0)
+		$result = $querySQL($sql);
+
+		if($result -> num_rows > 0)
 		{
 			print("<table class=forumTable border=1>\n");
 			while($row = $result -> fetch_assoc())
@@ -1068,21 +782,10 @@ EOF;
 		if(isSet($post[$postID]))
 			return $post[$postID];
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if ($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli->connect_error);
-
 		$postID = intVal($postID);
 		$sql = "SELECT * FROM posts WHERE postID={$postID}";
 
-		$result = $mysqli->query($sql);
-		if($result == false)
-		{
-			error("Post fetch failed.");
-			return false;
-		}
+		$result = querySQL($sql);
 
 		$row = $result -> fetch_assoc();
 		$post[$postID] = $row;
@@ -1104,15 +807,12 @@ EOF;
 
 		print("Viewing post edits<br>\n<table border=1 class=forumTable><tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br>Current</td><td class=postdatarow>{$post['postPreparsed']}</td></tr>\n");
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 		$changeID = $post['changeID'];
 
 		while($changeID > 0)
 		{
 			$sql = "SELECT * FROM changes WHERE id={$changeID}";
-			$result = $mysqli -> query($sql);
+			$result = querySQL($sql);
 
 			if($result == false)
 			{
@@ -1120,7 +820,7 @@ EOF;
 				break;
 			}
 
-			$change = $result->fetch_assoc();
+			$change = $result -> fetch_assoc();
 			$changeID = $change['lastChange'];
 			$date = date("F d, Y H:i:s", $change['changeTime']);
 
@@ -1144,14 +844,8 @@ EOF;
 		}
 		$threadControls = "";
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if($mysqli -> connect_error)
-			die("Connection failed: " . $mysqli -> connect_error);
-
 		$sql = "SELECT * FROM posts WHERE threadID='${threadID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
-		$posts = $mysqli -> query($sql);
+		$posts = querySQL($sql);
 
 		if(isSet($_SESSION['userid']))
 		{
@@ -1164,7 +858,7 @@ EOF;
 			if($_SESSION['admin'])
 			{
 				$sql = "SELECT postID FROM posts WHERE threadID='${threadID}' AND threadIndex='0';";
-				$result = $mysqli -> query($sql);
+				$result = querySQL($sql);
 				$result = $result -> fetch_assoc();
 
 				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${threadID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
@@ -1203,7 +897,7 @@ EOF;
 
 			$taglineColor = "#FFFFFF";
 			if($user['administrator'])
-				$taglineColor = "#FFFF00";
+				$taglineColor = "#FFFF00; text-shadow: 0px 0px 1px #FFFFAA";
 			if($user['banned'])
 				$taglineColor = "#FF0000";
 
@@ -1261,27 +955,14 @@ EOF;
 
 	function createThread($userID, $topic, $postData)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
-		$mysqli -> set_charset("utf8");
 		$userID = intval($userID);
-		$topic = mysqli_real_escape_string($mysqli, htmlentities(mb_convert_encoding($topic, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$topic = sanitizeSQL(htmlentities(mb_convert_encoding($topic, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
 
-		if($result = $mysqli -> query($sql) === true)
-		{
-			$topicID = $mysqli -> insert_id;
-		}
-		else
-		{
-			error("Error: " . $mysqli -> error);
-			return;
-		}
+		$mysqli = getSQLConnection();
+		$result = querySQL($sql);
+		$topicID = $mysqli -> insert_id;
 
 		createPost($userID, $topicID, $postData);
 		return $topicID;
@@ -1306,21 +987,9 @@ EOF;
 
 		$newValue = !$topic['locked'];
 
-      global $servername, $dbusername, $dbpassword, $dbname;
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if($mysqli -> connect_error)
-			die("Connection failed: " . $mysqli -> connect_error);
-
 		$sql = "UPDATE topics SET locked='${newValue}' WHERE topicID='{$threadID}';";
 
-		$result = $mysqli -> query($sql);
-
-		if($result  === false)
-		{
-			error($mysqli -> error);
-			return -1;
-		}
+		querySQL($sql);
 
 		adminLog("set thread (${threadID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
 		return $newValue;
@@ -1345,21 +1014,9 @@ EOF;
 
 		$newValue = !$topic['sticky'];
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-		if($mysqli -> connect_error)
-			die("Connection failed: " . $mysqli -> connect_error);
-
 		$sql = "UPDATE topics SET sticky='${newValue}' WHERE topicID='{$threadID}';";
 
-		$result = $mysqli -> query($sql);
-
-		if($result  === false)
-		{
-			error($mysqli -> error);
-			return -1;
-		}
+		querySQL($sql);
 
 		adminLog("set thread (${threadID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
 		return $newValue;
@@ -1367,15 +1024,8 @@ EOF;
 
 	function createPost($userID, $threadID, $postData)
 	{
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if ($mysqli->connect_error)
-			exit("Connection failed: " . $mysqli -> connect_error);
-
 		$userID = intval($userID);
 		$threadID = intval($threadID);
-		$mysqli -> set_charset("utf8");
 
 		$row = findTopicbyID($threadID);
 		if($row === false)
@@ -1390,46 +1040,32 @@ EOF;
 			return false;
 		}
 
-        // Cleanse post data
+		// Cleanse post data
 		$postData = htmlentities(mb_convert_encoding($postData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$parsedPost = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "\n<br>", $postData)));
-		$postData = mysqli_real_escape_string($mysqli, $postData);
+		$parsedPost = sanitizeSQL(bb_parse(str_replace("\n", "\n<br>", $postData)));
+		$postData = sanitizeSQL($postData);
 		$date = time();
 
-      // Make entry in posts table
+		// Make entry in posts table
+		$mysqli = getSQLConnection();
 		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${threadID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
-		$result = $mysqli -> query($sql);
+		querySQL($sql);
 
-		if($result === false)
-		{
-			error("Post failed. {$userID} {$threadID} {$postData} " . $mysqli -> error);
-			return false;
-		}
 		$postID = $mysqli -> insert_id;
 
-      // Make new data for thread entry
+		// Make new data for thread entry
 		$numPosts = $row['numposts'] + 1;
 
-      // Update thread entry
+		// Update thread entry
 		$sql = "UPDATE topics SET lastposttime='${date}', lastpostid='${postID}', numposts='${numPosts}' WHERE topicID=${threadID}";
-		$result = $mysqli -> query($sql);
-		if($result === false)
-		{
-			error("Could not update thread. " . $mysqli -> error);
-			return;
-		}
+		querySQL($sql);
 
-        // Update user post count
+		// Update user post count
 		$postCount = getUserPostcountByID($userID) + 1;
 
 		$sql = "UPDATE users SET postCount='${postCount}' WHERE id=${userID}";
-		$result = $mysqli->query($sql);
-		if($result === false)
-		{
-			error("Could not update user postcount. " . $mysqli -> error);
-			return;
-		}
-
+		querySQL($sql);
+		
 		return $postID;
 	}
 
@@ -1453,38 +1089,22 @@ EOF;
 			return;
 		}
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
 		$changeTime = time();
 		$userID = intval($userID);
 		$postID = intval($postID);
-		$oldPostData = mysqli_real_escape_string($mysqli, $post['postPreparsed']);
+		$oldPostData = sanitizeSQL($post['postPreparsed']);
 
+		$mysqli = getSQLConnection();
 		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, threadID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['threadID']}');";
-
-		$result = $mysqli -> query($sql);
-
-		if($result === false)
-		{
-			error("Could not create change data.");
-			return;
-		}
+		querySQL($sql);
 
 		$changeID = $mysqli -> insert_id;
 		$newPostData = htmlentities(mb_convert_encoding($newPostData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");;
-		$newPostParsed = mysqli_real_escape_string($mysqli, bb_parse(str_replace("\n", "<br>", $newPostData)));
-		$newPostData = mysqli_real_escape_string($mysqli, $newPostData);
+		$newPostParsed = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $newPostData)));
+		$newPostData = sanitizeSQL($newPostData);
 
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
-
-		$result = $mysqli -> query($sql);
-
-		if($result == false)
-		{
-			error("Could not update post.");
-			return;
-		}
+		querySQL($sql);
 	}
 
 	function deletePost($id)
@@ -1497,9 +1117,6 @@ EOF;
 			return false;
 		}
 
-		global $servername, $dbusername, $dbpassword, $dbname;
-		$mysqli = new mySQLi($servername, $dbusername, $dbpassword, $dbname);
-
 		if($post['threadIndex'] == 0)
 		{
 			// Delete the thread entry as well
@@ -1507,29 +1124,13 @@ EOF;
 			$threadCreator = findUserByID($thread['creatorUserID']);
 
 			$sql = "DELETE FROM topics WHERE topicID='${post['threadID']}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error("Failed to delete thread entry... aborting. <br>" . $mysqli -> error);
-				return false;
-			}
+			querySQL($sql);
 
 			$sql = "DELETE FROM posts WHERE threadID='${post['threadID']}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error("Failed to delete posts... continuing anyways I guess. <br>" . $mysqli -> error);
-			}
+			querySQL($sql);
 
 			$sql = "DELETE FROM changes WHERE threadID='${post['threadID']}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error("Failed to delete changes... continuing anyways I guess. <br>" . $mysqli -> error);
-			}
+			querySQL($sql);
 
 			adminLog("Deleted thread by ${threadCreator['id']} ${threadCreator['username']}: ${post['threadID']} . ${thread['topicName']}");
 		}
@@ -1542,13 +1143,7 @@ EOF;
 			{
 				// Find the last existing post in the thread.
 				$sql = "SELECT postID, threadIndex, postDate FROM posts WHERE threadID='${post['threadID']}' ORDER BY threadIndex DESC LIMIT 0,2";
-				$result = $mysqli -> query($sql);
-
-				if($result === false)
-				{
-					error("Failed to fetch post information. <br>" . $mysqli -> error);
-					return false;
-				}
+				$result = querySQL($sql);
 
 				// Skip the first result since it's going to be the post we're about to delete. We want the one after it.
 				$result -> fetch_assoc();
@@ -1557,13 +1152,7 @@ EOF;
 
 				// Update the thread with the new values
 				$sql = "UPDATE topics SET lastpostid='${newLastPost['postID']}', lastposttime='${newLastPost['postDate']}', numposts='${newPostCount}' WHERE topicID='${post['threadID']}';";
-				$result = $mysqli -> query($sql);
-
-				if($result === false)
-				{
-					error("Failed to update thread data. <br>" . $mysqli -> error);
-					return false;
-				}
+				querySQL($sql);
 			}
 
 			// Delete just this post out of the thread
@@ -1572,31 +1161,15 @@ EOF;
 			$user = findUserByID($post['userID'])['username'];
 
 			$sql = "DELETE FROM posts WHERE postID='${id}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error("Failed to delete post. <br>" . $mysqli -> error);
-				return false;
-			}
+			querySQL($sql);
 
 			// De-increment user post count
 			$postCount = findUserByID($post['userID'])['postCount'] - 1;
 			$sql = "UPDATE users SET postCount='${postCount}' WHERE id='${post['userID']}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error("Failed to update user post count... continuing anyways I guess. <br>" . $mysqli -> error);
-			}
+			querySQL($sql);
 
 			$sql = "DELETE FROM changes WHERE postID='${id}';";
-			$result = $mysqli -> query($sql);
-
-			if($result === false)
-			{
-				error("Failed to delete post changes... continuing anyways I guess. <br>" . $mysqli -> error);
-			}
+			querySQL($sql);
 
 			adminLog("Deleted post by ${user} (${post['userID']}): (${id}) ${postStuff}");
 		}
@@ -1606,26 +1179,26 @@ EOF;
 
 	function normalize_special_characters($str)
 	{
-		// $str = preg_replace( chr(ord("`")), "'", $str );
-		// $str = preg_replace( chr(ord("´")), "'", $str );
-		// $str = preg_replace( chr(ord("„")), ",", $str );
-		// $str = preg_replace( chr(ord("`")), "'", $str );
-		// $str = preg_replace( chr(ord("´")), "'", $str );
-		// $str = preg_replace( chr(ord("“")), "\"", $str );
-		// $str = preg_replace( chr(ord("”")), "\"", $str );
-		// $str = preg_replace( chr(ord("´")), "'", $str );
-			// $unwanted_array = array('Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
-															// 'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U',
-															// 'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss', 'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c',
-															// 'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o',
-															// 'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y');
-			// $str = strtr( $str, $unwanted_array );
-			// $str = preg_replace( chr(149), "&#8226;", $str );
-			// $str = preg_replace( chr(150), "&ndash;", $str );
-			// $str = preg_replace( chr(151), "&mdash;", $str );
-			// $str = preg_replace( chr(153), "&#8482;", $str );
-			// $str = preg_replace( chr(169), "&copy;", $str );
-			// $str = preg_replace( chr(174), "&reg;", $str );
+		$str = preg_replace( chr(ord("`")), "'", $str );
+		$str = preg_replace( chr(ord("´")), "'", $str );
+		$str = preg_replace( chr(ord("„")), ",", $str );
+		$str = preg_replace( chr(ord("`")), "'", $str );
+		$str = preg_replace( chr(ord("´")), "'", $str );
+		$str = preg_replace( chr(ord("“")), "\"", $str );
+		$str = preg_replace( chr(ord("”")), "\"", $str );
+		$str = preg_replace( chr(ord("´")), "'", $str );
+			$unwanted_array = array('Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
+															'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U',
+															'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss', 'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c',
+															'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o',
+															'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y');
+			$str = strtr( $str, $unwanted_array );
+			$str = preg_replace( chr(149), "&#8226;", $str );
+			$str = preg_replace( chr(150), "&ndash;", $str );
+			$str = preg_replace( chr(151), "&mdash;", $str );
+			$str = preg_replace( chr(153), "&#8482;", $str );
+			$str = preg_replace( chr(169), "&copy;", $str );
+			$str = preg_replace( chr(174), "&reg;", $str );
 
 		return $str;
 	}
@@ -1633,78 +1206,78 @@ EOF;
 	// Shitty bbcode parsing hackjob because my web host won't let me install the bbcode php plugin. Alternative implementation is commented.
 	function bb_parse($string)
 	{
-        $tags = 'b|it|un|size|color|center|delete|quote|url|img|video';
-        while (preg_match_all('`\[('.$tags.')=?(.*?)\](.+?)\[/\1\]`', $string, $matches)) foreach ($matches[0] as $key => $match)
-        {
-            list($tag, $param, $innertext) = array($matches[1][$key], $matches[2][$key], $matches[3][$key]);
-            switch ($tag) {
-                case 'b': $replacement = "<strong>$innertext</strong>"; break;
-                case 'it': $replacement = "<em>$innertext</em>"; break;
-                case 'un': $replacement = "<u>$innertext</u>"; break;
-                case 'size': $replacement = "<span style=\"font-size: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
-                case 'color': $replacement = "<span style=\"color: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
-                case 'center': $replacement = "<div style=\"text-align: center;\">$innertext</div>"; break;
+		$tags = 'b|it|un|size|color|center|delete|quote|url|img|video';
+		while (preg_match_all('`\[('.$tags.')=?(.*?)\](.+?)\[/\1\]`', $string, $matches)) foreach ($matches[0] as $key => $match)
+		{
+			list($tag, $param, $innertext) = array($matches[1][$key], $matches[2][$key], $matches[3][$key]);
+			switch ($tag) {
+				case 'b': $replacement = "<strong>$innertext</strong>"; break;
+				case 'it': $replacement = "<em>$innertext</em>"; break;
+				case 'un': $replacement = "<u>$innertext</u>"; break;
+				case 'size': $replacement = "<span style=\"font-size: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
+				case 'color': $replacement = "<span style=\"color: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
+				case 'center': $replacement = "<div style=\"text-align: center;\">$innertext</div>"; break;
 				case 'delete': $replacement = "<span style=\"text-decoration: line-through;\">$innertext</span>"; break;
-                case 'quote': $replacement = ($param ? "<br><span class=finetext>Quote from: {$param}</span>" : "<span class=finetext>Quote:</span>") . "<blockquote>{$innertext}</blockquote>"; break;
-                case 'url': $replacement = '<a href="' . ($param ? $param : $innertext) . "\" target=\"_blank\">$innertext</a>"; break;
-                case 'img':
-                    list($width, $height) = preg_split('`[Xx]`', $param);
-                    $replacement = "<img src=\"$innertext\" " . (is_numeric($width)? "width=\"$width\" " : '') . (is_numeric($height)? "height=\"$height\" " : '') . '/>';
-                break;
-                case 'video':
-                    $videourl = parse_url($innertext);
-                    parse_str($videourl['query'], $videoquery);
+				case 'quote': $replacement = ($param ? "<br><span class=finetext>Quote from: {$param}</span>" : "<span class=finetext>Quote:</span>") . "<blockquote>{$innertext}</blockquote>"; break;
+				case 'url': $replacement = '<a href="' . ($param ? $param : $innertext) . "\" target=\"_blank\">$innertext</a>"; break;
+				case 'img':
+					list($width, $height) = preg_split('`[Xx]`', $param);
+					$replacement = "<img src=\"$innertext\" " . (is_numeric($width)? "width=\"$width\" " : '') . (is_numeric($height)? "height=\"$height\" " : '') . '/>';
+				break;
+				case 'video':
+					$videourl = parse_url($innertext);
+					parse_str($videourl['query'], $videoquery);
 
-                    if (strpos($videourl['host'], 'youtube.com') !== FALSE) $replacement = '<iframe width="500" height="281" src="https://www.youtube.com/embed/' . $videoquery['v'] . '" frameborder="0" allowfullscreen></iframe>';
-                    if (strpos($videourl['host'], 'google.com') !== FALSE) $replacement = '<embed src="http://video.google.com/googleplayer.swf?docid=' . $videoquery['docid'] . '" width="400" height="326" type="application/x-shockwave-flash"></embed>';
-                    if (strpos($videourl['host'], 'vimeo.com') !== FALSE) $replacement = '<iframe src="https://player.vimeo.com/video' . $videourl['path'] . '" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
-                break;
-            }
-            $string = str_replace($match, $replacement, $string);
-        }
+					if (strpos($videourl['host'], 'youtube.com') !== FALSE) $replacement = '<iframe width="500" height="281" src="https://www.youtube.com/embed/' . $videoquery['v'] . '" frameborder="0" allowfullscreen></iframe>';
+					if (strpos($videourl['host'], 'google.com') !== FALSE) $replacement = '<embed src="http://video.google.com/googleplayer.swf?docid=' . $videoquery['docid'] . '" width="400" height="326" type="application/x-shockwave-flash"></embed>';
+					if (strpos($videourl['host'], 'vimeo.com') !== FALSE) $replacement = '<iframe src="https://player.vimeo.com/video' . $videourl['path'] . '" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
+				break;
+			}
+			$string = str_replace($match, $replacement, $string);
+		}
 
 		return $string;
-        /*
-        // New code attempt using bbcode extension.
-        $bbcode = bbcode_create();
+		/*
+		// New code attempt using bbcode extension.
+		$bbcode = bbcode_create();
 
-        // Enable bbcode autocorrections
-        bbcode_set_flags($bbcode, BBCODE_CORRECT_REOPEN_TAGS|BBCODE_AUTO_CORRECT, BBCODE_SET_FLAGS_SET);
+		// Enable bbcode autocorrections
+		bbcode_set_flags($bbcode, BBCODE_CORRECT_REOPEN_TAGS|BBCODE_AUTO_CORRECT, BBCODE_SET_FLAGS_SET);
 
-        // General text formatting
-        bbcode_add_element($bbcode, 'i', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<em>", 'close_tag' => "</em>", 'childs' => "b,u,s,size,color,url"));
-        bbcode_add_element($bbcode, 'b', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<b>", 'close_tag' => "</b>", 'childs' => "i,u,s,size,color,url"));
-        bbcode_add_element($bbcode, 'u', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<span style=\"text-decoration: underline;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,size,color,url"));
-        bbcode_add_element($bbcode, 's', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<span style=\"text-decoration: line-through;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,size,color,url"));
-        bbcode_add_element($bbcode, 'size', array('type' => BBCODE_TYPE_ARG, 'open_tag' => "<span style=\"font-size: {PARAM}pt;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,color,url"));
-        bbcode_add_element($bbcode, 'color', array('type' => BBCODE_TYPE_ARG, 'open_tag' => "<span style=\"text-color: {PARAM};\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,size,color,url"));
-        bbcode_add_element($bbcode, 'url', array('type' => BBCODE_TYPE_OPTARG, 'open_tag' => "<a href=\"{PARAM}\">", 'close_tag' => "</a>", 'default_arg' => "{CONTENT}", 'childs' => "b,i,u,s,size,color"));
+		// General text formatting
+		bbcode_add_element($bbcode, 'i', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<em>", 'close_tag' => "</em>", 'childs' => "b,u,s,size,color,url"));
+		bbcode_add_element($bbcode, 'b', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<b>", 'close_tag' => "</b>", 'childs' => "i,u,s,size,color,url"));
+		bbcode_add_element($bbcode, 'u', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<span style=\"text-decoration: underline;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,size,color,url"));
+		bbcode_add_element($bbcode, 's', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<span style=\"text-decoration: line-through;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,size,color,url"));
+		bbcode_add_element($bbcode, 'size', array('type' => BBCODE_TYPE_ARG, 'open_tag' => "<span style=\"font-size: {PARAM}pt;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,color,url"));
+		bbcode_add_element($bbcode, 'color', array('type' => BBCODE_TYPE_ARG, 'open_tag' => "<span style=\"text-color: {PARAM};\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,size,color,url"));
+		bbcode_add_element($bbcode, 'url', array('type' => BBCODE_TYPE_OPTARG, 'open_tag' => "<a href=\"{PARAM}\">", 'close_tag' => "</a>", 'default_arg' => "{CONTENT}", 'childs' => "b,i,u,s,size,color"));
 
-        // Text alignment
-        bbcode_add_element($bbcode, 'center', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: center;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-        bbcode_add_element($bbcode, 'right', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: right;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-        bbcode_add_element($bbcode, 'left', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: left;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-        bbcode_add_element($bbcode, 'justify', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: justify;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-
-
-        // Special content
-        bbcode_add_element($bbcode, 'quote', array('type' => BBCODE_TYPE_OPTARG, 'open_tag' => "<br><span class=finetext>Quote from:</span> {PARAM}<blockquote>", 'close_tag' => "</blockquote>", 'default_arg' => "Unknown", 'childs' => "b,i,u,s,url,img,quote,center,right,left,justify"));
-        bbcode_add_element($bbcode, 'img', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<img src=\"", 'close_tag' => " />", 'childs' => ""));
-        bbcode_add_element($bbcode, 'vimeo', array('type' => BBCODE_TYPE_ARG|BBCODE_TYPE_SINGLE, 'open_tag' => "<iframe src=\"https://player.vimeo.com/video/{PARAM}\" width=500 height=281 frameborder=0 webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>", 'childs' => ""));
-        bbcode_add_element($bbcode, 'youtube', array('type' => BBCODE_TYPE_ARG|BBCODE_TYPE_SINGLE, 'open_tag' => "<iframe width=500 height=281 src=\"https://www.youtube.com/embed/{PARAM}\"  frameborder=0 allowfullscreen></iframe>", 'childs' => ""));
+		// Text alignment
+		bbcode_add_element($bbcode, 'center', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: center;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
+		bbcode_add_element($bbcode, 'right', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: right;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
+		bbcode_add_element($bbcode, 'left', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: left;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
+		bbcode_add_element($bbcode, 'justify', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: justify;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
 
 
-        $result = bbcode_parse($bbcode, $string);
+		// Special content
+		bbcode_add_element($bbcode, 'quote', array('type' => BBCODE_TYPE_OPTARG, 'open_tag' => "<br><span class=finetext>Quote from:</span> {PARAM}<blockquote>", 'close_tag' => "</blockquote>", 'default_arg' => "Unknown", 'childs' => "b,i,u,s,url,img,quote,center,right,left,justify"));
+		bbcode_add_element($bbcode, 'img', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<img src=\"", 'close_tag' => " />", 'childs' => ""));
+		bbcode_add_element($bbcode, 'vimeo', array('type' => BBCODE_TYPE_ARG|BBCODE_TYPE_SINGLE, 'open_tag' => "<iframe src=\"https://player.vimeo.com/video/{PARAM}\" width=500 height=281 frameborder=0 webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>", 'childs' => ""));
+		bbcode_add_element($bbcode, 'youtube', array('type' => BBCODE_TYPE_ARG|BBCODE_TYPE_SINGLE, 'open_tag' => "<iframe width=500 height=281 src=\"https://www.youtube.com/embed/{PARAM}\"  frameborder=0 allowfullscreen></iframe>", 'childs' => ""));
 
-        if($result === false)
-        {
-            error("bbcode parsing failed.");
-            return $string;
-        }
 
-        return $result;
-        */
-    }
+		$result = bbcode_parse($bbcode, $string);
+
+		if($result === false)
+		{
+			error("bbcode parsing failed.");
+			return $string;
+		}
+
+		return $result;
+		*/
+	}
 
 
 	function error()
@@ -1737,6 +1310,12 @@ EOF;
 				return "<div class=warningText>" . $text . "</div>";
 
 		print("<div class=warningText>" . $text . "</div>\r\n");
+	}
+
+	function fatalError($error)
+	{
+		print('<div class="fatalErrorBox">\n<b>FATAL ERROR</b><br><br>' . $error);
+		exit();
 	}
 
 	function adminLog($stuff)
