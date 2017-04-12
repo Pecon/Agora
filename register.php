@@ -45,6 +45,11 @@
 			error("Username is too long. Pick something under 20 characters. <br><button onclick=\"goBack()\">Try again</button>");
 			exit();
 		}
+		else if(strLen($username) < 1)
+		{
+			error("Username cannot be blank. <br><button onclick=\"goBack()\">Try again</button>");
+			exit();
+		}
 
 		// Verify email is OK
 		if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))

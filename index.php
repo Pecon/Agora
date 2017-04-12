@@ -570,7 +570,8 @@
 		else if($page == 1)
 			print(' <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a> ');
 
-		print("[${page}]");
+		if($totalPages > 1)
+			print("[${page}]");
 
 		if($page < $totalPages - 3)
 			print('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a> <a href="./?page=' . $page + 2 . '">' . $page + 2 . '</a> ... <a href="./?page=' . $totalPages - 1 . '">' . $totalPages - 1 . '</a>');
@@ -600,7 +601,7 @@
 <div class=finetext>
 REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
 <br>
-Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?> queries.
+Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
 </div>
 </center>
 </body>
