@@ -93,10 +93,17 @@
 		$verification = bin2hex(openssl_random_pseudo_bytes(32));
 		$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
-		$uri = $_SERVER['REQUST_URI'];
-		$uri = substr($uri, 0, strrchr($uri, '/') + 1);
-		if(strlen($uri) == 0)
+		if(!isSet($_SERVER['REQUST_URI']))
 			$uri = "/";
+		else
+		{
+			$uri = $_SERVER['REQUST_URI'];
+
+			$uri = substr($uri, 0, strrchr($uri, '/') + 1);
+			if(strlen($uri) == 0)
+				$uri = "/";
+		}
+		
 
 		$url = "http://" . $domain . $uri . "index.php?action=resetpassword&code=" . $verification . "&id=" . $result['id'];
 
@@ -783,7 +790,7 @@ EOF;
 			return $post[$postID];
 
 		$postID = intVal($postID);
-		$sql = "SELECT * FROM posts WHERE postID={$postID}";
+		$sql = "SELECT * FROM posts WHERE postID={$postID};";
 
 		$result = querySQL($sql);
 
@@ -960,9 +967,8 @@ EOF;
 
 		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
 
-		$mysqli = getSQLConnection();
 		$result = querySQL($sql);
-		$topicID = $mysqli -> insert_id;
+		$topicID = getLastInsertID();
 
 		createPost($userID, $topicID, $postData);
 		return $topicID;
@@ -1051,7 +1057,7 @@ EOF;
 		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${threadID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
 		querySQL($sql);
 
-		$postID = $mysqli -> insert_id;
+		$postID = getLastInsertID();
 
 		// Make new data for thread entry
 		$numPosts = $row['numposts'] + 1;
@@ -1094,11 +1100,10 @@ EOF;
 		$postID = intval($postID);
 		$oldPostData = sanitizeSQL($post['postPreparsed']);
 
-		$mysqli = getSQLConnection();
 		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, threadID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['threadID']}');";
 		querySQL($sql);
 
-		$changeID = $mysqli -> insert_id;
+		$changeID = getLastInsertID();
 		$newPostData = htmlentities(mb_convert_encoding($newPostData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");;
 		$newPostParsed = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $newPostData)));
 		$newPostData = sanitizeSQL($newPostData);

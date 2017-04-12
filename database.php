@@ -6,6 +6,7 @@ require_once './functions.php';
 $_mysqli;
 $_mysqli_connected = false;
 $_mysqli_numQueries = 0;
+$_mysqli_insert_id = 0;
 
 function getSQLConnection()
 {
@@ -53,9 +54,16 @@ function querySQL($query)
 		return false;
 	}
 
-	global $_mysqli_numQueries;
+	global $_mysqli_numQueries, $_mysqli_insert_id;
+	$_mysqli_insert_id = $mysqli -> insert_id;
 	$_mysqli_numQueries++;
 	return $result;
+}
+
+function getLastInsertID()
+{
+	global $_mysqli_insert_id;
+	return $_mysqli_insert_id;
 }
 
 function sanitizeSQL($value)
