@@ -716,7 +716,7 @@ EOF;
 			{
 				$topicID = $row['topicID'];
 				$topicName = $row['topicName'];
-				$numPosts = $row['numposts'];
+				$numPosts = querySQL("SELECT COUNT(*) FROM topics WHERE topicID=${topicID};") -> fetch_assoc()["COUNT(*)"];
 				$creator = findUserByID($row['creatorUserID']);
 				$creatorName = $creator['username'];
 
@@ -837,13 +837,13 @@ EOF;
 		print("</table>\n");
 	}
 
-	function displayThread($threadID, $page)
+	function displayThread($topicID, $page)
 	{
 		$start = $page * 10;
 		$end = $start + 10;
-		$threadID = intVal($threadID);
+		$topicID = intVal($topicID);
 
-		$row = findTopicbyID($threadID);
+		$row = findTopicbyID($topicID);
 		if($row === false)
 		{
 			error("Failed to load thread.");
@@ -916,42 +916,43 @@ EOF;
 			}
 
 			$date = date("F d, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext style=\"color:${taglineColor}\">${user['tagline']}</div><br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=finetext>${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$deletePost} {$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$threadID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext style=\"color:${taglineColor}\">${user['tagline']}</div><br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=finetext>${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$deletePost} {$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$topicID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		print("</table>\n");
 
 		if($page - 2 >= 0)
 		{
 			$jumpPage = $page - 2;
-			print("<a href=\"./?topic={$threadID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
 		if($page - 1 >= 0)
 		{
 			$jumpPage = $page - 1;
-			print("<a href=\"./?topic={$threadID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
 		print("[${page}] ");
 
-		$highestPage = floor(($row['numposts'] - 1) / 10);
+		$numPosts = querySQL("SELECT COUNT(*) FROM topics WHERE topicID=${threadID};") -> fetch_assoc()["COUNT(*)"];
+		$highestPage = floor(($numPosts - 1) / 10);
 
 		if($page + 1 <= $highestPage)
 		{
 			$jumpPage = $page + 1;
-			print("<a href=\"./?topic={$threadID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
 		if($page + 2 <= $highestPage)
 		{
 			$jumpPage = $page + 2;
-			print("<a href=\"./?topic={$threadID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
 		print("<br><br>\n");
 
 		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
-			print("<form action=\"./?action=post&topic={$threadID}&page={$page}\" method=POST>
+			print("<form action=\"./?action=post&topic={$topicID}&page={$page}\" method=POST>
 			<input type=hidden name=action value=newpost>
 			<textarea id=\"replytext\" class=postbox name=postcontent></textarea>
 			<br>
@@ -974,10 +975,10 @@ EOF;
 		return $topicID;
    }
 
-   function lockThread($threadID)
+   function lockThread($topicID)
    {
-		$threadID = intval($threadID);
-		$topic = findTopicbyID($threadID);
+		$topicID = intval($topicID);
+		$topic = findTopicbyID($topicID);
 
 		if($topic === false)
 		{
@@ -993,7 +994,7 @@ EOF;
 
 		$newValue = !$topic['locked'];
 
-		$sql = "UPDATE topics SET locked='${newValue}' WHERE topicID='{$threadID}';";
+		$sql = "UPDATE topics SET locked='${newValue}' WHERE topicID='{$topicID}';";
 
 		querySQL($sql);
 
@@ -1001,10 +1002,10 @@ EOF;
 		return $newValue;
    }
 
-	function stickyThread($threadID)
+	function stickyThread($topicID)
 	{
-		$threadID = intval($threadID);
-		$topic = findTopicbyID($threadID);
+		$topicID = intval($topicID);
+		$topic = findTopicbyID($topicID);
 
 		if($topic === false)
 		{
@@ -1020,7 +1021,7 @@ EOF;
 
 		$newValue = !$topic['sticky'];
 
-		$sql = "UPDATE topics SET sticky='${newValue}' WHERE topicID='{$threadID}';";
+		$sql = "UPDATE topics SET sticky='${newValue}' WHERE topicID='{$topicID}';";
 
 		querySQL($sql);
 
@@ -1028,12 +1029,12 @@ EOF;
 		return $newValue;
 	}
 
-	function createPost($userID, $threadID, $postData)
+	function createPost($userID, $topicID, $postData)
 	{
 		$userID = intval($userID);
-		$threadID = intval($threadID);
+		$topicID = intval($topicID);
 
-		$row = findTopicbyID($threadID);
+		$row = findTopicbyID($topicID);
 		if($row === false)
 		{
 			error("Could not find thread data.");
