@@ -761,18 +761,20 @@ EOF;
 	function getRecentPosts($start, $num)
 	{
 		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
-		$result = $querySQL($sql);
+		$result = querySQL($sql);
 
 		if($result -> num_rows > 0)
 		{
 			print("<table class=forumTable border=1>\n");
 			while($row = $result -> fetch_assoc())
 			{
+				$topic = findTopicbyID($row['threadID']);
 				$user = findUserByID($row['userID']);
 				$username = $user['username'];
 				$date = date("F d, Y H:i:s", $row['postDate']);
+				$topicPage = floor($row['threadIndex'] / 10);
 
-				print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				print("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			print("</table>\n");
 		}
@@ -851,7 +853,7 @@ EOF;
 		}
 		$threadControls = "";
 
-		$sql = "SELECT * FROM posts WHERE threadID='${threadID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
+		$sql = "SELECT * FROM posts WHERE threadID='${topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
 		$posts = querySQL($sql);
 
 		if(isSet($_SESSION['userid']))
@@ -860,15 +862,15 @@ EOF;
 			print("<script type=\"text/javascript\">function insertQuote(postText, authorName){ var textbox = document.getElementById(\"replytext\"); textbox.value += (textbox.value == \"\" ? \"\" : \"\\r\\n\") + \"[quote \" + authorName + \"]\" + postText + \"[/quote]\"; }</script>\n");
 
 			if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
-				$threadControls = "<a href=\"./?action=lockthread&thread=${threadID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
+				$threadControls = "<a href=\"./?action=lockthread&thread=${topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
 
 			if($_SESSION['admin'])
 			{
-				$sql = "SELECT postID FROM posts WHERE threadID='${threadID}' AND threadIndex='0';";
+				$sql = "SELECT postID FROM posts WHERE threadID='${topicID}' AND threadIndex='0';";
 				$result = querySQL($sql);
 				$result = $result -> fetch_assoc();
 
-				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${threadID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
+				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
 			}
 		}
 		else
@@ -895,7 +897,7 @@ EOF;
 
 			if(isSet($_SESSION['userid']) && !boolval($row['locked']))
 				if($post['userID'] == $_SESSION['userid'])
-					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${threadID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
+					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${topicID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
 
 			if($quotesEnabled)
 				$quoteData = "<a class=inPostButtons onclick=\"insertQuote('" . javascriptEscapeString(htmlentities(mb_convert_encoding($post['postData'], 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8")) . "', '{$username}');\" href=\"#replytext\">Quote/Reply</a>   ";
@@ -934,7 +936,7 @@ EOF;
 
 		print("[${page}] ");
 
-		$numPosts = querySQL("SELECT COUNT(*) FROM topics WHERE topicID=${threadID};") -> fetch_assoc()["COUNT(*)"];
+		$numPosts = querySQL("SELECT COUNT(*) FROM topics WHERE topicID=${topicID};") -> fetch_assoc()["COUNT(*)"];
 		$highestPage = floor(($numPosts - 1) / 10);
 
 		if($page + 1 <= $highestPage)
@@ -998,7 +1000,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("set thread (${threadID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
+		adminLog("set thread (${topicID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
 		return $newValue;
    }
 
@@ -1025,7 +1027,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("set thread (${threadID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
+		adminLog("set thread (${topicID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
 		return $newValue;
 	}
 
@@ -1055,7 +1057,7 @@ EOF;
 
 		// Make entry in posts table
 		$mysqli = getSQLConnection();
-		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${threadID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
+		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${topicID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
 		querySQL($sql);
 
 		$postID = getLastInsertID();
@@ -1064,7 +1066,7 @@ EOF;
 		$numPosts = $row['numposts'] + 1;
 
 		// Update thread entry
-		$sql = "UPDATE topics SET lastposttime='${date}', lastpostid='${postID}', numposts='${numPosts}' WHERE topicID=${threadID}";
+		$sql = "UPDATE topics SET lastposttime='${date}', lastpostid='${postID}', numposts='${numPosts}' WHERE topicID=${topicID}";
 		querySQL($sql);
 
 		// Update user post count
