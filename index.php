@@ -39,7 +39,7 @@
 
 				else if(isSet($_POST['preview']))
 				{
-					print("Here is a preview of your post.<br>\n<table border=1 class=forumtable><tr><td class=postcontent>\n");
+					print("Here is a preview of your post.<br>\n<table border=1 class=forumTable><tr><td class=postcontent>\n");
 					$postStuff = htmlentities($_POST['postcontent']);
 					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
 
@@ -513,22 +513,22 @@
 				print(($result ? "Banned" : "Unbanned") . " user! <script> window.setTimeout(function(){window.location.href = \"./?action=viewProfile&user=${_GET['id']}\";}, 1500);</script>");
 				break;
 
-				case "promote":
-					if(!$_SESSION['admin'])
-					{
-						error("You do not have permission to do this action.");
-						break;
-					}
-
-					if(!isSet($_GET['id']))
-					{
-						error("No user id specified.");
-						break;
-					}
-
-					$result = togglePromoteUserByID($_GET['id']);
-					print(($result ? "Promoted" : "Demoted") . " user! <script> window.setTimeout(function(){window.location.href = \"./?action=viewProfile&user=${_GET['id']}\";}, 1500);</script>");
+			case "promote":
+				if(!$_SESSION['admin'])
+				{
+					error("You do not have permission to do this action.");
 					break;
+				}
+
+				if(!isSet($_GET['id']))
+				{
+					error("No user id specified.");
+					break;
+				}
+
+				$result = togglePromoteUserByID($_GET['id']);
+				print(($result ? "Promoted" : "Demoted") . " user! <script> window.setTimeout(function(){window.location.href = \"./?action=viewProfile&user=${_GET['id']}\";}, 1500);</script>");
+				break;
 
 			case "search":
 				print("");

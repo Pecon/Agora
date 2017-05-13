@@ -796,6 +796,9 @@ EOF;
 
 		$result = querySQL($sql);
 
+		if($result === false)
+			return false;
+
 		$row = $result -> fetch_assoc();
 		$post[$postID] = $row;
 		return $row;
@@ -859,7 +862,8 @@ EOF;
 		if(isSet($_SESSION['userid']))
 		{
 			$quotesEnabled = true;
-			print("<script type=\"text/javascript\">function insertQuote(postText, authorName){ var textbox = document.getElementById(\"replytext\"); textbox.value += (textbox.value == \"\" ? \"\" : \"\\r\\n\") + \"[quote \" + authorName + \"]\" + postText + \"[/quote]\"; }</script>\n");
+			$quoteString = Array();
+			print("<script src=\"./js/quote.js\" type=\"text/javascript\"></script>\n");
 
 			if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
 				$threadControls = "<a href=\"./?action=lockthread&thread=${topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
@@ -881,7 +885,7 @@ EOF;
 		else
 			$threadStatus = (boolval($row['sticky']) ? "&#128204;" : "") . (boolval($row['locked']) ? "&#128274;" : "");
 
-		print("<div class=threadHeader> ${threadStatus} Displaying thread: {$row['topicName']} &nbsp;&nbsp;${threadControls}</div>\n<table class=forumTable border=1>\n");
+		print("<div class=threadHeader> ${threadStatus} Displaying thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=forumTable border=1>\n");
 		while($post = $posts -> fetch_assoc())
 		{
 			$user = findUserByID($post['userID']);
@@ -900,7 +904,18 @@ EOF;
 					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${topicID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
 
 			if($quotesEnabled)
-				$quoteData = "<a class=inPostButtons onclick=\"insertQuote('" . javascriptEscapeString(htmlentities(mb_convert_encoding($post['postData'], 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8")) . "', '{$username}');\" href=\"#replytext\">Quote/Reply</a>   ";
+			{
+				$quoteData = "<noscript><a class=inPostButtons href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "") . "&quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>   ";
+
+				if(isSet($_GET['quote']))
+				{
+					if(intval($_GET['quote']) == $post['postID'])
+					{
+						$quoteString['data'] = $post['postData'];
+						$quoteString['author'] = $user['username'];
+					}
+				}
+			}
 			else
 				$quoteData = "";
 
@@ -956,7 +971,7 @@ EOF;
 		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 			print("<form action=\"./?action=post&topic={$topicID}&page={$page}\" method=POST>
 			<input type=hidden name=action value=newpost>
-			<textarea id=\"replytext\" class=postbox name=postcontent></textarea>
+			<textarea id=\"replytext\" class=postbox name=postcontent>" . (isSet($quoteString['data']) ? "[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]" : "") . "</textarea>
 			<br>
 			<input type=submit name=post value=Post>
 			<input type=submit name=preview value=Preview>
@@ -1320,12 +1335,6 @@ EOF;
 		print("<div class=warningText>" . $text . "</div>\r\n");
 	}
 
-	function fatalError($error)
-	{
-		print('<div class="fatalErrorBox">\n<b>FATAL ERROR</b><br><br>' . $error);
-		exit();
-	}
-
 	function adminLog($stuff)
 	{
 		$file = fopen("./admin.log", "a");
@@ -1358,16 +1367,5 @@ EOF;
 		}
 
 		return $return;
-	}
-
-	function javascriptEscapeString($string)
-	{
-		$string = str_replace("\\", "\\\\", $string);
-		$string = str_replace("\"", "\\\"", $string);
-		$string = str_replace("\r", "\\r", $string);
-		$string = str_replace("\n", "\\n", $string);
-		$string = str_replace("'", "\\'", $string);
-
-		return $string;
 	}
 ?>

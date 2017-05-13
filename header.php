@@ -16,10 +16,7 @@ if(isSet($_GET['finishForm']))
 }
 ?>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/html1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-
+<!DOCTYPE html>
 <head>
 	<title>
 		<?php
@@ -32,6 +29,22 @@ if(isSet($_GET['finishForm']))
 	<link rel="stylesheet" type="text/css" href="./style/default.css"/>
 	<link rel="icon" type="image/png" href="./style/favicon.png"/>
 
+	<noscript>
+		<style>
+			.javascriptButton
+			{
+				display: none;
+			}
+		</style>
+	</noscript>
+
+	<script type="text/javascript">
+	function goBack()
+	{
+	    window.history.back();
+	}
+	</script>
+
 	<?php
 		if(isSet($metaTags))
 			print($metaTags);
@@ -42,10 +55,4 @@ if(isSet($_GET['finishForm']))
 	</script>-->
 
 </head>
-<script type="text/javascript">
-function goBack()
-{
-    window.history.back();
-}
-</script>
 <body>
