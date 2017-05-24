@@ -39,18 +39,21 @@
 
 				else if(isSet($_POST['preview']))
 				{
-					print("Here is a preview of your post.<br>\n<table border=1 class=forumTable><tr><td class=postcontent>\n");
+					print("Here is a preview of your post.<br>\n<table border=1 class=forumTable><tr><td class=\"postcontent\">\n");
 					$postStuff = htmlentities($_POST['postcontent']);
 					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
 
 					print($preview);
-					print("\n</td></tr></table><br>\n<form action=\"./?action=post&topic={$_GET['topic']}&page={$_GET['page']}\" method=POST accept-charset=\"ISO-8859-1\">
+					?>
+
+					</td></tr></table><br>\n<form action=\"./?action=post&topic={$_GET['topic']}&page={$_GET['page']}\" method=POST accept-charset=\"ISO-8859-1\">
 						<textarea name=postcontent class=postbox>{$postStuff}</textarea>
 						<br>
-						<input type=submit name=post value=Post>
+						<input type=submit name=post value=\"Post\">
 						<input type=submit name=preview value=Preview>
 						</form><br>
-						");
+
+					<?php
 				}
 
 				else if($_SESSION['lastpostingtime'] > time() - 20)
@@ -76,9 +79,8 @@
 				}
 				else if(isSet($_POST['postcontent']))
 				{
-					// print_r($_POST);
 					$postID = createPost($_SESSION['userid'], intVal($_GET['topic']), $_POST['postcontent']);
-					print("Post successful!<script> window.location = \"./?topic={$_GET['topic']}&page={$_GET['page']}#{$postID}\"; </script>");
+					print("Post successful!<script> window.location = \"./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}\"; </script>");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
 					$_SESSION['lastpostingtime'] = time();
 				}
@@ -598,7 +600,7 @@
 
 <br />
 <br />
-<div class=finetext>
+<div class="finetext">
 REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
 <br>
 Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.

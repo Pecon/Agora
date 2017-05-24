@@ -150,6 +150,16 @@ table.navmenu
 	height: 50px;
 }
 
+table.loginTable
+{
+	text-align: center;
+
+	padding: 3px;
+
+	min-width: 300px;
+	min-height: 100px;
+}
+
 td.logocell
 {
 	width: 400px;

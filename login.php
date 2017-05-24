@@ -7,11 +7,10 @@
 	print("<center>");
 	require_once './navmenu.php';
 	?>
-		<br>
 		<h1>Forum Login</h1>
 		<br>
 		<form method=POST>
-		<table border=1 style="align: center; padding: 3px;">
+		<table class="loginTable">
 			<tr>
 				<td>
 <?php
@@ -39,6 +38,8 @@
 	}
 	else
 	{
+		usleep(50000);
+
 		if(!isSet($_POST['username']) || !isSet($_POST['password']))
 		{
 			error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.");
@@ -88,6 +89,12 @@
 		print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
 	}
 ?>
+<br>
+<div class="finetext">
+REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
+<br>
+Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
+</div>
 </center>
 </body>
 </html>

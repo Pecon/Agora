@@ -6,13 +6,12 @@
 	require_once './header.php';
 	print("<center>");
 	require_once './navmenu.php';
+	require_once './database.php';
 	?>
-
-		<br>
 		<h1>Forum Registration</h1>
 		<br>
-		<form method=POST>
-		<table border=1>
+		<form method="POST">
+		<table class="loginTable">
 			<tr>
 				<td>
 <?php
@@ -81,12 +80,8 @@
 		}
 
 
-		$password = password_hash(normalize_special_characters($_POST['password']), PASSWORD_BCRYPT);
+		$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 		$regDate = time();
-
-		$mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($mysqli -> connect_error)
-			exit(error("Connection failed: " . $mysqli -> connect_error, true));
 
 		if($settings['require_email_verification'])
 		{
@@ -107,7 +102,7 @@ Thank you for registering on REforum! Please verify your email by visiting the f
 <br />
 <a target="_BLANK" href="${url}">${url}</a><br />
 <br />
-If you did not sign up for this forum, you may safely disregard this email.<br />
+If you did not intend to sign up for this forum, you may safely disregard this email.<br />
 EOF;
 
 			$error = mail($_POST['email'], "REforum email verification", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
@@ -120,23 +115,27 @@ EOF;
 			$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', 0, 1);";
 
 		$realUsername = $username;
-		$username = mysqli_real_escape_string($mysqli, $username);
-		$password = mysqli_real_escape_string($mysqli, $password);
-		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
+		$username = sanitizeSQL($username);
+		$password = sanitizeSQL($password);
+		$email = sanitizeSQL($mysqli, $_POST['email']);
 		$regDate = time();
 
-		if ($mysqli -> query($sql) === TRUE)
-			print("Registration completed successfully. Your username is {$realUsername}.<br><a href=\"./login.php\">Log in</a>");
-		else
-			exit(error($mysqli -> error, true));
+		querySQL($sql);
+		print("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a>");
 
-		$mysqli -> close();
+		disconnectSQL();
 	}
 ?>
 				</td>
 			</tr>
 		</table>
 		</form>
+		<br>
+		<div class="finetext">
+		REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
+		<br>
+		Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
+		</div>
 	</center>
 </body>
 </html>

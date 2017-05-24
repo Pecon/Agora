@@ -7,6 +7,9 @@
 	print("<center>");
 	require_once './navmenu.php';
 	?>
+	<h1>Logout</h1>
+	<br>
+	<table class="loginTable">
 	<?php
 	if(isSet($_SESSION['loggedin']))
 	{
@@ -18,5 +21,11 @@
 		error("You cannot log out if you haven't logged in yet...<br><a href=\"./login.php\">Log in</a>");
 	}
 ?>
+	</table>
+<div class="finetext">
+REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
+<br>
+Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
+</div>
 </body>
 </html>

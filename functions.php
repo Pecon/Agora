@@ -691,11 +691,11 @@ EOF;
 		}
 
 		$id = intval($id);
-		$rawText = htmlentities(mb_convert_encoding($text, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+		$rawText = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$text = sanitizeSQL(trim(bb_parse(str_replace("\n", "<br>", $rawText))));
 		$rawText = sanitizeSQL($rawText);
 		$website = sanitizeSQL(trim($website));
-		$tagLine = sanitizeSQL(htmlentities(mb_convert_encoding(trim($tagLine), 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine), 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
 		$result = querySQL($sql);
@@ -716,7 +716,7 @@ EOF;
 			{
 				$topicID = $row['topicID'];
 				$topicName = $row['topicName'];
-				$numPosts = querySQL("SELECT COUNT(*) FROM topics WHERE topicID=${topicID};") -> fetch_assoc()["COUNT(*)"];
+				$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()['COUNT(*)'];
 				$creator = findUserByID($row['creatorUserID']);
 				$creatorName = $creator['username'];
 
@@ -967,7 +967,7 @@ EOF;
 
 		print("[${page}] ");
 
-		$numPosts = querySQL("SELECT COUNT(*) FROM topics WHERE topicID=${topicID};") -> fetch_assoc()["COUNT(*)"];
+		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()["COUNT(*)"];
 		$highestPage = floor(($numPosts - 1) / 10);
 
 		if($page + 1 <= $highestPage)
@@ -997,7 +997,7 @@ EOF;
 	function createThread($userID, $topic, $postData)
 	{
 		$userID = intval($userID);
-		$topic = sanitizeSQL(htmlentities(mb_convert_encoding($topic, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$topic = sanitizeSQL(htmlentities(html_entity_decode($topic), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
 
@@ -1081,7 +1081,7 @@ EOF;
 		}
 
 		// Cleanse post data
-		$postData = htmlentities(mb_convert_encoding($postData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+		$postData = htmlentities(html_entity_decode($postData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$parsedPost = sanitizeSQL(bb_parse(str_replace("\n", "\n<br>", $postData)));
 		$postData = sanitizeSQL($postData);
 		$date = time();
@@ -1138,7 +1138,7 @@ EOF;
 		querySQL($sql);
 
 		$changeID = getLastInsertID();
-		$newPostData = htmlentities(mb_convert_encoding($newPostData, 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");;
+		$newPostData = htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$newPostParsed = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $newPostData)));
 		$newPostData = sanitizeSQL($newPostData);
 
