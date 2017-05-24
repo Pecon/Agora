@@ -817,12 +817,27 @@ EOF;
 		$postID = intval($postID);
 		$username = getUserNameByID($post['userID']);
 
-		print("Viewing post edits<br>\n<table border=1 class=forumTable><tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br>Current</td><td class=postdatarow>{$post['postPreparsed']}</td></tr>\n");
-
 		$changeID = $post['changeID'];
+
+		$sql = "SELECT * FROM changes WHERE id=${changeID}";
+		$result = querySQL($sql);
+
+		if($result === false)
+		{
+			error("There are no edits to display.");
+			return;
+		}
+
+		$change = $result -> fetch_assoc();
+		$changeID = $change['lastChange'];
+		$date = date("F d, Y H:i:s", $change['changeTime']);
+
+		print("Viewing post edits<br>\n<table border=1 class=forumTable><tr><td class=usernamerow><a href=\"./?action=viewProfile&user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=postdatarow>{$post['postPreparsed']}</td></tr>\n");
 
 		while($changeID > 0)
 		{
+			print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user=${post['userID']}\">${username}</a><br><span class=finetext>${date}</span></td><td class=postdatarow>${change['postData']}</td></tr>\n");
+
 			$sql = "SELECT * FROM changes WHERE id={$changeID}";
 			$result = querySQL($sql);
 
@@ -835,9 +850,10 @@ EOF;
 			$change = $result -> fetch_assoc();
 			$changeID = $change['lastChange'];
 			$date = date("F d, Y H:i:s", $change['changeTime']);
-
-			print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><span class=finetext>${date}</span></td><td class=postdatarow>{$change['postData']}</td></tr>\n");
 		}
+
+		$date = date("F d, Y H:i:s", $post['postDate']);
+		print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n");
 
 		print("</table>\n");
 	}
