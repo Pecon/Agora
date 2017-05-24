@@ -44,16 +44,12 @@
 					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
 
 					print($preview);
-					?>
-
-					</td></tr></table><br>\n<form action=\"./?action=post&topic={$_GET['topic']}&page={$_GET['page']}\" method=POST accept-charset=\"ISO-8859-1\">
-						<textarea name=postcontent class=postbox>{$postStuff}</textarea>
+					print("</td></tr></table><br>\n<form action=\"./?action=post&topic=${_GET['topic']}&page=${_GET['page']}\" method=POST \">
+						<textarea name=\"postcontent\" class=\"postbox\">${postStuff}</textarea>
 						<br>
 						<input type=submit name=post value=\"Post\">
 						<input type=submit name=preview value=Preview>
-						</form><br>
-
-					<?php
+						</form><br>");
 				}
 
 				else if($_SESSION['lastpostingtime'] > time() - 20)
