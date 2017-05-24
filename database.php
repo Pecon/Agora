@@ -1,7 +1,6 @@
 <?php
 
 require_once './data.php';
-require_once './functions.php';
 
 $_mysqli;
 $_mysqli_connected = false;
@@ -13,22 +12,26 @@ function getSQLConnection()
 	global $_mysqli, $_mysqli_connected;
 
 	if($_mysqli_connected) // Database connection is already established
-		return $_mysqli;
-	else
 	{
-		// Establish the database connection.
-		global $servername, $dbusername, $dbpassword, $dbname;
-
-		$_mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-		if($_mysqli -> connect_error)
-		{
-			fatalError("REforum was unable to connect to the MySQL database. The database has either gone offline/unreachable, or REforum is not configured properly. Please contact the server administrator.<br><br>" . $_mysqli -> connect_error);
-			return false;
-		}
-
-		return $_mysqli;
+		if(!$_mysqli -> connect_error)
+			return $_mysqli;
+		else
+			// Attempt to reconnect 
+			unset($_mysqli);
 	}
-}
+
+	// Establish the database connection.
+	global $servername, $dbusername, $dbpassword, $dbname;
+
+	$_mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+	if($_mysqli -> connect_error)
+	{
+		fatalError("REforum was unable to connect to the MySQL database. The database has either gone offline/unreachable, or REforum is not configured properly. Please contact the server administrator.<br><br>" . $_mysqli -> connect_error);
+		return false;
+	}
+
+	return $_mysqli;
+	}
 
 function disconnectSQL()
 {
@@ -50,6 +53,9 @@ function querySQL($query)
 
 	if($result === false)
 	{
+
+
+
 		fatalError("REforum encountered an SQL query error. This is most likely a bug in REforum, please report this occurence; but make sure that the data below doesn't contain any sensitive information (like your password). If it does, censor it before reporting.<br><br>Technical details:<br>\nError: " . $mysqli -> error . " \n<br>\nSource function: " . debug_backtrace()[1]['function'] . "\n<br>\nFull query: " . $query);
 		return false;
 	}
@@ -74,5 +80,11 @@ function sanitizeSQL($value)
 	$result = mysqli_real_escape_string($mysqli, $value);
 
 	return $result;
+}
+
+function fatalError($error)
+{
+	print("<div class=\"fatalErrorBox\">\n<h1>FATAL ERROR</h1><br><br>" . $error);
+	exit();
 }
 ?>
