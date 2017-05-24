@@ -1,6 +1,7 @@
 <?php
 
 require_once './data.php';
+require_once './functions.php';
 
 $_mysqli;
 $_mysqli_connected = false;
@@ -12,6 +13,8 @@ function getSQLConnection()
 	global $_mysqli, $_mysqli_connected;
 
 	if($_mysqli_connected) // Database connection is already established
+		return $_mysqli;
+	else
 	{
 		if(!$_mysqli -> connect_error)
 			return $_mysqli;
