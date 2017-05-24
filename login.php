@@ -33,8 +33,8 @@
 				</form>
 				<br><br>
 				...or <a href=register.php>register here</a>
-				<br><br><br><br><br><h2>Lost password?</h2><br>
-				<a href=\"./index.php?action=resetpassword\">Reset your password</a>");
+				<br><br><br><h2>Lost password?</h2><br>
+				<a href=\"./index.php?action=resetpassword\">Reset your password</a><br>");
 	}
 	else
 	{
@@ -80,21 +80,26 @@
 		{
 			error("Your account is banned. Goodbye.");
 			session_destroy();
-			return;
 		}
+		else
+		{
+			if($_SESSION['admin'] == true)
+				print("Logged in as administrator.<br><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
 
-		if($_SESSION['admin'] == true)
-			print("Logged in as administrator.<br><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
-
-		print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
+			print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
+		}
 	}
 ?>
-<br>
-<div class="finetext">
-REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
-<br>
-Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
-</div>
-</center>
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<div class="finetext">
+		REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
+		<br>
+		Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
+		</div>
+	</center>
 </body>
 </html>

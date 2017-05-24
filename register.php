@@ -131,6 +131,7 @@ EOF;
 		</table>
 		</form>
 		<br>
+		<br>
 		<div class="finetext">
 		REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
 		<br>
