@@ -90,6 +90,18 @@
 			return true; // Don't let the user know that the email wasn't on file.
 		}
 
+		if($result['verified'] == 0)
+		{
+			error("This account is not yet verified. You cannot reset the password until the account is verified. If you have not seen your verification email, please check your spam folder and/or wait a few minutes for it to arrive. If the email does not arrive, try registering again or contact the administrator for manual verification.");
+			return false;
+		}
+
+		if($result['email'] == $realEmail)
+		{
+			error("Email address is unchanged.");
+			return false;
+		}
+
 		$verification = bin2hex(openssl_random_pseudo_bytes(32));
 		$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
