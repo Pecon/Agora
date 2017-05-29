@@ -1,17 +1,9 @@
 <?php
-	session_start();
-	$pageTitle = "REforum - Admin";
-	$metaTags = "<meta HTTP-EQUIV=\"Pragma\" content=\"no-cache\">
-				<meta HTTP-EQUIV=\"Expires\" content=\"-1\">";
-	require_once './header.php';
-	print("<center>");
-	require_once './navmenu.php';
-	?>
-		<h1>Admin</h1>
-<?php
+	require_once 'page.php';
 	require_once './functions.php';
 
-
+	setPageTitle("REforum - Admin");
+	addToBody("<h1>Admin</h1>");
 
 	if(!isSet($_SESSION['loggedin']))
 	{
@@ -71,16 +63,16 @@
 
 			if($success === false)
 			{
-				error("<br>Could not delete post.");
+				error("Could not delete post.");
 				return;
 			}
 
-			error("Post deleted. <br>");
+			error("Post deleted.");
 			adminLog("Deleted post# " . $_POST['deletepost'] . ". Post author: " . $postAuthor . ". Content: " . $postContent);
 		}
 	}
-?>
 
+	$form = <<<EOT
 <form method="POST">
 	Ban this person: <input type="text" name="ban" value="userid"><input type="text" name="forpost" value="postid"><input type="text" name="fortext" value="Reason"><input type="submit" value="BAN">
 </form>
@@ -88,11 +80,8 @@
 <form method="POST">
 	Delete this post: <input type="text" name="deletepost" value="postid"><input type="submit" value="DELETE">
 </form>
-<br /><br />
-Admin log:<br />
-<textarea style="width: 800px; height: 300px; color: #aaa;" readonly wrap=off>
-<?php print(adminLogParse(file_get_contents("./admin.log"))); ?>
-</textarea>
-</center>
-</body>
-</html>
+EOT;
+	addToBody($form);
+
+	finishPage();
+?>

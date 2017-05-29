@@ -21,7 +21,7 @@
 		{
 			error("Oh no. You're banned.");
 			session_destroy();
-			die();
+			finishPage();
 		}
 	}
 
@@ -116,8 +116,9 @@
 				$uri = "/";
 		}
 		
+		global $force_ssl;
 
-		$url = "http://" . $domain . $uri . "index.php?action=resetpassword&code=" . $verification . "&id=" . $result['id'];
+		$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=resetpassword&amp;code=" . $verification . "&ampid=" . $result['id'];
 
 		$message = <<<EOF
 This email was sent to you because a password reset was initiated on your account. If you intended to do this, please click the link below:<br />
@@ -130,7 +131,9 @@ EOF;
 		$sql = "UPDATE users SET verification='${verificationCode}' WHERE id='${result['id']}'";
 		$result = querySQL($sql);
 
-		$error = mail($realEmail, "REforum password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+		global $site_name;
+
+		$error = mail($realEmail, "$site_name password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
 		if($error === false)
 		{
 			error("Failed to send verification email. Please try again later.");
@@ -385,7 +388,7 @@ EOF;
 			else
 			{
 				unlink($imagePath);
-				exit(error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.", true));
+				finishPage(error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.", true));
 			}
 
 			// Delete the raw uploaded image so it isn't left there if we exit from an error.
@@ -393,7 +396,7 @@ EOF;
 				unlink($imagePath);
 
 			if($image === false)
-				exit(error("Failed to load image.", true));
+				finishPage(error("Failed to load image.", true));
 
 			if($height > 100 || $width > 100)
 			{
@@ -418,7 +421,7 @@ EOF;
 				$error = imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
 				if($error === false)
-					exit(error("Unable to scale image.", true));
+					finishPage(error("Unable to scale image.", true));
 
 				imagedestroy($image);
 				$image = $newImage;
@@ -433,7 +436,7 @@ EOF;
 				$error = imagepng($image, $imagePath, 9, PNG_NO_FILTER);
 
 				if($error === false)
-					exit(error("Unable to save converted image.", true));
+					finishPage(error("Unable to save converted image.", true));
 
 				if(!$scaled)
 					warn("Your image was converted to PNG format.");
@@ -502,8 +505,9 @@ EOF;
 			else
 				$uri = substr($uri, 0, $uripos + 1);
 
+			global $force_ssl;
 
-			$url = "http://" . $domain . $uri . "index.php?action=emailchange&code=" . $verification . "&id=" . $ID;
+			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=emailchange&amp;code=" . $verification . "&amp;id=" . $ID;
 			$user = getUserNameByID($ID);
 
 			$message = <<<EOF
@@ -520,7 +524,9 @@ EOF;
 			$sql = "UPDATE users SET emailVerification='${verificationCode}', newEmail='${newEmail}' WHERE id='${ID}';";
 			querySQL($sql);
 
-			$error = mail($newEmail, "REforum email change", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+			global $site_name;
+
+			$error = mail($newEmail, "$site_name email change", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
 			if($error === false)
 			{
 				error("Failed to send verification email. Please try again later.");
@@ -581,20 +587,20 @@ EOF;
 	{
 		$userData = findUserByID($id);
 
-
 		if($userData == false)
 		{
 			error("No user by this user id exists.");
 			return;
 		}
 
+		setPageTitle("Profile of " . $userData['username']);
 
 		if(!isSet($_SESSION['loggedin']))
 			$adminControl = "";
 		else
 		{
 			if($_SESSION['admin'])
-				$adminControl = "<a href=\"./?action=ban&id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&id=${id}\">" . ($userData['administrator'] ? "Demote" : "Promote") . " this user</a><br >\n";
+				$adminControl = "<a href=\"./?action=ban&amp;id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${id}\">" . ($userData['administrator'] ? "Demote" : "Promote") . " this user</a><br >\n";
 			else
 				$adminControl = "";
 		}
@@ -619,7 +625,7 @@ EOF;
 		if(isSet($websiteComps['host']))
 			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 
-		print("\n${adminControl}<table class=forumTable border=1>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n{$username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
+		addToBody("\n${adminControl}<table class=\"forumTable\">\n<tr>\n<td class=\"padding\" style=\"background-color: #414141;\">\n${username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
 				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
 				"<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
 				Posts: {$postCount}<br />
@@ -644,9 +650,8 @@ EOF;
 			if($_SESSION['userid'] == $id)
 			{
 				$updateProfileText = str_replace("<br>", "\n", $profileText);
-				?>
-
-				<table class="forumTable">
+				$table = <<<EOT
+					<table class="forumTable">
 					<tr>
 						<td class="padding" style="min-width: 30px; max-width: 50px; vertical-align: top;">
 							User&nbsp;settings<br />
@@ -658,21 +663,19 @@ EOF;
 						<td class="padding">
 							Profile info<br />
 							<hr />
-							<?php
-									print("<form action=\"./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}\" method=POST accept-charset=\"ISO-8859-1\">
-								Tagline: <input type=text name=tagline maxLength=40 value=\"${tagLine}\"/><br />
-								Website: <input type=text name=website maxLength=200 value=\"${website}\"/><br />
+							<form action="./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}" method=POST>
+								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
+								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
 								<br />
 								Update profile text:<br />
-								<textarea class=postbox maxLength=300 name=updateProfileText>{$updateProfileText}</textarea><br />
-								<input type=submit value=\"Update profile\">
-							</form>");
-							?>
+								<textarea class="postbox" maxLength="300" name="updateProfileText">{$updateProfileText}</textarea><br />
+								<input type="submit" value="Update profile">
+							</form>
 						</td>
 					</tr>
 				</table>
-
-				<?php
+EOT;
+				addToBody($table);
 			}
 	}
 
@@ -715,15 +718,15 @@ EOF;
 		return true;
 	}
 
-	function showRecentThreads($start, $num)
+	function displayRecentThreads($start, $num)
 	{
 		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
 		$result = querySQL($sql);
 
 		if($result -> num_rows > 0)
 		{
-			print("<table class=forumTable border=1>\n");
-			print("<tr><td>Topic name</td><td class=startedby>Author</td><td>Last post by</td></tr>\n");
+			addToBody("<table class=\"forumTable\" >");
+			addToBody("<tr><td>Topic name</td><td class=\"startedby\">Author</td><td>Last post by</td></tr>");
 			while($row = $result -> fetch_assoc())
 			{
 				$topicID = $row['topicID'];
@@ -743,41 +746,39 @@ EOF;
 				$postUserName = findUserByID($lastPost['userID']);
 				$postUserNameIngame = $postUserName['username'];
 
-				$quickPages = "&laquo; <a href=./?topic={$topicID}&page=0>0</a>";
+				$quickPages = "&laquo; <a href=\"./?topic={$topicID}&amp;page=0\">0</a>";
 				if($numPosts > 10)
 				{
-					$quickPages = $quickPages . " <a href=./?topic={$topicID}&page=1>1</a>";
+					$quickPages = $quickPages . " <a href=\"./?topic={$topicID}&amp;page=1\">1</a>";
 
 					if($numPosts > 20)
 					{
 						$pagenum = ceil($numPosts / 10) - 2;
-						$quickPages = $quickPages . " ... <a href=./?topic={$topicID}&page={$pagenum}>{$pagenum}</a>";
+						$quickPages = $quickPages . " ... <a href=\"./?topic={$topicID}&amp;page={$pagenum}\">{$pagenum}</a>";
 
 						$pagenum++;
-						$quickPages = $quickPages . "  <a href=./?topic={$topicID}&page={$pagenum}>{$pagenum}</a>";
+						$quickPages = $quickPages . "  <a href=\"./?topic={$topicID}&amp;page={$pagenum}\">{$pagenum}</a>";
 					}
 				}
 
 				$quickPages = $quickPages . " &raquo;";
 
-				print("<tr><td>${threadStatus}<a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&user={$lastPost['userID']}\">{$postUserNameIngame}</a> on {$lastPostTime}</td></tr>\n");
+				addToBody("<tr><td>${threadStatus}<a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserNameIngame}</a> on {$lastPostTime}</td></tr>\n");
 			}
-			print("</table>");
+			addToBody("</table>");
 		}
 		else
-		{
-			print("There are no threads to display!");
-		}
+			addToBody("There are no threads to display!");
 	}
 
-	function getRecentPosts($start, $num)
+	function displayRecentPosts($start, $num)
 	{
 		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
 		$result = querySQL($sql);
 
 		if($result -> num_rows > 0)
 		{
-			print("<table class=forumTable border=1>\n");
+			addToBody("<table class=forumTable border=1>\n");
 			while($row = $result -> fetch_assoc())
 			{
 				$topic = findTopicbyID($row['threadID']);
@@ -786,13 +787,13 @@ EOF;
 				$date = date("F d, Y H:i:s", $row['postDate']);
 				$topicPage = floor($row['threadIndex'] / 10);
 
-				print("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a href=\"./?action=viewProfile&user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
-			print("</table>\n");
+			addToBody("</table>\n");
 		}
 		else
 		{
-			print("There are no posts to display!");
+			addToBody("There are no posts to display!");
 		}
 	}
 
@@ -844,13 +845,13 @@ EOF;
 		$changeID = $change['lastChange'];
 		$date = date("F d, Y H:i:s", $change['changeTime']);
 
-		print("Viewing post edits<br>\n<table border=1 class=forumTable><tr><td class=usernamerow><a href=\"./?action=viewProfile&user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=postdatarow>{$post['postPreparsed']}</td></tr>\n");
+		addToBody("Viewing post edits<br>\n<table class=\"forumTable\"><tr><td class=\"usernamerow\"><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=\"postdatarow\">{$post['postPreparsed']}</td></tr>\n");
 
 		while($changeID > 0)
 		{
-			print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user=${post['userID']}\">${username}</a><br><span class=finetext>${date}</span></td><td class=postdatarow>${change['postData']}</td></tr>\n");
+			addToBody("<tr><td class=\"usernamerow\"><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=\"finetext\">${date}</span></td><td class=\"postdatarow\">${change['postData']}</td></tr>\n");
 
-			$sql = "SELECT * FROM changes WHERE id={$changeID}";
+			$sql = "SELECT * FROM changes WHERE id=${changeID}";
 			$result = querySQL($sql);
 
 			if($result == false)
@@ -865,9 +866,7 @@ EOF;
 		}
 
 		$date = date("F d, Y H:i:s", $post['postDate']);
-		print("<tr><td class=usernamerow><a href=\"./?action=viewProfile&user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n");
-
-		print("</table>\n");
+		addToBody("<tr><td class=usernamerow><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n</table>");
 	}
 
 	function displayThread($topicID, $page)
@@ -882,6 +881,7 @@ EOF;
 			error("Failed to load thread.");
 			return;
 		}
+		setPageTitle($row['topicName']);
 		$threadControls = "";
 
 		$sql = "SELECT * FROM posts WHERE threadID='${topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
@@ -891,10 +891,10 @@ EOF;
 		{
 			$quotesEnabled = true;
 			$quoteString = Array();
-			print("<script src=\"./js/quote.js\" type=\"text/javascript\"></script>\n");
+			addToBody("<script src=\"./js/quote.js\" type=\"text/javascript\"></script>\n");
 
 			if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
-				$threadControls = "<a href=\"./?action=lockthread&thread=${topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
+				$threadControls = "<a href=\"./?action=lockthread&amp;thread=${topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
 
 			if($_SESSION['admin'])
 			{
@@ -902,7 +902,7 @@ EOF;
 				$result = querySQL($sql);
 				$result = $result -> fetch_assoc();
 
-				$threadControls = $threadControls . "<a href=\"./?action=stickythread&thread=${topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
+				$threadControls = $threadControls . "<a href=\"./?action=stickythread&amp;thread=${topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
 			}
 		}
 		else
@@ -913,7 +913,7 @@ EOF;
 		else
 			$threadStatus = (boolval($row['sticky']) ? "&#128204;" : "") . (boolval($row['locked']) ? "&#128274;" : "");
 
-		print("<div class=threadHeader> ${threadStatus} Displaying thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=forumTable border=1>\n");
+		addToBody("<div class=\"threadHeader\"> ${threadStatus} Displaying thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=\"forumTable\">");
 		while($post = $posts -> fetch_assoc())
 		{
 			$user = findUserByID($post['userID']);
@@ -921,7 +921,7 @@ EOF;
 			$username = $user['username'];
 
 			if($post['changeID'] > 0 && isSet($_SESSION['userid']))
-				$viewChanges = " <a class=inPostButtons href=\"./?action=viewedits&post={$post['postID']}\">View edits</a>   ";
+				$viewChanges = " <a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>   ";
 			else
 				$viewChanges = "";
 
@@ -929,11 +929,11 @@ EOF;
 
 			if(isSet($_SESSION['userid']) && !boolval($row['locked']))
 				if($post['userID'] == $_SESSION['userid'])
-					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&post={$post['postID']}&topic=${topicID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "&page=0") . "\">Edit post</a>   ";
+					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "&amp;page=0") . "\">Edit post</a>   ";
 
 			if($quotesEnabled)
 			{
-				$quoteData = "<noscript><a class=inPostButtons href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&page={$_GET['page']}" : "") . "&quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>   ";
+				$quoteData = "<noscript><a class=inPostButtons href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>   ";
 
 				if(isSet($_GET['quote']))
 				{
@@ -957,27 +957,27 @@ EOF;
 			if(isSet($_SESSION['loggedin']))
 			{
 				if($_SESSION['admin'])
-					$deletePost = "<a class=inPostButtons href=\"./?action=deletepost&post=${post['postID']}\">Delete</a>";
+					$deletePost = "<a class=inPostButtons href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a>";
 			}
 
 			$date = date("F d, Y H:i:s", $post['postDate']);
-			print("<tr><td class=usernamerow><a name={$post['postID']}></a><a href=\"./?action=viewProfile&user={$post['userID']}\">{$username}</a><br><div class=finetext style=\"color:${taglineColor}\">${user['tagline']}</div><br /><img class=avatar src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=finetext>${date}</div></td>\n<td class=postdatarow><div class=threadText>{$post['postPreparsed']}</div><div class=bottomstuff>{$deletePost} {$quoteData} {$makeEdit} {$viewChanges} <a class=inPostButtons href=\"./?topic={$topicID}&page={$page}#{$post['postID']}\">Permalink</a></div></td></tr>\n");
+			addToBody("<tr><td class=\"usernamerow\"><a name=${post['postID']}></a><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><div class=\"finetext\" style=\"color:${taglineColor}\">${user['tagline']}</div><br /><img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=\"finetext\">${date}</div></td>\n<td class=\"postdatarow\"><div class=\"threadText\">{$post['postPreparsed']}</div><div class=\"bottomstuff\">${deletePost} ${quoteData} ${makeEdit} ${viewChanges} <a class=\"inPostButtons\" href=\"./?topic=${topicID}&amp;page=${page}#${post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
-		print("</table>\n");
+		addToBody("</table>\n");
 
 		if($page - 2 >= 0)
 		{
 			$jumpPage = $page - 2;
-			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			addToBody("<a href=\"./?topic=${topicID}&amp;page=${jumpPage}\">{$jumpPage}</a> ");
 		}
 
 		if($page - 1 >= 0)
 		{
 			$jumpPage = $page - 1;
-			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			addToBody("<a href=\"./?topic={$topicID}&amp;page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
-		print("[${page}] ");
+		addToBody("[${page}] ");
 
 		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()["COUNT(*)"];
 		$highestPage = floor(($numPosts - 1) / 10);
@@ -985,19 +985,19 @@ EOF;
 		if($page + 1 <= $highestPage)
 		{
 			$jumpPage = $page + 1;
-			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			addToBody("<a href=\"./?topic={$topicID}&amp;page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
 		if($page + 2 <= $highestPage)
 		{
 			$jumpPage = $page + 2;
-			print("<a href=\"./?topic={$topicID}&page={$jumpPage}\">{$jumpPage}</a> ");
+			addToBody("<a href=\"./?topic={$topicID}&amp;page={$jumpPage}\">{$jumpPage}</a> ");
 		}
 
-		print("<br><br>\n");
+		addToBody("<br><br>\n");
 
 		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
-			print("<form action=\"./?action=post&topic={$topicID}&page={$page}\" method=POST>
+			addToBody("<form action=\"./?action=post&amp;topic={$topicID}&amp;page={$page}\" method=POST>
 			<input type=hidden name=action value=newpost>
 			<textarea id=\"replytext\" class=postbox name=postcontent>" . (isSet($quoteString['data']) ? "[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]" : "") . "</textarea>
 			<br>
@@ -1280,7 +1280,7 @@ EOF;
 					parse_str($videourl['query'], $videoquery);
 
 					if (strpos($videourl['host'], 'youtube.com') !== FALSE) $replacement = '<iframe width="500" height="281" src="https://www.youtube.com/embed/' . $videoquery['v'] . '" frameborder="0" allowfullscreen></iframe>';
-					if (strpos($videourl['host'], 'google.com') !== FALSE) $replacement = '<embed src="http://video.google.com/googleplayer.swf?docid=' . $videoquery['docid'] . '" width="400" height="326" type="application/x-shockwave-flash"></embed>';
+					if (strpos($videourl['host'], 'google.com') !== FALSE) $replacement = '<embed src="https://video.google.com/googleplayer.swf?docid=' . $videoquery['docid'] . '" width="400" height="326" type="application/x-shockwave-flash"></embed>';
 					if (strpos($videourl['host'], 'vimeo.com') !== FALSE) $replacement = '<iframe src="https://player.vimeo.com/video' . $videourl['path'] . '" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
 				break;
 			}
@@ -1290,6 +1290,7 @@ EOF;
 		return $string;
 		/*
 		// New code attempt using bbcode extension.
+		Most likely I'll never get around to useing this since the bbcode extension isn't very popular. I'll probably just look into a library written in php.
 		$bbcode = bbcode_create();
 
 		// Enable bbcode autocorrections
@@ -1330,38 +1331,6 @@ EOF;
 		*/
 	}
 
-
-	function error()
-	{
-		$numArgs = func_num_args();
-
-		if($numArgs < 1)
-			return;
-
-		$text = func_get_arg(0);
-
-		if($numArgs > 1)
-			if(func_get_arg(1))
-				return "<div class=errorText>" . $text . "</div>";
-
-		print("<div class=errorText>" . $text . "</div>\r\n");
-	}
-
-	function warn()
-	{
-		$numArgs = func_num_args();
-
-		if($numArgs < 1)
-			return;
-
-		$text = func_get_arg(0);
-
-		if($numArgs > 1)
-			if(func_get_arg(1))
-				return "<div class=warningText>" . $text . "</div>";
-
-		print("<div class=warningText>" . $text . "</div>\r\n");
-	}
 
 	function adminLog($stuff)
 	{

@@ -1,29 +1,27 @@
 <?php
-	session_start();
-	$pageTitle = "REforum - Login";
-	$metaTags = "<meta HTTP-EQUIV=\"Pragma\" content=\"no-cache\">
-				<meta HTTP-EQUIV=\"Expires\" content=\"-1\">";
-	require_once './header.php';
-	print("<center>");
-	require_once './navmenu.php';
-	?>
+	require_once 'page.php';
+	require_once 'functions.php';
+
+	setPageTitle("$site_name - Login");
+
+	$start = <<<EOT
 		<h1>Forum Login</h1>
 		<br>
-		<form method=POST>
+		<form method="POST">
 		<table class="loginTable">
 			<tr>
 				<td>
-<?php
-	require_once './functions.php';
+EOT;
+	addToBody($start);
 
 	if(isSet($_SESSION['loggedin']))
 	{
 		error("You are already logged in.");
-		exit();
+		finishPage();
 	}
 	if(!isSet($_POST['loggingin']))
 	{
-		print("Username:</td><td><input type=text name=username></td>
+		addToBody("Username:</td><td><input type=text name=username></td>
 					</tr>
 					<tr>
 					<td>Password:</td><td><input type=password name=password></td>
@@ -38,19 +36,19 @@
 	}
 	else
 	{
-		usleep(50000);
+		usleep(5000);
 
 		if(!isSet($_POST['username']) || !isSet($_POST['password']))
 		{
 			error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.");
-			exit();
+			finishPage();
 		}
 
 		$userData = findUserByName(trim($_POST['username']));
 		if($userData === false)
 		{
 			error("No user exists by that name.<br><a href=\"./login.php\">Try again</a>");
-			exit();
+			finishPage();
 		}
 
 		$username = $userData['username'];
@@ -59,13 +57,13 @@
 		if(!password_verify($_POST['password'], $passkey))
 		{
 			error("Incorrect password.<br><a href=\"./login.php\">Try again</a>");
-			exit();
+			finishPage();
 		}
 
 		if($require_email_verification && $userData['verified'] == 0)
 		{
 			error("You must verify your email address before logging in.");
-			exit();
+			finishPage();
 		}
 
 		$_SESSION['loggedin'] = true;
@@ -84,22 +82,14 @@
 		else
 		{
 			if($_SESSION['admin'] == true)
-				print("Logged in as administrator.<br><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
+				addToBody("Logged in as administrator.");
 
-			print("Logged in!<br><a href=\"./\">Continue</a><script> window.setTimeout(function(){window.location.href = \"./\";}, 1500);</script>\n");
+			addToBody("Logged in!<br><a href=\"./\">Continue</a>");
+			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
 		}
+
+		addToBody("</td></tr></table></form>");
 	}
+
+	finishPage();
 ?>
-				</td>
-			</tr>
-		</table>
-		<br>
-		<br>
-		<div class="finetext">
-		REforum is &#169; 2017 pecon.us <a href="./about.html">About</a>
-		<br>
-		Page created in <?php print(round($_script_time * 1000)); ?> milliseconds with <?php print($_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries")); ?>.
-		</div>
-	</center>
-</body>
-</html>

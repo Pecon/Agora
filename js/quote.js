@@ -35,7 +35,7 @@ function updatePostboxText(text)
 	}
 
 	
-	var quote = "[quote " + author + "]" + post + "\n[/quote]";
+	var quote = "\n[quote " + author + "]" + post + "\n[/quote]";
 	var postbox = document.getElementById("replytext");
 
 	var line;

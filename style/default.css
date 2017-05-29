@@ -106,7 +106,14 @@ a:visited:hover
 
 .errorText
 {
-	color: #FF0000;
+	color: #F00;
+	background-color: #000;
+	border-color: #F00;
+	border-style: dashed;
+	border-width: 3px;
+
+	padding: 10px;
+	margin: 20px;
 }
 
 .warningText
@@ -117,6 +124,12 @@ a:visited:hover
 .finetext
 {
 	font-size: 9pt;
+}
+
+.rightAlign
+{
+	text-align: right;
+	width: 100%;
 }
 
 .postbox
@@ -192,7 +205,9 @@ td.usernamerow
 td.postdatarow
 {
 	padding: 5px;
+	height: 100%;
 	max-width: 1100px;
+	vertical-align: top;
 }
 
 td.lastpostrow
@@ -258,4 +273,12 @@ img.avatar
 	text-align: center;
 
 	width: 60%
+}
+
+textarea.license
+{
+	font-family: "Courier New", Courier, monospace;
+	width: 750px;
+	height: 400px;
+	background-color: #a0a0a0;
 }

@@ -83,6 +83,6 @@ function sanitizeSQL($value)
 function fatalError($error)
 {
 	print("<div class=\"fatalErrorBox\">\n<h1>FATAL ERROR</h1><br><br>" . $error);
-	exit();
+	finishPage();
 }
 ?>
