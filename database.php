@@ -27,7 +27,7 @@ function getSQLConnection()
 	$_mysqli = new mysqli($servername, $dbusername, $dbpassword, $dbname);
 	if($_mysqli -> connect_error)
 	{
-		fatalError("REforum was unable to connect to the MySQL database. The database has either gone offline/unreachable, or REforum is not configured properly. Please contact the server administrator.<br><br>" . $_mysqli -> connect_error);
+		fatalError("Agora was unable to connect to the MySQL database. The database has either gone offline/unreachable, or Agora is not configured properly. Please contact the server administrator.<br><br>" . $_mysqli -> connect_error);
 		return false;
 	}
 
@@ -54,7 +54,7 @@ function querySQL($query)
 
 	if($result === false)
 	{
-		fatalError("REforum encountered an SQL query error. This is most likely a bug in REforum, please report this occurence; but make sure that the data below doesn't contain any sensitive information (like your password). If it does, censor it before reporting.<br><br>Technical details:<br>\nError: " . $mysqli -> error . " \n<br>\nSource function: " . debug_backtrace()[1]['function'] . "\n<br>\nFull query: " . $query);
+		fatalError("Agora encountered an SQL query error. This is most likely a bug in Agora, please report this occurence; but make sure that the data below doesn't contain any sensitive information (like your password). If it does, censor it before reporting.<br><br>Technical details:<br>\nError: " . $mysqli -> error . " \n<br>\nSource function: " . debug_backtrace()[1]['function'] . "\n<br>\nFull query: " . $query);
 		return false;
 	}
 

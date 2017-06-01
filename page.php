@@ -190,12 +190,12 @@ EOT;
 
 	$time = round((microtime(true) - $_script_start) * 1000, 3);
 	$queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
-	$year = 2017;
+	$year = date('Y');
 	$footer = <<<EOT
 <br />
 <br />
 <div class="finetext">
-Powered by REforum &#169; $year pecon.us <a href="./about.html">About</a>
+Powered by Agora &#169; $year pecon.us <a href="./about.html">About</a>
 <br>
 Page created in $time milliseconds with $queries.
 </div>

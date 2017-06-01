@@ -1,17 +1,17 @@
 <?php
 	require_once 'page.php';
 	setNavBarEnabled(false);
-	setPageTitle("REforum setup");
+	setPageTitle("Agora setup");
 
 	if(!isSet($_POST['setup']))
 	{
 			$license = file_get_contents("./LICENSE");
 			$form = <<<EOT
-			<h1>REforum Setup</h1><br />
+			<h1>Agora Setup</h1><br />
 			<hr /><br />
-			<h2>Welcome to REforum!</h2><br />
+			<h2>Welcome to Agora!</h2><br />
 			<br />
-			This setup script will help you configure REforum for the first time so you can begin using it.<br />
+			This setup script will help you configure Agora for the first time so you can begin using it.<br />
 			However, first we need to make sure you understand that this software is licensed under the GNU Affero General Public License.<br />
 			<br />
 			<textarea class="license" spellcheck="false" readonly>
@@ -48,7 +48,7 @@ EOT;
 		}
 
 		$form = <<<EOT
-			<h1>REforum Setup</h1><br />
+			<h1>Agora Setup</h1><br />
 			<hr /><br />
 			<h2>Checking server requirements...</h2>
 			<br />
@@ -85,7 +85,7 @@ EOT;
 		else
 		{
 			$issue = true;
-			addToBody(error("No. mysqli extension must be installed for REforum to work.<br /><br />", true));
+			addToBody(error("No. mysqli extension must be installed for Agora to work.<br /><br />", true));
 			addToBody("Hint: Try installing the php-mysql package for your OS.<br /><br />");
 		}
 
@@ -95,7 +95,7 @@ EOT;
 		else
 		{
 			$issue = true;
-			addToBody(error("No. json extension must be installed for REforum to work.<br /><br />", true));
+			addToBody(error("No. json extension must be installed for Agora to work.<br /><br />", true));
 			addToBody("Hint: Try installing the php-json package for your OS.<br /><br />");
 		}
 
@@ -105,7 +105,7 @@ EOT;
 		else
 		{
 			$issue = true;
-			addToBody(error("No. mbstring extension must be installed for REforum to work.<br />", true));
+			addToBody(error("No. mbstring extension must be installed for Agora to work.<br />", true));
 			addToBody("Hint: Try installing the php-mbstring package for your OS.<br /><br />");
 		}
 
@@ -132,9 +132,9 @@ EOT;
 		if(!$issue)
 		{
 			if($problem)
-				addToBody("REforum is probably compatible with this server. You should check the errors above to see if you can improve at all.");
+				addToBody("Agora is probably compatible with this server. You should check the errors above to see if you can improve at all.");
 			else
-				addToBody("REforum is compatible with this server.");
+				addToBody("Agora is compatible with this server.");
 
 			$form = <<<EOT
 			<br />
@@ -148,7 +148,7 @@ EOT;
 		}
 		else
 		{
-			addToBody("Your server has one more issues that makes it imcompatible with REforum.");
+			addToBody("Your server has one more issues that makes it imcompatible with Agora.");
 			finishPage();
 		}
 	}
@@ -168,13 +168,13 @@ EOT;
 			}
 
 			$form = <<<EOT
-			<h1>REforum Setup</h1><br />
+			<h1>Agora Setup</h1><br />
 			<hr /><br />
 			<h2>Configuration</h2><br />
 			<div style="text-align: left; width: 75%">
 				<form method="POST">
 					<table style="width: 100%;">
-					<tr><td>Forum name/Site name:<span class="rightAlign"><input type="text" name="sitename" value="REforum"/></span></td><td class="finetext">This will show up in the brower's title bar when visiting the home page.</td></tr>
+					<tr><td>Forum name/Site name:<span class="rightAlign"><input type="text" name="sitename" value="Agora"/></span></td><td class="finetext">This will show up in the brower's title bar when visiting the home page.</td></tr>
 					<tr><td>Forum timezone:<span class="rightAlign"><select name="timezone">$timezones</select></span></td><td class="finetext">This timezone will be used across the site by default.</td></tr>
 					<tr><td>Require email verification:<span class="rightAlign"><select name="verify"><option value="false" selected>No</option><option value="true">Yes</option></select></span></td><td class="finetext">If enabled, requires users to click a link sent to their email address before logging in for the first time.</td></tr>
 					<tr><td>Minimum password length:<span class="rightAlign"><input type="text" name="passminchars" value="12" /></span></td><td class="finetext">The minimum number of characters users will need to have in their passwords. Recommended value: 12.</td></tr>
@@ -208,7 +208,7 @@ EOT;
 			$database = $_POST['database'];
 
 			$form = <<<EOT
-			<h1>REforum Setup</h1><br />
+			<h1>Agora Setup</h1><br />
 			<hr /><br />
 			<h2>Testing MySQL configuration</h2><br />
 EOT;
@@ -373,7 +373,7 @@ EOT;
 
 			if(!file_exists("./data"))
 				if(mkdir("./data") === false)
-					finishPage(error("Fatal error: Unable to create data directory. Make sure the directory REforum is installed in is writable."));
+					finishPage(error("Fatal error: Unable to create data directory. Make sure the directory Agora is installed in is writable."));
 
 			if(file_put_contents("./data/.settings.json", $jsonText) === false)
 				finishPage(error("Fatal error: Unable to save settings file. Make sure the ./data directory is writable."));
@@ -415,7 +415,7 @@ EOT;
 		if(!isSet($_POST['username']))
 		{
 			$form = <<<EOT
-			<h1>REforum Setup</h1><br />
+			<h1>Agora Setup</h1><br />
 			<hr /><br />
 			<h2>Create first administrator account</h2><br />
 			<form method="POST">
