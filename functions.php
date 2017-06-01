@@ -2,8 +2,6 @@
 	require_once './data.php';
 	require_once './database.php';
 
-	date_default_timezone_set("America/Los_Angeles"); // Should add this to the configuration at some point.
-
 	function reauthuser()
 	{
 		if(!isSet($_SESSION['userid']))
@@ -625,6 +623,8 @@ EOF;
 		if(isSet($websiteComps['host']))
 			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 
+		setPageDescription("View the profile of $username on $site_name!\n$profileDisplayText");
+
 		addToBody("\n${adminControl}<table class=\"forumTable\">\n<tr>\n<td class=\"padding\" style=\"background-color: #414141;\">\n${username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
 				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
 				"<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
@@ -667,7 +667,7 @@ EOF;
 								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
 								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
 								<br />
-								Update profile text:<br />
+								Update profile text (you may use bbcode here):<br />
 								<textarea class="postbox" maxLength="300" name="updateProfileText">{$updateProfileText}</textarea><br />
 								<input type="submit" value="Update profile">
 							</form>
@@ -723,17 +723,23 @@ EOT;
 		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
 		$result = querySQL($sql);
 
+		global $site_name;
+		$description = "Welcome to $site_name!";
+
 		if($result -> num_rows > 0)
 		{
+			$description = $description . "\nRecent topics:";
 			addToBody("<table class=\"forumTable\" >");
 			addToBody("<tr><td>Topic name</td><td class=\"startedby\">Author</td><td>Last post by</td></tr>");
 			while($row = $result -> fetch_assoc())
 			{
 				$topicID = $row['topicID'];
 				$topicName = $row['topicName'];
+
 				$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()['COUNT(*)'];
 				$creator = findUserByID($row['creatorUserID']);
 				$creatorName = $creator['username'];
+				$description = $description . "\n$topicName, by $creatorName";
 
 				if(!boolval($row['locked']) && !boolval($row['sticky']))
 					$threadStatus = "";
@@ -769,6 +775,8 @@ EOT;
 		}
 		else
 			addToBody("There are no threads to display!");
+
+		setPageDescription($description);
 	}
 
 	function displayRecentPosts($start, $num)

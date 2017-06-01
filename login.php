@@ -48,6 +48,7 @@ EOT;
 		if($userData === false)
 		{
 			error("No user exists by that name.<br><a href=\"./login.php\">Try again</a>");
+			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
 			finishPage();
 		}
 
@@ -57,12 +58,14 @@ EOT;
 		if(!password_verify($_POST['password'], $passkey))
 		{
 			error("Incorrect password.<br><a href=\"./login.php\">Try again</a>");
+			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
 			finishPage();
 		}
 
 		if($require_email_verification && $userData['verified'] == 0)
 		{
 			error("You must verify your email address before logging in.");
+			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
 			finishPage();
 		}
 
@@ -78,6 +81,7 @@ EOT;
 		{
 			error("Your account is banned. Goodbye.");
 			session_destroy();
+			addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./login.php'\" />");
 		}
 		else
 		{

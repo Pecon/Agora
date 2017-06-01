@@ -38,7 +38,7 @@
 	if(isSet($settings['site_timezone']))
 		$site_timezone = $settings['site_timezone'];
 	else
-		error("Missing server config: site_name");
+		error("Missing server config: site_timezone");
 
 	if(isSet($settings['require_email_verification']))
 		$require_email_verification = $settings['require_email_verification'];

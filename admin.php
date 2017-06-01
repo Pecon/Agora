@@ -2,18 +2,18 @@
 	require_once 'page.php';
 	require_once './functions.php';
 
-	setPageTitle("REforum - Admin");
+	setPageTitle("$site_name - Admin");
 	addToBody("<h1>Admin</h1>");
 
 	if(!isSet($_SESSION['loggedin']))
 	{
 		error("You are not logged in.");
-		return;
+		finishPage();
 	}
 	else if(!$_SESSION['admin'])
 	{
 		error("You do not have permission to use this page.");
-		return;
+		finishPage();
 	}
 	else
 	{
@@ -34,7 +34,7 @@
 				if(!$postdata)
 				{
 					error("This post does not exist.");
-					return;
+					finishPage();
 				}
 
 				$newtext = "[delete]" . $postdata['postPreparsed'] . "[/delete]
@@ -44,7 +44,7 @@
 				editPost($_SESSION['userid'], $_POST['forpost'], $newtext);
 				error("Ban message added.");
 				adminLog("Banned " . $_POST['ban'] . " for " . $_POST['forpost'] . " " . $_POST['fortext']);
-				return;
+				finishPage();
 			}
 			else
 			{
@@ -64,7 +64,7 @@
 			if($success === false)
 			{
 				error("Could not delete post.");
-				return;
+				finishPage();
 			}
 
 			error("Post deleted.");

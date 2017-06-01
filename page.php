@@ -67,19 +67,20 @@ $_navBarEnabled = true;
 function setPageTitle($title)
 {
 	global $_title;
-	$_title = htmlentities(html_entity_decode(trim($title)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+	$_title = strip_tags($title);
 }
 
 function setPageDescription($description)
 {
 	global $_description;
-	$_description = htmlentities(html_entity_decode(trim($description)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+	$_description = strip_tags($description);
 }
 
 function addPageTag($tag)
 {
 	global $_tags;
-	array_push($_tags, htmlentities(html_entity_decode(trim($tag)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+	$tag = str_replace(",", ";", $tag);
+	array_push($_tags, $tag);
 }
 
 function addToHead($tag)
@@ -142,6 +143,7 @@ function finishPage()
 	global $_headText, $_bodyText, $_title, $_tags, $_description, $_script_start, $_mysqli_numQueries, $_navBarEnabled;
 
 	$_mysqli_numQueries = intval($_mysqli_numQueries);
+	$keywords = implode(",", $_tags);
 
 	$header = <<<EOT
 <!DOCTYPE html>
@@ -154,6 +156,9 @@ function finishPage()
 
 	<meta HTTP-EQUIV="Pragma" content="no-cache"/>
 	<meta HTTP-EQUIV="Expires" content="-1"/>
+
+	<meta name="description" content="$_description">
+	<meta name="keywords" content="$keywords">
 
 	<noscript>
 		<style>
