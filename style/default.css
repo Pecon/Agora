@@ -57,11 +57,6 @@ td
 	border-color: #AAF;
 }
 
-/*input:valid.validate
-{
-	background-color: #1D1;
-}*/
-
 input:invalid.validate
 {
 	background-color: #D11;
@@ -173,6 +168,13 @@ table.loginTable
 	min-height: 100px;
 }
 
+tr.originalPost
+{
+	border-color: green;
+	border-style: solid;
+	border-width: 1px;
+}
+
 td.logocell
 {
 	width: 400px;
@@ -218,6 +220,36 @@ td.lastpostrow
 td.startedbyrow
 {
 	width: 170px;
+}
+
+
+/* Controls the style of the user's tagline text inside threads */
+.tagline
+{
+
+}
+
+.taglineAdmin
+{
+	color: #FF0;
+	text-shadow: 0px 0px 1px #FFA;
+}
+
+.taglineBanned
+{
+	color: #F00;
+}
+
+/* Style of username links */
+.userlink
+{
+
+}
+
+/* Style of post dates */
+.postDate
+{
+	
 }
 
 .threadText

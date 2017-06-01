@@ -238,7 +238,7 @@
 				}
 
 				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText'], $_POST['tagline'], $_POST['website']);
-				displayUserProfile(intVal($_SESSION['userid']));
+				header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
 				break;
 
 			case "avatarchange":
@@ -451,7 +451,8 @@ EOT;
 					break;
 				}
 
-				addToBody("Reset email sent! Please follow the link in the email to reset your password.");
+				if($error == 1)
+					addToBody("Reset email sent! Please follow the link in the email to reset your password.");
 				break;
 
 			case "lockthread":

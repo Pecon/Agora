@@ -78,7 +78,7 @@
 
 		$realEmail = $email;
 		$email = sanitizeSQL($email);
-		$sql = "SELECT id FROM users WHERE email='${email}'";
+		$sql = "SELECT id, verified FROM users WHERE email='${email}'";
 
 		$result = querySQL($sql);
 
@@ -91,13 +91,7 @@
 		if($result['verified'] == 0)
 		{
 			error("This account is not yet verified. You cannot reset the password until the account is verified. If you have not seen your verification email, please check your spam folder and/or wait a few minutes for it to arrive. If the email does not arrive, try registering again or contact the administrator for manual verification.");
-			return false;
-		}
-
-		if($result['email'] == $realEmail)
-		{
-			error("Email address is unchanged.");
-			return false;
+			return -1;
 		}
 
 		$verification = bin2hex(openssl_random_pseudo_bytes(32));
@@ -591,7 +585,9 @@ EOF;
 			return;
 		}
 
+		global $site_name;
 		setPageTitle("Profile of " . $userData['username']);
+		setPageDescription("View the profile of ${userData['username']} on $site_name!");
 
 		if(!isSet($_SESSION['loggedin']))
 			$adminControl = "";
@@ -623,7 +619,6 @@ EOF;
 		if(isSet($websiteComps['host']))
 			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
 
-		setPageDescription("View the profile of $username on $site_name!\n$profileDisplayText");
 
 		addToBody("\n${adminControl}<table class=\"forumTable\">\n<tr>\n<td class=\"padding\" style=\"background-color: #414141;\">\n${username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
 				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
@@ -637,7 +632,7 @@ EOF;
 				<tr>
 				<td class=padding>
 				<br />
-				{$profileDisplayText}
+				${profileDisplayText}
 				<br \><br \>
 				</td>
 				</tr>
@@ -663,12 +658,12 @@ EOF;
 						<td class="padding">
 							Profile info<br />
 							<hr />
-							<form action="./?action=updateprofile&amp;finishForm=1&amp;newAction=viewProfile%26user=${id}" method=POST>
+							<form action="./?action=updateprofile" method=POST>
 								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
 								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
 								<br />
 								Update profile text (you may use bbcode here):<br />
-								<textarea class="postbox" maxLength="300" name="updateProfileText">{$updateProfileText}</textarea><br />
+								<textarea class="postbox" maxLength="300" name="updateProfileText">${updateProfileText}</textarea><br />
 								<input type="submit" value="Update profile">
 							</form>
 						</td>
@@ -710,7 +705,7 @@ EOT;
 		$text = sanitizeSQL(trim(bb_parse(str_replace("\n", "<br>", $rawText))));
 		$rawText = sanitizeSQL($rawText);
 		$website = sanitizeSQL(trim($website));
-		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine), 'UTF-8', 'ASCII'), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
 		$result = querySQL($sql);
@@ -884,12 +879,14 @@ EOT;
 		$topicID = intVal($topicID);
 
 		$row = findTopicbyID($topicID);
+		$creator = findUserbyID($row['creatorUserID']);
 		if($row === false)
 		{
 			error("Failed to load thread.");
 			return;
 		}
 		setPageTitle($row['topicName']);
+		setPageDescription("Topic ${row['topicName']} by ${creator['username']}.");
 		$threadControls = "";
 
 		$sql = "SELECT * FROM posts WHERE threadID='${topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
@@ -925,23 +922,52 @@ EOT;
 		while($post = $posts -> fetch_assoc())
 		{
 			$user = findUserByID($post['userID']);
-
 			$username = $user['username'];
 
-			if($post['changeID'] > 0 && isSet($_SESSION['userid']))
-				$viewChanges = " <a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>   ";
+			// Highlight the post if applicable
+			if($post['threadIndex'])
+				addToBody('<tr class="originalPost">');
 			else
-				$viewChanges = "";
+				addToBody('<tr>');
 
-			$makeEdit = "";
+			// Display username of poster
+			addToBody("<td class=\"usernamerow\"><a name=\"${post['postID']}\"></a><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br>");
 
-			if(isSet($_SESSION['userid']) && !boolval($row['locked']))
-				if($post['userID'] == $_SESSION['userid'])
-					$makeEdit = " <a class=inPostButtons href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "&amp;page=0") . "\">Edit post</a>   ";
 
+			// Display the user's tagline
+			if($user['banned'])
+				addToBody("<div class=\"taglineBanned finetext\">${user['tagline']}</div>");
+			else if($user['administrator'])
+				addToBody("<div class=\"taglineAdmin finetext\">${user['tagline']}</div>");
+			else
+				addToBody("<div class=\"tagline finetext\">${user['tagline']}</div>");
+
+
+			// Display the user's avatar and the post date
+			$date = date("F d, Y H:i:s", $post['postDate']);
+			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
+
+
+			// Display the post body
+			addToBody("<td class=\"postdatarow\"><div class=\"threadText\">{$post['postPreparsed']}</div>");
+
+
+			// Moving on to the post controls
+			addToBody("<div class=\"bottomstuff\">");
+
+
+			// If admin, show the delete button
+			if(isSet($_SESSION['loggedin']))
+			{
+				if($_SESSION['admin'])
+					addToBody("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a>");
+			}
+
+
+			// If logged in, show the quote button
 			if($quotesEnabled)
 			{
-				$quoteData = "<noscript><a class=inPostButtons href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>   ";
+				addToBody("<noscript><a class=\"inPostButtons\" href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
 
 				if(isSet($_GET['quote']))
 				{
@@ -951,25 +977,20 @@ EOT;
 						$quoteString['author'] = $user['username'];
 					}
 				}
-			}
-			else
-				$quoteData = "";
 
-			$taglineColor = "#FFFFFF";
-			if($user['administrator'])
-				$taglineColor = "#FFFF00; text-shadow: 0px 0px 1px #FFFFAA";
-			if($user['banned'])
-				$taglineColor = "#FF0000";
 
-			$deletePost = "";
-			if(isSet($_SESSION['loggedin']))
-			{
-				if($_SESSION['admin'])
-					$deletePost = "<a class=inPostButtons href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a>";
+				// If the post owner, show the edit button
+				if($post['userID'] == $_SESSION['userid'])
+					addToBody(" <a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
 			}
 
-			$date = date("F d, Y H:i:s", $post['postDate']);
-			addToBody("<tr><td class=\"usernamerow\"><a name=${post['postID']}></a><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><div class=\"finetext\" style=\"color:${taglineColor}\">${user['tagline']}</div><br /><img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=\"finetext\">${date}</div></td>\n<td class=\"postdatarow\"><div class=\"threadText\">{$post['postPreparsed']}</div><div class=\"bottomstuff\">${deletePost} ${quoteData} ${makeEdit} ${viewChanges} <a class=\"inPostButtons\" href=\"./?topic=${topicID}&amp;page=${page}#${post['postID']}\">Permalink</a></div></td></tr>\n");
+
+			// If logged in and there are edits, display the view edits button
+			if($post['changeID'] > 0 && isSet($_SESSION['userid']))
+				addToBody(" <a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>");
+
+			// Display the permalink button and wrap up.
+			addToBody("<a class=\"inPostButtons\" href=\"./?topic=${topicID}&amp;page=${page}#${post['postID']}\">Permalink</a></div></td></tr>\n");
 		}
 		addToBody("</table>\n");
 
@@ -1005,13 +1026,17 @@ EOT;
 		addToBody("<br><br>\n");
 
 		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
-			addToBody("<form action=\"./?action=post&amp;topic={$topicID}&amp;page={$page}\" method=POST>
-			<input type=hidden name=action value=newpost>
-			<textarea id=\"replytext\" class=postbox name=postcontent>" . (isSet($quoteString['data']) ? "[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]" : "") . "</textarea>
+			addToBody("<form action=\"./?action=post&amp;topic=${topicID}&amp;page=${page}\" method=\"POST\">");
+			addToBody('<input type="hidden" name="action" value="newpost">
+			<textarea id="replytext" class="postbox" name="postcontent">');
+
+			if(isSet($quoteString['data']))
+				addToBody("[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]");
+			addToBody('</textarea>
 			<br>
-			<input type=submit name=post value=Post>
-			<input type=submit name=preview value=Preview>
-		</form>");
+			<input type="submit" name="post" value="Post">
+			<input type="submit" name="preview" value="Preview">
+		</form>');
 	}
 
 	function createThread($userID, $topic, $postData)
@@ -1102,7 +1127,7 @@ EOT;
 
 		// Cleanse post data
 		$postData = htmlentities(html_entity_decode($postData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$parsedPost = sanitizeSQL(bb_parse(str_replace("\n", "\n<br>", $postData)));
+		$parsedPost = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $postData)));
 		$postData = sanitizeSQL($postData);
 		$date = time();
 
