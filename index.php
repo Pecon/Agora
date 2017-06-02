@@ -258,8 +258,15 @@
 					{
 						$location = "./data/avatartemp_${_SESSION['userid']}.dat";
 
-						updateAvatarByID($_SESSION['userid'], $location);
-						header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+						$success = updateAvatarByID($_SESSION['userid'], $location);
+
+						if($success)
+							header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+						else
+						{
+							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=avatarchange'\" />");
+							error("Couldn't update avatar.");
+						}
 					}
 				}
 				else

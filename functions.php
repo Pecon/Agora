@@ -380,7 +380,8 @@ EOF;
 			else
 			{
 				unlink($imagePath);
-				finishPage(error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.", true));
+				error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.");
+				return false;
 			}
 
 			// Delete the raw uploaded image so it isn't left there if we exit from an error.
@@ -388,7 +389,10 @@ EOF;
 				unlink($imagePath);
 
 			if($image === false)
-				finishPage(error("Failed to load image.", true));
+			{
+				error("Failed to load image.");
+				return false;
+			}
 
 			if($height > 100 || $width > 100)
 			{
@@ -413,7 +417,10 @@ EOF;
 				$error = imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
 				if($error === false)
-					finishPage(error("Unable to scale image.", true));
+				{
+					error("Unable to scale image.");
+					return;
+				}
 
 				imagedestroy($image);
 				$image = $newImage;
@@ -428,7 +435,10 @@ EOF;
 				$error = imagepng($image, $imagePath, 9, PNG_NO_FILTER);
 
 				if($error === false)
-					finishPage(error("Unable to save converted image.", true));
+				{
+					error("Unable to save converted image.");
+					return false;
+				}
 
 				if(!$scaled)
 					warn("Your image was converted to PNG format.");
@@ -445,7 +455,12 @@ EOF;
 			querySQL($sql);
 		}
 		else
+		{
 			error("Uploaded file could not be validated.");
+			return false;
+		}
+
+		return true;
 	}
 
 	function getPasswordHashByID($ID)
