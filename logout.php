@@ -1,4 +1,12 @@
 <?php
+	if(isSet($_SESSION['loggedin']))
+	{
+		session_destroy();
+		$logout = true;
+	}
+	else
+		$logout = false;
+
 	require_once 'page.php';
 	require_once 'data.php';
 
@@ -13,9 +21,8 @@
 EOT;
 	addToBody($head);
 
-	if(isSet($_SESSION['loggedin']))
+	if($logout)
 	{
-		session_destroy();
 		addToBody("You are now logged out.<br><a href=\"./\">Back</a>");
 		addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
 	}

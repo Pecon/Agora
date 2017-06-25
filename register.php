@@ -18,23 +18,27 @@ EOT;
 	if(!isSet($_POST['registering']))
 	{
 		$form = <<<EOT
-					Username:
+							Username:
+						</td>
+						<td>
+							<input type="text" maxLength="20" name="username">
+						</td>
+					</tr>
+					<tr>
+					<td>Password:</td><td><input type="password" class="validate" minLength="${min_password_length}" maxLength="72" name="password"></td>
+					</tr>
+					<tr>
+					<td>Confirm:</td><td><input type="password" name="confirmpassword"></td>
+					</tr>
+					<tr>
+					<td>Email:</td><td><input class="validate" type="email" name="email"></td>
+					</tr><tr>
+					<td><input type="hidden" name="registering" value="true">
+					<input type="submit" value="Register">
 				</td>
-				<td>
-					<input type="text" maxLength="20" name="username">
-				</td>
 			</tr>
-			<tr>
-			<td>Password:</td><td><input type="password" class="validate" minLength="${min_password_length}" maxLength="72" name="password"></td>
-			</tr>
-			<tr>
-			<td>Confirm:</td><td><input type="password" name="confirmpassword"></td>
-			</tr>
-			<tr>
-			<td>Email:</td><td><input class="validate" type="email" name="email"></td>
-			</tr><tr>
-			<td><input type="hidden" name="registering" value="true">
-			<input type="submit" value="Register">
+		</table>
+		</form>
 EOT;
 		addToBody($form);
 	}
@@ -46,22 +50,29 @@ EOT;
 		if(strLen($username) > 20)
 		{
 			error("Username is too long. Pick something under 20 characters. <br><button onclick=\"goBack()\">Try again</button>");
+			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
 		else if(strLen($username) < 1)
 		{
 			error("Username cannot be blank. <br><button onclick=\"goBack()\">Try again</button>");
+			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
 
 		// Verify email is OK
 		if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
-			finishPage(error("Email address is invalid. <br><button onclick=\"goBack()\">Try again</button>", true));
+		{
+			error("Email address is invalid. <br><button onclick=\"goBack()\">Try again</button>", true);
+			addToBody("</tr></td></table></form>");
+			finishPage();
+		}
 
 
 		if($result = checkUserExists($username, $_POST['email']) !== false)
 		{
 			error("Username is taken or you have already created an account under this email address. <br><button onclick=\"goBack()\">Try again</button>");
+			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
 
@@ -69,23 +80,26 @@ EOT;
 		if($_POST['password'] !== $_POST['confirmpassword'])
 		{
 			error("Passwords do not match. <br><button onclick=\"goBack()\">Try again</button>");
+			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
 
 		if(strlen($_POST['password']) < $min_password_length)
 		{
 			error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br><button onclick=\"goBack()\">Try again</button>");
+			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
 		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 16)
 		{
 			error("You've got to be kidding me. <br><button onclick=\"goBack()\">Try again</button>");
+			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
 
 
 		$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-		$regDate = time();
+		
 
 		if($settings['require_email_verification'])
 		{
@@ -114,20 +128,21 @@ EOF;
 			{
 				finishPage(error("Failed to send verification email. Please try again later.", true));
 			}
-
-			$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${_POST['email']}', 'New user', 'New user', '${verification}', 0);";
 		}
 		else
-			$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', 0, 1);";
+			$verification = 0;
 
+		$regDate = time();
 		$realUsername = $username;
 		$username = sanitizeSQL($username);
 		$password = sanitizeSQL($password);
-		$email = sanitizeSQL($mysqli, $_POST['email']);
-		$regDate = time();
+		$email = sanitizeSQL($_POST['email']);
+
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . intVal(!$settings['require_email_verification']) . "');";
 
 		querySQL($sql);
 		addToBody("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a>");
+		addToBody("</tr></td></table></form>");
 
 		disconnectSQL();
 	}
