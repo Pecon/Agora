@@ -2,6 +2,8 @@
 	require_once './data.php';
 	require_once './database.php';
 
+	date_default_timezone_set($site_timezone);
+
 	function reauthuser()
 	{
 		if(!isSet($_SESSION['userid']))
@@ -21,6 +23,18 @@
 			session_destroy();
 			finishPage();
 		}
+	}
+
+	function sendMail($toAddress, $subject, $contents)
+	{
+		global $site_name;
+		$fromName = "$site_name Agora <donotreply@" . $_SERVER['SERVER_NAME'] . ">";
+		$headers = "From: " . $fromName . "\r\n" .
+						"Reply-To:" . $fromName . "\r\n" .
+						'X-Mailer: PHP/' . phpversion();
+		
+		$message = wordwrap($contents, 70, "\r\n");
+		$success = mail($toAddress, $subject, $contents, $headers);
 	}
 
 	function getVerificationByID($ID)

@@ -140,7 +140,9 @@ function finishPage()
 	if($numArgs > 1)
 		addToBody(func_get_arg(0));
 
-	global $_headText, $_bodyText, $_title, $_tags, $_description, $_script_start, $_mysqli_numQueries, $_navBarEnabled;
+	global $_headText, $_bodyText, $_title, $_tags, $_description, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone;
+
+	date_default_timezone_set($site_timezone);
 
 	$_mysqli_numQueries = intval($_mysqli_numQueries);
 	$keywords = implode(",", $_tags);
