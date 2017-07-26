@@ -1292,105 +1292,25 @@ EOT;
 
 	function normalize_special_characters($str)
 	{
-		// $str = preg_replace( chr(ord("`")), "'", $str );
-		// $str = preg_replace( chr(ord("´")), "'", $str );
-		// $str = preg_replace( chr(ord("„")), ",", $str );
-		// $str = preg_replace( chr(ord("`")), "'", $str );
-		// $str = preg_replace( chr(ord("´")), "'", $str );
-		// $str = preg_replace( chr(ord("“")), "\"", $str );
-		// $str = preg_replace( chr(ord("”")), "\"", $str );
-		// $str = preg_replace( chr(ord("´")), "'", $str );
-		// 	$unwanted_array = array('Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
-		// 													'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U',
-		// 													'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss', 'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c',
-		// 													'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o',
-		// 													'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y');
-		// 	$str = strtr( $str, $unwanted_array );
-		// 	$str = preg_replace( chr(149), "&#8226;", $str );
-		// 	$str = preg_replace( chr(150), "&ndash;", $str );
-		// 	$str = preg_replace( chr(151), "&mdash;", $str );
-		// 	$str = preg_replace( chr(153), "&#8482;", $str );
-		// 	$str = preg_replace( chr(169), "&copy;", $str );
-		// 	$str = preg_replace( chr(174), "&reg;", $str );
-
+		// Eventually.
 		return $str;
 	}
 
-	// Shitty bbcode parsing hackjob because my web host won't let me install the bbcode php plugin. Alternative implementation is commented.
-	function bb_parse($string)
+	function bb_parse($text)
 	{
-		$tags = 'b|it|un|size|color|center|delete|quote|url|img|video';
-		while (preg_match_all('`\[('.$tags.')=?(.*?)\](.+?)\[/\1\]`', $string, $matches)) foreach ($matches[0] as $key => $match)
-		{
-			list($tag, $param, $innertext) = array($matches[1][$key], $matches[2][$key], $matches[3][$key]);
-			switch ($tag) {
-				case 'b': $replacement = "<strong>$innertext</strong>"; break;
-				case 'it': $replacement = "<em>$innertext</em>"; break;
-				case 'un': $replacement = "<u>$innertext</u>"; break;
-				case 'size': $replacement = "<span style=\"font-size: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
-				case 'color': $replacement = "<span style=\"color: " . (strstr($param, ";") !== false ? substr($param, 0, strpos($param, ";")) : $param) . ";\">$innertext</span>"; break;
-				case 'center': $replacement = "<div style=\"text-align: center;\">$innertext</div>"; break;
-				case 'delete': $replacement = "<span style=\"text-decoration: line-through;\">$innertext</span>"; break;
-				case 'quote': $replacement = ($param ? "<br><span class=finetext>Quote from: {$param}</span>" : "<span class=finetext>Quote:</span>") . "<blockquote>{$innertext}</blockquote>"; break;
-				case 'url': $replacement = '<a href="' . ($param ? $param : $innertext) . "\" target=\"_blank\">$innertext</a>"; break;
-				case 'img':
-					list($width, $height) = preg_split('`[Xx]`', $param);
-					$replacement = "<img src=\"$innertext\" " . (is_numeric($width)? "width=\"$width\" " : '') . (is_numeric($height)? "height=\"$height\" " : '') . '/>';
-				break;
-				case 'video':
-					$videourl = parse_url($innertext);
-					parse_str($videourl['query'], $videoquery);
+		require_once 'bbcode.php';
 
-					if (strpos($videourl['host'], 'youtube.com') !== FALSE) $replacement = '<iframe width="500" height="281" src="https://www.youtube.com/embed/' . $videoquery['v'] . '" frameborder="0" allowfullscreen></iframe>';
-					if (strpos($videourl['host'], 'google.com') !== FALSE) $replacement = '<embed src="https://video.google.com/googleplayer.swf?docid=' . $videoquery['docid'] . '" width="400" height="326" type="application/x-shockwave-flash"></embed>';
-					if (strpos($videourl['host'], 'vimeo.com') !== FALSE) $replacement = '<iframe src="https://player.vimeo.com/video' . $videourl['path'] . '" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
-				break;
-			}
-			$string = str_replace($match, $replacement, $string);
+		try
+		{
+			$text = parseTag($text, 0);
+		}
+		catch(Exception $e)
+		{
+			error("Error: " . $e -> getText());
+			$text = false;
 		}
 
-		return $string;
-		/*
-		// New code attempt using bbcode extension.
-		Most likely I'll never get around to useing this since the bbcode extension isn't very popular. I'll probably just look into a library written in php.
-		$bbcode = bbcode_create();
-
-		// Enable bbcode autocorrections
-		bbcode_set_flags($bbcode, BBCODE_CORRECT_REOPEN_TAGS|BBCODE_AUTO_CORRECT, BBCODE_SET_FLAGS_SET);
-
-		// General text formatting
-		bbcode_add_element($bbcode, 'i', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<em>", 'close_tag' => "</em>", 'childs' => "b,u,s,size,color,url"));
-		bbcode_add_element($bbcode, 'b', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<b>", 'close_tag' => "</b>", 'childs' => "i,u,s,size,color,url"));
-		bbcode_add_element($bbcode, 'u', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<span style=\"text-decoration: underline;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,size,color,url"));
-		bbcode_add_element($bbcode, 's', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<span style=\"text-decoration: line-through;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,size,color,url"));
-		bbcode_add_element($bbcode, 'size', array('type' => BBCODE_TYPE_ARG, 'open_tag' => "<span style=\"font-size: {PARAM}pt;\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,color,url"));
-		bbcode_add_element($bbcode, 'color', array('type' => BBCODE_TYPE_ARG, 'open_tag' => "<span style=\"text-color: {PARAM};\">", 'close_tag' => "</span>", 'childs' => "b,i,u,s,size,color,url"));
-		bbcode_add_element($bbcode, 'url', array('type' => BBCODE_TYPE_OPTARG, 'open_tag' => "<a href=\"{PARAM}\">", 'close_tag' => "</a>", 'default_arg' => "{CONTENT}", 'childs' => "b,i,u,s,size,color"));
-
-		// Text alignment
-		bbcode_add_element($bbcode, 'center', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: center;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-		bbcode_add_element($bbcode, 'right', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: right;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-		bbcode_add_element($bbcode, 'left', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: left;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-		bbcode_add_element($bbcode, 'justify', array('type' => BBCODE_TYME_NOARG, 'open_tag' => "<div style=\"text-align: justify;\">", 'close_tag' => "</div>", 'childs' => "b,i,u,s,size,color,url,img,youtube,vimeo"));
-
-
-		// Special content
-		bbcode_add_element($bbcode, 'quote', array('type' => BBCODE_TYPE_OPTARG, 'open_tag' => "<br><span class=finetext>Quote from:</span> {PARAM}<blockquote>", 'close_tag' => "</blockquote>", 'default_arg' => "Unknown", 'childs' => "b,i,u,s,url,img,quote,center,right,left,justify"));
-		bbcode_add_element($bbcode, 'img', array('type' => BBCODE_TYPE_NOARG, 'open_tag' => "<img src=\"", 'close_tag' => " />", 'childs' => ""));
-		bbcode_add_element($bbcode, 'vimeo', array('type' => BBCODE_TYPE_ARG|BBCODE_TYPE_SINGLE, 'open_tag' => "<iframe src=\"https://player.vimeo.com/video/{PARAM}\" width=500 height=281 frameborder=0 webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>", 'childs' => ""));
-		bbcode_add_element($bbcode, 'youtube', array('type' => BBCODE_TYPE_ARG|BBCODE_TYPE_SINGLE, 'open_tag' => "<iframe width=500 height=281 src=\"https://www.youtube.com/embed/{PARAM}\"  frameborder=0 allowfullscreen></iframe>", 'childs' => ""));
-
-
-		$result = bbcode_parse($bbcode, $string);
-
-		if($result === false)
-		{
-			error("bbcode parsing failed.");
-			return $string;
-		}
-
-		return $result;
-		*/
+		return $text;
 	}
 
 

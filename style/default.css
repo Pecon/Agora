@@ -144,6 +144,15 @@ blockquote
 	max-width: 1000px;
 }
 
+.blockquoteHead
+{
+	color: #EEEEFF;
+	text-decoration: none;
+	text-align: left;
+	display: block;
+	width: 100%;
+}
+
 table.forumTable
 {
 	width: 75%;
