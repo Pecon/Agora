@@ -35,10 +35,10 @@
 
 					addToBody($preview);
 					addToBody("</td></tr></table><br>\n<form action=\"./?action=post&topic=${_GET['topic']}&page=${_GET['page']}\" method=\"POST\" \">
-						<textarea name=\"postcontent\" class=\"postbox\">${postStuff}</textarea>
+						<textarea name=\"postcontent\" class=\"postbox\" tabIndex=\"1\">${postStuff}</textarea>
 						<br>
-						<input type=\"submit\" name=\"post\" value=\"Post\">
-						<input type=\"submit\" name=\"preview\" value=\"Preview\">
+						<input type=\"submit\" name=\"post\" value=\"Post\" tabIndex=\"3\">
+						<input type=\"submit\" name=\"preview\" value=\"Preview\" tabIndex=\"2\">
 						</form><br>");
 				}
 

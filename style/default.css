@@ -113,7 +113,14 @@ a:visited:hover
 
 .warningText
 {
-	color: #FFFF00;
+	color: #FF0;
+	background-color: #000;
+	border-color: #FF0;
+	border-style: solid;
+	border-width: 3px;
+
+	padding: 10px;
+	margin: 20px;
 }
 
 .finetext

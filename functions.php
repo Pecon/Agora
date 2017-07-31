@@ -1055,17 +1055,19 @@ EOT;
 		addToBody("<br><br>\n");
 
 		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
+		{
 			addToBody("<form action=\"./?action=post&amp;topic=${topicID}&amp;page=${page}\" method=\"POST\">");
 			addToBody('<input type="hidden" name="action" value="newpost">
-			<textarea id="replytext" class="postbox" name="postcontent">');
+			<textarea id="replytext" class="postbox" name="postcontent" tabindex="1">');
 
 			if(isSet($quoteString['data']))
 				addToBody("[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]");
 			addToBody('</textarea>
 			<br>
-			<input type="submit" name="post" value="Post">
-			<input type="submit" name="preview" value="Preview">
+			<input type="submit" name="post" value="Post" tabindex="3">
+			<input type="submit" name="preview" value="Preview" tabindex="2">
 		</form>');
+		}
 	}
 
 	function createThread($userID, $topic, $postData)

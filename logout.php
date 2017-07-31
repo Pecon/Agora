@@ -1,6 +1,8 @@
 <?php
+	session_start();
 	if(isSet($_SESSION['loggedin']))
 	{
+		session_unset();
 		session_destroy();
 		$logout = true;
 	}
@@ -28,7 +30,7 @@ EOT;
 	}
 	else
 	{
-		error("You cannot log out if you haven't logged in yet...<br><a href=\"./login.php\">Log in</a>");
+		error("You cannot log out if you haven't logged in yet... <br><a href=\"./login.php\">Log in</a>");
 		addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
 	}
 

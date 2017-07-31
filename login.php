@@ -17,6 +17,7 @@ EOT;
 	if(isSet($_SESSION['loggedin']))
 	{
 		error("You are already logged in.");
+		addToBody("</tr></td></table></form>");
 		finishPage();
 	}
 	if(!isSet($_POST['loggingin']))
