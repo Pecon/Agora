@@ -22,18 +22,33 @@ EOT;
 	}
 	if(!isSet($_POST['loggingin']))
 	{
-		addToBody("Username:</td><td><input type=text name=username></td>
-					</tr>
-					<tr>
-					<td>Password:</td><td><input type=password name=password></td>
-					</tr><tr>
-					<td><input type=hidden name=loggingin value=true><input type=submit value=\"Log in\"></td>
-				</table>
-				</form>
-				<br><br>
-				...or <a href=register.php>register here</a>
-				<br><br><br><h2>Lost password?</h2><br>
-				<a href=\"./index.php?action=resetpassword\">Reset your password</a><br>");
+		addToBody('
+					Username:
+				</td>
+				<td class="loginTable">
+					<input type="text" name="username" tabIndex="1">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Password:
+				</td>
+				<td class="loginTable">
+					<input type="password" name="password" tabIndex="2">
+				</td>
+			</tr>
+			<tr>
+				<td class="loginTable">
+					<input type="hidden" name="loggingin" value="true">
+					<input class="postButtons" style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Log in" tabIndex="3">
+				</td>
+			</tr>
+		</table>
+		</form>
+		<br><br>
+		...or <a href=register.php>register here</a>
+		<br><br><br><h2>Lost password?</h2><br>
+		<a href="./index.php?action=resetpassword">Reset your password</a><br>');
 	}
 	else
 	{

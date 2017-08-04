@@ -57,9 +57,52 @@ td
 	border-color: #AAF;
 }
 
+td.loginTable
+{
+	padding: 0px;
+}
+
 input:invalid.validate
 {
 	background-color: #D11;
+}
+
+input
+{
+	background-color: #AAA;
+}
+
+input:focus
+{
+	background-color: #FFF;
+}
+
+input.textBox
+{
+	height: 100%;
+	min-width: 350px;
+}
+
+input.postButtons
+{
+	margin-top: 3px;
+	min-width: 100px;
+	height: 30px;
+}
+
+input:hover.postButtons
+{
+	background-color: #CCC;
+}
+
+textarea
+{
+	background-color: #AAA;
+}
+
+textarea:focus
+{
+	background-color: #FFF;
 }
 
 a
@@ -138,7 +181,6 @@ a:visited:hover
 {
 	width: 60%;
 	height: 100px;
-	background-color: #a0a0a0;
 }
 
 blockquote
@@ -257,9 +299,9 @@ td.startedbyrow
 }
 
 /* Style of username links */
-.userlink
+.userLink
 {
-
+	font-weight: bold;
 }
 
 /* Style of post dates */
@@ -271,8 +313,8 @@ td.startedbyrow
 .threadText
 {
 	min-height: 130px;
-
 	overflow: hidden;
+	word-wrap: break-word;
 }
 
 .bottomstuff

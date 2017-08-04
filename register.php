@@ -20,21 +20,21 @@ EOT;
 		$form = <<<EOT
 							Username:
 						</td>
-						<td>
-							<input type="text" maxLength="20" name="username">
+						<td class="loginTable">
+							<input type="text" maxLength="20" name="username" tabIndex="1">
 						</td>
 					</tr>
 					<tr>
-					<td>Password:</td><td><input type="password" class="validate" minLength="${min_password_length}" maxLength="72" name="password"></td>
+					<td>Password:</td><td class="loginTable"><input type="password" class="validate" minLength="${min_password_length}" maxLength="72" name="password" tabIndex="2"></td>
 					</tr>
 					<tr>
-					<td>Confirm:</td><td><input type="password" name="confirmpassword"></td>
+					<td>Confirm:</td><td class="loginTable"><input type="password" name="confirmpassword" tabIndex="3"></td>
 					</tr>
 					<tr>
-					<td>Email:</td><td><input class="validate" type="email" name="email"></td>
+					<td>Email:</td><td class="loginTable"><input class="validate" type="email" name="email" tabIndex="4"></td>
 					</tr><tr>
-					<td><input type="hidden" name="registering" value="true">
-					<input type="submit" value="Register">
+					<td class="loginTable"><input type="hidden" name="registering" value="true">
+					<input class="postButtons" style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Register" tabIndex="5">
 				</td>
 			</tr>
 		</table>

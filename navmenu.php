@@ -17,7 +17,7 @@
 				
 				else if($_SESSION['loggedin'])
 				{
-					print("Welcome back, <a href=\"./?action=viewProfile&amp;user={$_SESSION['userid']}\">{$_SESSION['name']}</a>! The current forum datetime is $date. <div class=\"bottomstuff\"><a class=\"bottomstuff\" href=\"./\">Home</a> <a class=\"bottomstuff\" href=\"./?action=viewProfile&amp;user={$_SESSION['userid']}\">Profile &amp; Settings</a>" . ($_SESSION['admin'] == true ? " <a class=\"bottomstuff\" href=\"./admin.php\">Admin</a> " : "") . "<a class=\"bottomstuff\" href=\"logout.php\">Log out</a></div>\n");
+					print("Welcome back, <a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$_SESSION['userid']}\">{$_SESSION['name']}</a>! The current forum datetime is $date. <div class=\"bottomstuff\"><a class=\"bottomstuff\" href=\"./\">Home</a> <a class=\"bottomstuff\" href=\"./?action=viewProfile&amp;user={$_SESSION['userid']}\">Profile &amp; Settings</a>" . ($_SESSION['admin'] == true ? " <a class=\"bottomstuff\" href=\"./admin.php\">Admin</a> " : "") . "<a class=\"bottomstuff\" href=\"logout.php\">Log out</a></div>\n");
 				}
 				
 				else
