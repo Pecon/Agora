@@ -693,7 +693,7 @@ EOF;
 								<br />
 								Update profile text (you may use bbcode here):<br />
 								<textarea class="postbox" maxLength="300" name="updateProfileText">${updateProfileText}</textarea><br />
-								<input type="submit" value="Update profile">
+								<input class="postButtons" type="submit" value="Update profile">
 							</form>
 						</td>
 					</tr>
@@ -773,8 +773,7 @@ EOT;
 
 				$lastPost = fetchSinglePost($row['lastpostid']);
 				$lastPostTime = date("F d, Y H:i:s", $lastPost['postDate']);
-				$postUserName = findUserByID($lastPost['userID']);
-				$postUserNameIngame = $postUserName['username'];
+				$postUserName = findUserByID($lastPost['userID'])['username'];
 
 				$quickPages = "&laquo; <a href=\"./?topic={$topicID}&amp;page=0\">0</a>";
 				if($numPosts > 10)
@@ -793,7 +792,7 @@ EOT;
 
 				$quickPages = $quickPages . " &raquo;";
 
-				addToBody("<tr><td>${threadStatus}<a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserNameIngame}</a> on {$lastPostTime}</td></tr>\n");
+				addToBody("<tr><td>${threadStatus}<a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
 			}
 			addToBody("</table>");
 		}
@@ -819,7 +818,7 @@ EOT;
 				$date = date("F d, Y H:i:s", $row['postDate']);
 				$topicPage = floor($row['threadIndex'] / 10);
 
-				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			addToBody("</table>\n");
 		}
@@ -877,11 +876,11 @@ EOT;
 		$changeID = $change['lastChange'];
 		$date = date("F d, Y H:i:s", $change['changeTime']);
 
-		addToBody("Viewing post edits<br>\n<table class=\"forumTable\"><tr><td class=\"usernamerow\"><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=\"postdatarow\">{$post['postPreparsed']}</td></tr>\n");
+		addToBody("Viewing post edits<br>\n<table class=\"forumTable\"><tr><td class=\"usernamerow\"><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=\"postdatarow\">{$post['postPreparsed']}</td></tr>\n");
 
 		while($changeID > 0)
 		{
-			addToBody("<tr><td class=\"usernamerow\"><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=\"finetext\">${date}</span></td><td class=\"postdatarow\">${change['postData']}</td></tr>\n");
+			addToBody("<tr><td class=\"usernamerow\"><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=\"finetext\">${date}</span></td><td class=\"postdatarow\">${change['postData']}</td></tr>\n");
 
 			$sql = "SELECT * FROM changes WHERE id=${changeID}";
 			$result = querySQL($sql);
@@ -898,7 +897,7 @@ EOT;
 		}
 
 		$date = date("F d, Y H:i:s", $post['postDate']);
-		addToBody("<tr><td class=usernamerow><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n</table>");
+		addToBody("<tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n</table>");
 	}
 
 	function displayThread($topicID, $page)
@@ -960,7 +959,7 @@ EOT;
 				addToBody('<tr>');
 
 			// Display username of poster
-			addToBody("<td class=\"usernamerow\"><a name=\"${post['postID']}\"></a><a href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br>");
+			addToBody("<td class=\"usernamerow\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br>");
 
 
 			// Display the user's tagline
@@ -1010,7 +1009,7 @@ EOT;
 
 				// If the post owner, show the edit button
 				if($post['userID'] == $_SESSION['userid'])
-					addToBody(" <a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
+					addToBody(" <a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
 			}
 
 
@@ -1064,8 +1063,8 @@ EOT;
 				addToBody("[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]");
 			addToBody('</textarea>
 			<br>
-			<input type="submit" name="post" value="Post" tabindex="3">
-			<input type="submit" name="preview" value="Preview" tabindex="2">
+			<input class="postButtons" type="submit" name="post" value="Post" tabindex="3">
+			<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2">
 		</form>');
 		}
 	}

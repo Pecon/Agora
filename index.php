@@ -29,17 +29,17 @@
 
 				else if(isSet($_POST['preview']))
 				{
-					addToBody("Here is a preview of your post.<br>\n<table class=\"forumTable\"><tr><td class=\"postcontent\">\n");
+					addToBody('Here is a preview of your post.<br><table class="forumTable"><tr><td class="postcontent">');
 					$postStuff = htmlentities($_POST['postcontent']);
 					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
 
 					addToBody($preview);
-					addToBody("</td></tr></table><br>\n<form action=\"./?action=post&topic=${_GET['topic']}&page=${_GET['page']}\" method=\"POST\" \">
-						<textarea name=\"postcontent\" class=\"postbox\" tabIndex=\"1\">${postStuff}</textarea>
+					addToBody('</td></tr></table><br><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+						<textarea name="postcontent" class="postbox" tabIndex="1">' . $postStuff . '</textarea>
 						<br>
-						<input type=\"submit\" name=\"post\" value=\"Post\" tabIndex=\"3\">
-						<input type=\"submit\" name=\"preview\" value=\"Preview\" tabIndex=\"2\">
-						</form><br>");
+						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
+						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
+						</form><br>');
 				}
 
 				else if($_SESSION['lastpostingtime'] > time() - 20)
@@ -95,7 +95,7 @@
 				}
 				else if(!isSet($_POST['editpost']))
 				{
-					addToBody("Editing post<br>\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${post['postData']}</textarea><br>\n<input type=\"submit\" value=\"Edit\"></form>\n");
+					addToBody("Editing post<br>\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${post['postData']}</textarea><br>\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"></form>\n");
 				}
 				else if(strLen(trim($_POST['editpost'])) < 3)
 				{
@@ -190,10 +190,10 @@
 				else
 				{
 					addToBody("<form action=\"./?action=newtopic\" method=\"POST\" >
-							Subject: <input type=\"text\" name=\"newtopicsubject\"><br>
+							Subject: <input type=\"text\" name=\"newtopicsubject\" tabIndex=\"1\"><br>
 							Original post:<br>
-							<textarea class=\"postbox\" name=\"newtopicpost\"></textarea><br>
-							<input type=\"submit\" value=\"Create thread\">
+							<textarea class=\"postbox\" name=\"newtopicpost\" tabIndex=\"2\"></textarea><br>
+							<input class=\"postButtons\" type=\"submit\" value=\"Create thread\" tabIndex=\"3\">
 						</form>");
 				}
 				break;
@@ -274,7 +274,7 @@
 					$form = <<<EOT
 					<form enctype="multipart/form-data" method="POST">
 						Avatar upload: <input type="file" accept=".jpg,.png,.gif,.bmp" name="avatar" />
-						<input type="submit" value="Upload" />
+						<input class="postButtons" type="submit" value="Upload" />
 					</form><br />
 					png, jpg, bmp, and gif files supported<br />
 					Non-PNG images will be converted to PNG.<br />
@@ -316,7 +316,7 @@ EOT;
 						Old password: <input type="password" name="oldpassword" /><br />
 						New password: <input type="password" name="newpassword" /><br />
 						Confirm new password: <input type="password" name="confirmnewpassword" /><br />
-						<input type="submit" value="Update password" />
+						<input class="postButtons" type="submit" value="Update password" />
 					</form>
 EOT;
 					addToBody($form);
@@ -367,7 +367,7 @@ EOT;
 					$form = <<<EOT
 					<form action="./?action=emailchange" method="POST">
 						Enter new email address: <input class="validate" type="email" name="newemail" />
-						<input type="submit" value="Update email" />
+						<input class="postButtons" type="submit" value="Update email" />
 					</form>
 EOT;
 					addToBody($form);
@@ -403,7 +403,7 @@ EOT;
 							<form method="POST">
 								New password: <input type="password" name="newpassword" /><br />
 								Confirm password: <input type="password" name="confirmpassword" /><br />
-								<input type="submit" value="Change password">
+								<input class="postButtons" type="submit" value="Change password">
 							</form>
 						</table>
 EOT;
@@ -443,7 +443,7 @@ EOT;
 					<table border=1 style="align: center; padding: 3px;">
 						<form method="POST">
 							Email address: <input type="text" name="email" class="validate" /><br />
-							<input type="submit" value="Send reset email">
+							<input class="postButtons" type="submit" value="Send reset email">
 						</form>
 					</table>
 EOT;
