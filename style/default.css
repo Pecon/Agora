@@ -107,25 +107,25 @@ textarea:focus
 
 a
 {
-	color: #66D;
+	color: #88F;
 	text-decoration: none;
 }
 
 a:hover
 {
-	color: #99F;
+	color: #BBF;
 	text-decoration: none;
 }
 
 a:visited
 {
-	color: #66D;
+	color: #88F;
 	text-decoration: none;
 }
 
 a:visited:hover
 {
-	color: #99F;
+	color: #BBF;
 	text-decoration: none;
 }
 
