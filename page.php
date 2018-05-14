@@ -137,7 +137,7 @@ function finishPage()
 {
 	$numArgs = func_num_args();
 
-	if($numArgs > 1)
+	if($numArgs > 0)
 		addToBody(func_get_arg(0));
 
 	global $_headText, $_bodyText, $_title, $_tags, $_description, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone;
@@ -154,6 +154,7 @@ function finishPage()
 			$_title
 	</title>
 	<link rel="stylesheet" type="text/css" href="./style/default.css"/>
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i&amp;subset=latin-ext,cyrillic,cyrillic-ext,vietnamese" rel="stylesheet">
 	<link rel="icon" type="image/png" href="./style/favicon.png"/>
 
 	<meta HTTP-EQUIV="Pragma" content="no-cache"/>

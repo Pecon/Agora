@@ -4,22 +4,22 @@
 	include_once 'page.php';
 
 	setPageTitle($site_name);
+	reauthuser();
 
 	if(isSet($_GET['action']))
 	{
 		switch(strToLower($_GET['action']))
 		{
 			case "post":
-				reauthuser();
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
 
 				if(!isSet($_POST['postcontent']))
 				{
 					error("Form error.");
-				}
-
-				else if(!isSet($_SESSION['loggedin']))
-				{
-					error("You don't have permission to do this action.");
 				}
 
 				else if($_SESSION['banned'] == true)
@@ -29,17 +29,17 @@
 
 				else if(isSet($_POST['preview']))
 				{
-					addToBody('Here is a preview of your post.<br><table class="forumTable"><tr><td class="postcontent">');
+					addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
 					$postStuff = htmlentities($_POST['postcontent']);
-					$preview = bb_parse(str_replace("\n", "<br>", htmlentities(html_entity_decode($postStuff))));
+					$preview = bb_parse(str_replace("\n", "<br />", htmlentities(html_entity_decode($postStuff))));
 
 					addToBody($preview);
-					addToBody('</td></tr></table><br><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+					addToBody('</td></tr></table><br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
 						<textarea name="postcontent" class="postbox" tabIndex="1">' . $postStuff . '</textarea>
-						<br>
+						<br />
 						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
 						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br>');
+						</form><br />');
 				}
 
 				else if($_SESSION['lastpostingtime'] > time() - 20)
@@ -75,11 +75,9 @@
 				break;
 
 			case "edit":
-				reauthuser();
-
 				if(!isSet($_SESSION['loggedin']))
 				{
-					error("You don't have permission to do this action.");
+					error("You must be logged in to perform this action.");
 					break;
 				}
 				if(!isSet($_GET['post']))
@@ -95,7 +93,7 @@
 				}
 				else if(!isSet($_POST['editpost']))
 				{
-					addToBody("Editing post<br>\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${post['postData']}</textarea><br>\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"></form>\n");
+					addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${post['postData']}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"></form>\n");
 				}
 				else if(strLen(trim($_POST['editpost'])) < 3)
 				{
@@ -118,11 +116,10 @@
 				break;
 
 			case "newtopic":
-				reauthuser();
-
 				if(!isSet($_SESSION['loggedin']))
 				{
-					error("You don't have permission to do this action.");
+					error("You must be logged in to perform this action.");
+					break;
 				}
 
 				else if($_SESSION['banned'] == true)
@@ -181,7 +178,6 @@
 					else
 					{
 						$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-						//print("<script> window.location = \"./?topic={$threadID}\"; </script>");
 						header("Location: ./?topic=${threadID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 					}
@@ -190,22 +186,12 @@
 				else
 				{
 					addToBody("<form action=\"./?action=newtopic\" method=\"POST\" >
-							Subject: <input type=\"text\" name=\"newtopicsubject\" tabIndex=\"1\"><br>
-							Original post:<br>
-							<textarea class=\"postbox\" name=\"newtopicpost\" tabIndex=\"2\"></textarea><br>
+							Subject: <input type=\"text\" name=\"newtopicsubject\" tabIndex=\"1\"><br />
+							Original post:<br />
+							<textarea class=\"postbox\" name=\"newtopicpost\" tabIndex=\"2\"></textarea><br />
 							<input class=\"postButtons\" type=\"submit\" value=\"Create thread\" tabIndex=\"3\">
 						</form>");
 				}
-				break;
-
-			case "viewprofile":
-				if(!isSet($_GET['user']))
-				{
-					error("No profile was specified.");
-					break;
-				}
-
-				displayUserProfile(intVal($_GET['user']));
 				break;
 
 			case "viewedits":
@@ -225,10 +211,134 @@
 				}
 				break;
 
+			case "messaging":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
+				if(isSet($_GET['id']))
+					displayMessage($_GET['id']);
+				else
+					displayRecentMessages(0, 10, false);
+
+				break;
+
+			case "outbox":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
+				if(isSet($_GET['id']))
+					displayMessage($_GET['id']);
+				else
+					displayRecentMessages(0, 10, true);
+
+				break;
+
+			case "composemessage":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
+				if(isSet($_POST['toName']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
+				{
+					if(isSet($_POST['preview']))
+					{
+						// Create preview
+						addToBody('Here is a preview of your message.<br /><table class="forumTable"><tr><td class="postcontent">');
+						$postStuff = htmlentities($_POST['postcontent']);
+						$preview = bb_parse(str_replace("\n", "<br />", htmlentities(html_entity_decode($postStuff))));
+
+						addToBody($preview);
+						addToBody('</td></tr></table><br />');
+					}
+					else if($_SESSION['lastpostingtime'] > time() - 20)
+					{
+						error("Please wait a minute before doing that.");
+					}
+					else if(isSet($_POST['send']))
+					{
+						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['toName'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
+
+						if($success)
+						{
+							$_SESSION['lastpostingtime'] = time();
+							addToBody("Message sent successfully!");
+							header('location: ./?action=outbox');
+						}
+						break;
+					}
+
+					addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1">
+					<br />
+					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2">
+					<br />
+					<textarea name="postcontent" class="postbox" tabIndex="3">' . htmlentities($_POST['postcontent']) . '</textarea>
+					<br />
+					<input class="postButtons" type="submit" name="send" value="Send" tabIndex="5">
+					<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="4">
+					</form><br />');
+					break;
+				}
+
+				addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+					To: <input type="text" name="toName" value="" tabIndex="1">
+					<br />
+					Subject: <input type="text" name="subject" value="" tabIndex="2">
+					<br />
+					<textarea name="postcontent" class="postbox" tabIndex="3"></textarea>
+					<br />
+					<input class="postButtons" type="submit" name="send" value="Send" tabIndex="5">
+					<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="4">
+					</form><br />');
+
+				break;
+
+			case "deletemessage":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
+				if(isSet($_POST['id']))
+				{
+					$result = deleteMessage($_POST['id']);
+
+					if($result)
+					{
+						header('location: ./?action=messaging');
+						addToBody("Successfully deleted message.");
+					}
+					else
+						error("Could not delete message.");
+				}
+				else
+					error("Invalid action.");
+
+				break;
+
+			case "viewprofile":
+				if(!isSet($_GET['user']))
+				{
+					error("No profile was specified.");
+					break;
+				}
+
+				displayUserProfile(intVal($_GET['user']));
+				break;
+
 			case "updateprofile":
 				if(!isSet($_SESSION['loggedin']))
 				{
-					error("You do not have permission to do this action.");
+					error("You must be logged in to perform this action.");
 					break;
 				}
 				else if(!isSet($_POST['updateProfileText']))
@@ -242,6 +352,12 @@
 				break;
 
 			case "avatarchange":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
 				if(isSet($_FILES['avatar']))
 				{
 					if($_FILES['avatar']['error'] !== UPLOAD_ERR_OK)
@@ -287,7 +403,7 @@ EOT;
 			case "passwordchange":
 				if(!isSet($_SESSION['loggedin']))
 				{
-					error("You have to be logged in to do this action.");
+					error("You must be logged in to perform this action.");
 					break;
 				}
 
@@ -340,7 +456,7 @@ EOT;
 				}
 				else if(!isSet($_SESSION['loggedin']))
 				{
-					error("You have to be logged in to do this action.");
+					error("You must be logged in to perform this action.");
 					break;
 				}
 
@@ -419,12 +535,12 @@ EOT;
 						}
 						else if(strlen($_POST['newpassword']) < $min_password_length)
 						{
-							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br><button onclick=\"goBack()\">Try again</button>");
+							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br /><button onclick=\"goBack()\">Try again</button>");
 							break;
 						}
 						else if(stripos($_POST['newpassword'], "password") !== false && strlen($_POST['password']) < 16)
 						{
-							error("You've got to be kidding me. <br><button onclick=\"goBack()\">Try again</button>");
+							error("You've got to be kidding me. <br /><button onclick=\"goBack()\">Try again</button>");
 							break;
 						}
 
@@ -463,6 +579,12 @@ EOT;
 				break;
 
 			case "lockthread":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
 				if(!isSet($_GET['thread']))
 				{
 					error("No topic specified.");
@@ -478,6 +600,12 @@ EOT;
 				break;
 
 			case "stickythread":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
 				if(!isSet($_GET['thread']))
 				{
 					error("No topic specified.");
@@ -493,6 +621,12 @@ EOT;
 				break;
 
 			case "deletepost":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in.");
+					break;
+				}
+
 				if(!$_SESSION['admin'])
 				{
 					error("You do not have permission to do this action.");
@@ -517,6 +651,11 @@ EOT;
 				break;
 
 			case "ban":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in.");
+					break;
+				}
 				if(!$_SESSION['admin'])
 				{
 					error("You do not have permission to do this action.");
@@ -535,6 +674,11 @@ EOT;
 				break;
 
 			case "promote":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in.");
+					break;
+				}
 				if(!$_SESSION['admin'])
 				{
 					error("You do not have permission to do this action.");
@@ -603,13 +747,13 @@ EOT;
 			addToBody('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a>');
 
 		if(isSet($_SESSION['loggedin']))
-			addToBody("<br><br><a href=\"./?action=newtopic\">Post a new topic</a>\n");
+			addToBody("<br /><br /><a href=\"./?action=newtopic\">Post a new topic</a>\n");
 
-		addToBody("<br><br><a href=\"./?action=recentPosts\">Show all recent posts</a>\n");
+		addToBody("<br /><br /><a href=\"./?action=recentPosts\">Show all recent posts</a>\n");
 
 		if(isSet($_SESSION['admin']))
 			if($_SESSION['admin'])
-				addToBody("<br><a href=\"./admin.php\">Admin</a>");
+				addToBody("<br /><a href=\"./admin.php\">Admin</a>");
 	}
 
 	// End of possible actions, close mysql connection.

@@ -17,6 +17,11 @@
 		$_SESSION['admin'] = $userData['administrator'];
 		$_SESSION['banned'] = $userData['banned'];
 
+		$sql = "SELECT COUNT(*) FROM privateMessages WHERE `recipientID` = ${_SESSION['userid']} AND `read` = 0;";
+		$result = querySQL($sql);
+		$result = $result -> fetch_assoc();
+		$_SESSION['unreadMessages'] = $result['COUNT(*)'];
+
 		if($_SESSION['banned'] == true)
 		{
 			error("Oh no. You're banned.");
@@ -156,7 +161,7 @@ EOF;
 		if(isSet($topic[$ID]))
 			return $topic[$ID];
 
-		$ID = intVal($ID);
+		$ID = intval($ID);
 		$sql = "SELECT * FROM topics WHERE topicID = ${ID}";
 		$result = querySQL($sql);
 
@@ -232,10 +237,23 @@ EOF;
 	function demoteUserByID($id)
 	{
 		$id = intval($id);
+		$user = findUserByID($id);
+
+		if($id == 1)
+		{
+			error("You cannot demote the superuser.");
+			return false;
+		}
+		else if($user['administrator'] == false)
+		{
+			error("That user isn't an administrator.");
+			return false;
+		}
+
 		$sql = "UPDATE users SET administrator=0, tagline='' WHERE id='${id}'";
 		$result = querySQL($sql);
 
-		$user = findUserByID($id);
+		
 		adminLog("Demoted user (${id}) ${user['username']} from admin.");
 		return true;
 	}
@@ -296,7 +314,7 @@ EOF;
 		if(isSet($user[$ID]))
 			return $user[$ID];
 
-		$ID = intVal($ID);
+		$ID = intval($ID);
 		$sql = "SELECT * FROM users WHERE id = {$ID}";
 		$result = querySQL($sql);
 
@@ -333,7 +351,7 @@ EOF;
 
 	function getUserPostcountByID($id)
 	{
-		$id = intVal($id);
+		$id = intval($id);
 		$sql = "SELECT postCount FROM users WHERE id = '{$id}'";
 		$result = querySQL($sql);
 
@@ -768,7 +786,7 @@ EOT;
 				if(!boolval($row['locked']) && !boolval($row['sticky']))
 					$threadStatus = "";
 				else
-					$threadStatus = (boolval($row['sticky']) ? "&#128204; " : "") . (boolval($row['locked']) ? "&#128274; " : "");
+					$threadStatus = (boolval($row['sticky']) ? '<span class="icon stickyThread" title="This thread is sticky and will always stay at the top of the board."></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedThread" title="This thread is locked and cannot be posted in."></span>' : "");
 
 
 				$lastPost = fetchSinglePost($row['lastpostid']);
@@ -792,7 +810,7 @@ EOT;
 
 				$quickPages = $quickPages . " &raquo;";
 
-				addToBody("<tr><td>${threadStatus}<a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
+				addToBody("<tr><td>${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
 			}
 			addToBody("</table>");
 		}
@@ -835,7 +853,7 @@ EOT;
 		if(isSet($post[$postID]))
 			return $post[$postID];
 
-		$postID = intVal($postID);
+		$postID = intval($postID);
 		$sql = "SELECT * FROM posts WHERE postID={$postID};";
 
 		$result = querySQL($sql);
@@ -850,7 +868,7 @@ EOT;
 
 	function displayPostEdits($postID)
 	{
-		$post = fetchSinglePost(intVal($postID));
+		$post = fetchSinglePost(intval($postID));
 
 		if($post['changeID'] == false)
 		{
@@ -904,7 +922,7 @@ EOT;
 	{
 		$start = $page * 10;
 		$end = $start + 10;
-		$topicID = intVal($topicID);
+		$topicID = intval($topicID);
 
 		$row = findTopicbyID($topicID);
 		$creator = findUserbyID($row['creatorUserID']);
@@ -944,9 +962,9 @@ EOT;
 		if(!boolval($row['locked']) && !boolval($row['sticky']))
 			$threadStatus = "&rarr;";
 		else
-			$threadStatus = (boolval($row['sticky']) ? "&#128204;" : "") . (boolval($row['locked']) ? "&#128274;" : "");
+			$threadStatus = (boolval($row['sticky']) ? '<span class="icon stickyThread"></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedThread"></span>' : "");
 
-		addToBody("<div class=\"threadHeader\"> ${threadStatus} Displaying thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=\"forumTable\">");
+		addToBody("<div class=\"threadHeader\"> ${threadStatus} Viewing thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=\"forumTable\">");
 		while($post = $posts -> fetch_assoc())
 		{
 			$user = findUserByID($post['userID']);
@@ -1009,13 +1027,13 @@ EOT;
 
 				// If the post owner, show the edit button
 				if($post['userID'] == $_SESSION['userid'])
-					addToBody(" <a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
+					addToBody("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
 			}
 
 
 			// If logged in and there are edits, display the view edits button
 			if($post['changeID'] > 0 && isSet($_SESSION['userid']))
-				addToBody(" <a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>");
+				addToBody("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>");
 
 			// Display the permalink button and wrap up.
 			addToBody("<a class=\"inPostButtons\" href=\"./?topic=${topicID}&amp;page=${page}#${post['postID']}\">Permalink</a></div></td></tr>\n");
@@ -1290,6 +1308,207 @@ EOT;
 
 		return true;
 	}
+
+
+
+	// Private messaging functions
+
+	function displayRecentMessages($start, $num, $sent)
+	{
+		$sql = "SELECT * FROM privateMessages WHERE " . ($sent ? "senderID=" : "recipientID=") . $_SESSION['userid'] . ($sent ? "" : " AND deleted=0") . " ORDER BY messageDate DESC LIMIT {$start},{$num}";
+		$result = querySQL($sql);
+
+		global $site_name;
+		$description = "Welcome to $site_name!";
+
+		$threadStatus = "";
+
+		if($result -> num_rows > 0)
+		{
+			$description = $description . ($sent ? "\nRecently sent messages:" : "\nRecent messages:");
+			addToBody("<div class=\"threadHeader\">&rarr; Viewing " . ($sent ? "outbox" : "inbox") . "</div>");
+			addToBody('<table class="forumTable" >');
+			addToBody('<tr><td>Subject</td><td class="startedby">' . ($sent ? "To" : "From") . '</td><td>Date</td></tr>');
+			while($row = $result -> fetch_assoc())
+			{
+				$messageID = $row['messageID'];
+				$subject = $row['subject'];
+
+				$numPosts = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = $messageID ;") -> fetch_assoc()['COUNT(*)'];
+				$creator = findUserByID($sent ? $row['recipientID'] : $row['senderID']);
+				$creatorName = $creator['username'];
+				$description = $description . "\n$subject, " . ($sent ? "to" : "from") . " $creatorName";
+
+				switch(intval($row['read']))
+				{
+					case 0:
+						$threadStatus = '<span class="icon messageUnread" title="Unread message"></span>';
+						break;
+
+					case 1:
+						$threadStatus = '<span class="icon messageRead" title="Message has been read"></span>';
+						break;
+
+					case 2:
+						$threadStatus = '<span class="icon messageReplied" title="Message has been replied to"></span>';
+						break;
+
+					default:
+						$threadStatus = '<span class="icon messageRead"></span>';
+						break;
+
+
+				}
+
+				$sentTime = date("F d, Y H:i:s", $row['messageDate']);
+
+				addToBody("<tr><td>$threadStatus <a href=\"./?action=messaging&id=$messageID \">$subject</a></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user=${creator['id']}\">$creatorName</a></td><td class=lastpostrow>$sentTime</td>" . (!$sent ? '<td class="buttonRow"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="submit" value="Delete" /></form></td>' : '') . "</tr>\n");
+			}
+			addToBody("</table><br />");
+		}
+		else
+			addToBody("No messages.<br /><br />");
+
+		//addToBody("<a href=\"./?action=" . ($sent ? 'outbox' : 'messaging') . "\">Refresh messages</a><br /><br />");
+		addToBody("<a href=\"./?action=" . ($sent ? 'messaging' : 'outbox') . "\">View " . ($sent ? 'inbox' : 'outbox') . "</a><br /><br />");
+		addToBody("<a href=\"./?action=composemessage\">Compose message</a><br /><br />");
+
+		setPageDescription($description);
+	}
+
+	function displayMessage($ID)
+	{
+		$message = fetchSingleMessage($ID);
+
+		if($message === false)
+		{
+			error("Could not find that message.");
+			return false;
+		}
+
+		$sender = findUserbyID($message['senderID']);
+		$recipient = $message['recipientID'];
+
+		if($_SESSION['userid'] != $sender['id'] && $_SESSION['userid'] != $recipient && !$_SESSION['admin'])
+		{
+			error("You do not have permission to view this message.");
+			return false;
+		}
+
+		addToBody("<div class=\"threadHeader\">&rarr; Viewing private message: ${message['subject']}</div>");
+		addToBody('<table class="forumTable">
+			<tr><td class="usernamerow"><a class="userLink" name=" ' . $sender['id'] . '"></a><a class="userLink" href="./?action=viewProfile&amp;user=' . $sender['id'] . '">' . $sender['username'] . '</a><br>');
+
+		if($sender['banned'])
+				addToBody("<div class=\"taglineBanned finetext\">${sender['tagline']}</div>");
+			else if($sender['administrator'])
+				addToBody("<div class=\"taglineAdmin finetext\">${sender['tagline']}</div>");
+			else
+				addToBody("<div class=\"tagline finetext\">${sender['tagline']}</div>");
+
+
+			// Display the user's avatar and the post date
+			$date = date("F d, Y H:i:s", $message['messageDate']);
+			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${sender['id']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
+
+			addToBody('<td class="postdatarow">' . $message['messagePreparsed'] . '</td></tr></table>');
+
+			if($_SESSION['userid'] == $recipient)
+			{
+				if(!$message['read'])
+				{
+					// Mark as read
+					$sql = "UPDATE privateMessages SET `read` = '1' WHERE `messageID` = '${message['messageID']}';";
+					$result = querySQL($sql);
+
+					if($result === false)
+						error("Failed to set message as read.");
+					else
+						$_SESSION['unreadMessages'] -= 1;
+				}
+
+				addToBody('<form method="POST" action="./?action=composemessage"><input type="hidden" name="toName" value="' . $sender['username'] . '" /><input type="hidden" name="subject" value="RE: ' . $message['subject'] . '" /><input type="hidden" name="replyID" value="' . $message['messageID'] . '" />');
+				addToBody('<textarea class="postbox" name="postcontent" tabindex="1">[quote ' . $sender['username'] . ']' . $message['messageData'] . "[/quote]\n</textarea><br />");
+				addToBody('<input class="postButtons" type="submit" name="send" value="Reply" tabindex="3">
+				<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2"></form>');
+			}
+			
+		return true;
+	}
+
+	function fetchSingleMessage($ID)
+	{
+		$ID = intval($ID);
+
+		$sql = "SELECT * FROM privateMessages WHERE messageID='$ID';";
+		$result = querySQL($sql);
+
+
+		if($result !== false)
+			return $result -> fetch_assoc();
+		else
+			return false;
+	}
+
+	function deleteMessage($ID)
+	{
+		$ID = intval($ID);
+		$message = fetchSingleMessage($ID);
+
+		if($message['recipientID'] != $_SESSION['userid'])
+		{
+			error("You cannot delete messages other than your own.");
+			return false;
+		}
+
+		$sql = "UPDATE privateMessages SET `deleted` = '1' WHERE `messageID` = $ID;";
+		$result = querySQL($sql);
+
+		if($result === false)
+			return false;
+		else
+			return true;
+	}
+
+	function sendMessage($text, $subject, $to, $replyID)
+	{
+		$recipient = findUserbyName($to);
+		$subject = sanitizeSQL(htmlentities(html_entity_decode($subject), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$text = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+		$parsedText = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $text)));
+
+		if($recipient === false)
+		{
+			error("Could not find a user by that name.");
+			return false;
+		}
+
+		$sql = "INSERT INTO privateMessages (senderID, recipientID, messageDate, messageData, messagePreparsed, subject) VALUES ('${_SESSION['userid']}', '${recipient['id']}', '" . time() . "', '$text', '$parsedText', '$subject');";
+		$result = querySQL($sql);
+
+		if($result !== false)
+		{
+			$replyID = intval($replyID);
+			$reply = fetchSingleMessage($replyID);
+
+			if($reply['recipientID'] == $_SESSION['userid'] && $reply['senderID'] == $recipient)
+			{
+				$sql = "UPDATE privateMessages SET `read` = 2 WHERE `messageID` = $replyID;";
+				querySQL($sql);
+			}
+
+			return true;
+		}
+		else
+		{
+			error("Message could not be sent for an unknown reason. This is probably a bug.");
+			return false;
+		}
+	}
+
+
+
+	// Other functions
 
 	function normalize_special_characters($str)
 	{

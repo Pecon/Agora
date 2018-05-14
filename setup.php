@@ -1,5 +1,7 @@
 <?php
+	$site_timezone = "UTC";
 	require_once 'page.php';
+
 	setNavBarEnabled(false);
 	setPageTitle("Agora setup");
 
@@ -302,8 +304,9 @@ EOT;
   `postPreparsed` mediumtext NOT NULL,
   `threadIndex` int(10) unsigned DEFAULT '0',
   `changeID` int(10) unsigned DEFAULT NULL,
+  FULLTEXT(`postData`),
   PRIMARY KEY (`postID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				finishPage(error("Failed to create posts table. " . $mysqli -> error, true));
@@ -313,17 +316,20 @@ EOT;
 			$sql = "CREATE TABLE IF NOT EXISTS `topics` (
   `topicID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `creatorUserID` int(10) unsigned DEFAULT NULL,
-  `topicName` varchar(130) DEFAULT NULL,
+  `topicName` varchar(130) DEFAULT 'No Subject',
   `lastposttime` bigint(20) unsigned DEFAULT '0',
   `lastpostid` int(10) unsigned DEFAULT '0',
   `numposts` int(10) unsigned DEFAULT '0',
   `sticky` tinyint(1) NOT NULL DEFAULT '0',
   `locked` tinyint(1) NOT NULL DEFAULT '0',
+  FULLTEXT(`topicName`),
   PRIMARY KEY (`topicID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
+			{
 				finishPage(error("Failed to create topics table. " . $mysqli -> error, true));
+			}
 			else
 				addToBody("Created topics table...<br />\n");
 
@@ -349,10 +355,31 @@ EOT;
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
+			
 			if($result === false)
 				finishPage(error("Failed to create users table. " . $mysqli -> error, true));
 			else
 				addToBody("Created users table...<br />\n");
+
+			$sql = "CREATE TABLE IF NOT EXISTS `privateMessages` (
+  `messageID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `senderID` int(10) unsigned DEFAULT NULL,
+  `recipientID` int(10) unsigned DEFAULT NULL,
+  `messageDate` int(10) unsigned DEFAULT '0',
+  `messageData` mediumtext NOT NULL,
+  `messagePreparsed` mediumtext NOT NULL,
+  `subject` varchar(130) DEFAULT 'No Subject',
+  `read` tinyint(1) DEFAULT '0',
+  `deleted` tinyint(1) DEFAULT '0',
+  FULLTEXT(`messageData`),
+  FULLTEXT(`subject`),
+  PRIMARY KEY (`messageID`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+			$result = $mysqli -> query($sql);
+			if($result === false)
+				finishPage(error("Failed to create privateMessage table. " . $mysqli -> error, true));
+			else
+				addToBody("Created private messaging table...<br />\n");
 
 			// Make configuration file
 			$json = array();
@@ -365,6 +392,7 @@ EOT;
 			$json['force_ssl'] = $force_ssl;
 			$json['site_name'] = $site_name;
 			$json['site_timezone'] = $site_timezone;
+			$json['show_eastereggs'] = false;
 
 			$jsonText = json_encode($json, JSON_PRETTY_PRINT);
 

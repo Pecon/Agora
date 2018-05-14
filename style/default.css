@@ -1,12 +1,10 @@
-@import url(https://fonts.googleapis.com/css?family=Metrophobic);
-
 body
 {
 	background-color: #111117;
 	/*background-image: url('./style/background.png');*/
 	color: #eeeeff;
-	font-family: Metrophobic, sans-serif;
-	font-size: 15px;
+	font-family: Montserrat, sans-serif;
+	font-size: 17px;
 }
 
 h1
@@ -70,6 +68,7 @@ input:invalid.validate
 input
 {
 	background-color: #AAA;
+	color: #000;
 }
 
 input:focus
@@ -98,6 +97,7 @@ input:hover.postButtons
 textarea
 {
 	background-color: #AAA;
+	color: #000;
 }
 
 textarea:focus
@@ -168,7 +168,7 @@ a:visited:hover
 
 .finetext
 {
-	font-size: 9pt;
+	font-size: 13px;
 }
 
 .rightAlign
@@ -189,7 +189,7 @@ blockquote
 	border: 2px dashed gray;
 	margin: 3px;
 	padding: 2px;
-	font-size: x-small;
+	font-size: small;
 	max-width: 1000px;
 }
 
@@ -272,12 +272,17 @@ td.postdatarow
 
 td.lastpostrow
 {
-	width: 340px;
+	width: 400px;
 }
 
 td.startedbyrow
 {
 	width: 170px;
+}
+
+td.buttonRow
+{
+	width: 65px;
 }
 
 
@@ -312,7 +317,7 @@ td.startedbyrow
 
 .threadText
 {
-	min-height: 130px;
+	min-height: 155px;
 	overflow: hidden;
 	word-wrap: break-word;
 }
@@ -321,19 +326,30 @@ td.startedbyrow
 {
 	text-align: right;
 	vertical-align: bottom;
-	font-size: 9pt;
+	font-size: 13px;
 	padding-right: 3px;
 	padding-bottom: 3px;
 }
 
-a.bottomstuff
+.bottomstuff a
 {
-	padding-left: 25px;
+	margin-left: 7px;
+	margin-right: 7px;
 }
 
-img
+img.postImage
 {
-	max-width: 1000px;
+	max-width: 100%;
+	height: auto;
+}
+
+/*Images inside of quotes get shrunk down*/
+blockquote img.postImage
+{
+	max-width: 30%;
+	max-height: 300px;
+	width: auto;
+	height: auto;
 }
 
 img.avatar
@@ -371,4 +387,49 @@ textarea.license
 	width: 750px;
 	height: 400px;
 	background-color: #a0a0a0;
+}
+
+/* Icons */
+span.icon
+{
+	width: 24px;
+	height: 18px;
+
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-right: 3px;
+	margin-left: 3px;
+	padding: 0px;
+
+	text-align: center;
+
+
+	display: inline-block;
+}
+
+.icon.stickyThread::before
+{
+	content: "\1F4CC";
+}
+
+.icon.lockedThread::before
+{
+	content: "\1F512";
+}
+
+.icon.messageUnread
+{
+	background-image: url("./MessageUnread.png");
+	margin-bottom: -2px;
+}
+
+.icon.messageRead
+{
+	background-image: url("./MessageRead.png");
+	margin-bottom: -2px;
+}
+
+.icon.messageReplied::before
+{
+	content: "\1F4E7";
 }

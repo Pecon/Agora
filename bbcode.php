@@ -9,7 +9,7 @@
 
 		if($level > 25)
 		{
-			throw new Exception("Reached max tag parsing level.");
+			throw new Exception("Reached max nested tag parsing level.");
 			return false;
 		}
 
@@ -313,7 +313,7 @@
 	function tagStartHTML($tagName, $argument)
 	{
 		$argument = strip_tags($argument);
-		$argument = str_replace(Array("<", ">", ";"), "", $argument);
+		$argument = str_replace(Array("<", ">", "{", "}", ";"), "", $argument);
 
 		switch($tagName)
 		{
@@ -363,7 +363,7 @@
 
 
 			case "img":
-				return '<img src="' . htmlentities($argument) . '">';
+				return '<img class="postImage" src="' . htmlentities($argument) . '">';
 
 			case "video":
 				return '<video preload="false" controls><source src="' . htmlentities($argument) . '"></source></video>';

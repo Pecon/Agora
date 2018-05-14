@@ -12,12 +12,15 @@
 
 				if(!isSet($_SESSION['loggedin']))
 				{
-					print("Welcome to $site_name! Please <a href=login.php>Log in</a> to participate on this forum!<div class=\"bottomstuff\"><a class=\"bottomstuff\" href=\"./\">Home</a> <a class=\"bottomstuff\" href=\"login.php\">Log in</a> <a class=\"bottomstuff\" href=\"register.php\">Register</a></div>\n");
+					print('Welcome to ' . $site_name . '! Please <a href="login.php">Log in</a> to participate on this forum!<div class="bottomstuff" ><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></div>');
 				}
 				
 				else if($_SESSION['loggedin'])
 				{
-					print("Welcome back, <a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$_SESSION['userid']}\">{$_SESSION['name']}</a>! The current forum datetime is $date. <div class=\"bottomstuff\"><a class=\"bottomstuff\" href=\"./\">Home</a> <a class=\"bottomstuff\" href=\"./?action=viewProfile&amp;user={$_SESSION['userid']}\">Profile &amp; Settings</a>" . ($_SESSION['admin'] == true ? " <a class=\"bottomstuff\" href=\"./admin.php\">Admin</a> " : "") . "<a class=\"bottomstuff\" href=\"logout.php\">Log out</a></div>\n");
+					if(!isSet($_SESSION['unreadMessages']))
+						$_SESSION['unreadMessages'] = 0;
+
+					print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>! The current forum time is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile &amp; Settings</a><a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? " (${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? '<a href="./admin.php">Admin</a> ' : '') . '<a href="logout.php">Log out</a></div>');
 				}
 				
 				else
