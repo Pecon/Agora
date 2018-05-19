@@ -29,10 +29,10 @@
 
 				else if(isSet($_POST['preview']))
 				{
-					addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
 					$postStuff = htmlentities($_POST['postcontent']);
-					$preview = bb_parse(str_replace("\n", "<br />", htmlentities(html_entity_decode($postStuff))));
+					$preview = bb_parse(htmlentities(html_entity_decode($postStuff)));
 
+					addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
 					addToBody($preview);
 					addToBody('</td></tr></table><br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
 						<textarea name="postcontent" class="postbox" tabIndex="1">' . $postStuff . '</textarea>
@@ -251,10 +251,10 @@
 					if(isSet($_POST['preview']))
 					{
 						// Create preview
-						addToBody('Here is a preview of your message.<br /><table class="forumTable"><tr><td class="postcontent">');
 						$postStuff = htmlentities($_POST['postcontent']);
-						$preview = bb_parse(str_replace("\n", "<br />", htmlentities(html_entity_decode($postStuff))));
-
+						$preview = bb_parse(htmlentities(html_entity_decode($postStuff)));
+						
+						addToBody('Here is a preview of your message.<br /><table class="forumTable"><tr><td class="postcontent">');
 						addToBody($preview);
 						addToBody('</td></tr></table><br />');
 					}

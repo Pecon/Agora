@@ -691,7 +691,7 @@ EOF;
 		if(isSet($_SESSION['userid']))
 			if($_SESSION['userid'] == $id)
 			{
-				$updateProfileText = str_replace("<br>", "\n", $profileText);
+				$updateProfileText = $profileText;
 				$table = <<<EOT
 					<table class="forumTable">
 					<tr>
@@ -710,7 +710,7 @@ EOF;
 								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
 								<br />
 								Update profile text (you may use bbcode here):<br />
-								<textarea class="postbox" maxLength="300" name="updateProfileText">${updateProfileText}</textarea><br />
+								<textarea class="postbox" maxLength="1000" name="updateProfileText">${updateProfileText}</textarea><br />
 								<input class="postButtons" type="submit" value="Update profile">
 							</form>
 						</td>
@@ -723,9 +723,9 @@ EOT;
 
 	function updateUserProfileText($id, $text, $tagLine, $website)
 	{
-		if(strlen($text) > 300)
+		if(strlen($text) > 1000)
 		{
-			error("Your profile info text cannot exceed 300 characters.");
+			error("Your profile info text cannot exceed 1000 characters.");
 			return false;
 		}
 
@@ -749,7 +749,7 @@ EOT;
 
 		$id = intval($id);
 		$rawText = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$text = sanitizeSQL(trim(bb_parse(str_replace("\n", "<br>", $rawText))));
+		$text = sanitizeSQL(bb_parse($rawText));
 		$rawText = sanitizeSQL($rawText);
 		$website = sanitizeSQL(trim($website));
 		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
@@ -1175,7 +1175,7 @@ EOT;
 
 		// Cleanse post data
 		$postData = htmlentities(html_entity_decode($postData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$parsedPost = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $postData)));
+		$parsedPost = sanitizeSQL(bb_parse($postData));
 		$postData = sanitizeSQL($postData);
 		$date = time();
 
@@ -1232,7 +1232,7 @@ EOT;
 
 		$changeID = getLastInsertID();
 		$newPostData = htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$newPostParsed = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $newPostData)));
+		$newPostParsed = sanitizeSQL(bb_parse($newPostData));
 		$newPostData = sanitizeSQL($newPostData);
 
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
@@ -1475,7 +1475,7 @@ EOT;
 		$recipient = findUserbyName($to);
 		$subject = sanitizeSQL(htmlentities(html_entity_decode($subject), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 		$text = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$parsedText = sanitizeSQL(bb_parse(str_replace("\n", "<br>", $text)));
+		$parsedText = sanitizeSQL(bb_parse($text));
 
 		if($recipient === false)
 		{
@@ -1522,7 +1522,7 @@ EOT;
 
 		try
 		{
-			$text = parseTag($text, 0);
+			$text = parseTag($text, 0, "root");
 		}
 		catch(Exception $e)
 		{

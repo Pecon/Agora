@@ -64,9 +64,9 @@ EOT;
 		$userData = findUserByName(trim($_POST['username']));
 		if($userData === false)
 		{
-			error("No user exists by that name.<br><a href=\"./login.php\">Try again</a>");
+			error('No user exists by that name.<br><a href="./login.php">Try again</a>');
 			addToBody("</tr></td></table></form>");
-			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
+			addToHead('<meta http-equiv="refresh" content="3;URL=./login.php" />');
 			finishPage();
 		}
 
@@ -75,9 +75,9 @@ EOT;
 
 		if(!password_verify($_POST['password'], $passkey))
 		{
-			error("Incorrect password.<br><a href=\"./login.php\">Try again</a>");
+			error('Incorrect password.<br><a href="./login.php">Try again</a>');
 			addToBody("</tr></td></table></form>");
-			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
+			addToHead('<meta http-equiv="refresh" content="3;URL=./login.php" />');
 			finishPage();
 		}
 
@@ -85,7 +85,7 @@ EOT;
 		{
 			error("You must verify your email address before logging in.");
 			addToBody("</tr></td></table></form>");
-			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./login.php'\" />");
+			addToHead('<meta http-equiv="refresh" content=\"3;URL=./login.php" />');
 			finishPage();
 		}
 

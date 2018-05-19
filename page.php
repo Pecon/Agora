@@ -112,9 +112,9 @@ function error()
 
 	if($numArgs > 1)
 		if(func_get_arg(1))
-			return "<div class=errorText>" . $text . "</div>";
+			return '<div class="errorText">' . $text . "</div>";
 
-	addToBody("<div class=\"errorText\">" . $text . "</div>");
+	addToBody('<div class="errorText">' . $text . "</div>");
 }
 
 function warn()
@@ -128,9 +128,9 @@ function warn()
 
 	if($numArgs > 1)
 		if(func_get_arg(1))
-			return "<div class=warningText>" . $text . "</div>";
+			return '<div class="warningText">' . $text . "</div>";
 
-	addToBody("<div class=\"warningText\">" . $text . "</div>");
+	addToBody('<div class="warningText">' . $text . "</div>");
 }
 
 function finishPage()
@@ -199,7 +199,7 @@ EOT;
 <br />
 <div class="finetext">
 Powered by Agora &#169; $year pecon.us <a href="./about.html">About</a>
-<br>
+<br />
 Page created in $time milliseconds with $queries.
 </div>
 </center>

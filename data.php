@@ -57,4 +57,6 @@
 
 	if(isSet($settings['show_eastereggs']))
 		$show_eastereggs = $settings['show_eastereggs'];
+	else
+		$show_eastereggs = false;
 ?>

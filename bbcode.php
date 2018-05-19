@@ -2,7 +2,8 @@
 	// Convert bbcode formatted text into html
 	// Taking the java-ish approach to this
 	// Not bothering with regex because it's basically unreadable that way
-	function parseTag($tagText, $level)
+
+	function parseTag($tagText, $level, $parentTag)
 	{
 		if(!isSet($level))
 			$level = 0;
@@ -13,7 +14,7 @@
 			return false;
 		}
 
-		
+		$tagText = trim($tagText);
 		$cursor = -1;
 		$length = strlen($tagText);
 		$char = "";
@@ -29,7 +30,17 @@
 			$newText = $newText . $char;
 			$char = charAt($tagText, $cursor);
 
-			if($char == "[") // Found the beginning of a tag?
+			if($char == "\n")
+			{
+				if($parentTag != "pre" && $parentTag != "code" && $parentTag != "table" && $parentTag != "tr")
+					$newText = $newText . "<br />";
+				continue;
+			}
+			else if($char == "\r")
+			{
+				continue;
+			}
+			else if($char == "[") // Found the beginning of a tag?
 			{
 				// Try to find the end of the tag, if any
 				$searchCursor = $cursor + 1;
@@ -99,16 +110,29 @@
 					continue;
 				}
 
+				$tagName = strtolower($tagName);
 				if(strlen($tagName) < 1) // No tag name.
 				{
 					continue;
 				}
 
-				$tagType = tagType($tagName);
+				if($parentTag == $tagName)
+				{
+					array_push($errors, "Found a redundant nested [$tagName], ignoring.");
+					continue;
+				}
+
+				
+				$tagType = tagType($tagName, $parentTag);
 
 				if($tagType === false)
 				{
 					array_push($errors, "Found a [$tagName] tag, but it's not a recognized tag name.");	
+					continue;
+				}
+				else if($tagType === true)
+				{
+					array_push($errors, "Found [$tagName], but it can't be used in that context.");
 					continue;
 				}
 
@@ -191,7 +215,8 @@
 
 					if($tagType == 1)
 					{
-						$processed = tagStartHTML($tagName, $tagArgument) . parseTag(substr($tagText, $startTagEndPos + 1, $endTagPos - $startTagEndPos - 1), $level + 1) . tagEndHTML($tagName);
+						$processed = tagStartHTML($tagName, $tagArgument) . parseTag(substr($tagText, $startTagEndPos + 1, $endTagPos - $startTagEndPos - 1), $level + 1, $tagName) . tagEndHTML($tagName);
+
 						$newText = $newText . $processed;
 						$cursor = $endTagEndPos + 1;
 					}
@@ -232,8 +257,15 @@
 	// 0 = Text argument tag (The text contained in the tag is the argument for the tag e.g. [img]url[/img])
 	// -1 = Self-closing tag (no end tag, creates a single element e.g. [hr])
 	// Returns false if the tag doesn't exist.
-	function tagType($tagName)
+	// Returns true if tag cannot be used in this context.
+	function tagType($tagName, $parentTag)
 	{
+		// Don't let tables get screwed up
+		if($parentTag == "table" && $tagName != "tr")
+			return true;
+		else if($parentTag == "tr" && $tagName != "td")
+			return true;
+
 		switch($tagName)
 		{
 			case "i": // Italics
@@ -275,8 +307,37 @@
 			case "just":
 				return 1;
 
+			case "tt":
+				return 1;
+
+			case "pre":
+				return 1;
+
+			case "code":
+				return 1;
+
 			case "quote":
 				return 1;
+
+			case "table":
+				return 1;
+
+			case "tr":
+				if($parentTag != "table")
+				{
+					warn($parentTag);
+					return true;
+				}
+				return 1;
+
+			case "td":
+				if($parentTag != "tr")
+				{
+					warn($parentTag);
+					return true;
+				}
+				return 1;
+				
 
 
 
@@ -336,7 +397,7 @@
 				return '<span style="font-size: ' . htmlentities($argument) . ';">';
 
 			case "font":
-				return '<span style="font-face: \'' . htmlentities($argument) . '\';">';
+				return '<span style="font-family: \'' . htmlentities($argument) . '\';">';
 
 			case "url":
 				return '<a href="' . htmlentities($argument) . '" target="_BLANK">';
@@ -356,9 +417,27 @@
 			case "just":
 				return '<div style="display: inline-block; width: 100%; text-align: justify;">';
 
+			case "tt":
+				return '<span style="font-family: monospace;">';
+
+			case "pre":
+				return '<pre>';
+
+			case "code":
+				return '<div class="blockquoteHead finetext">Code<blockquote class="codeTag">';
+
 			case "quote":
-				$author = (strlen($argument) > 0 ? '<span class="finetext">Quote from: ' . htmlentities($argument) . '</span>' : "");
-				return '<div class="blockquoteHead">' . $author . '<blockquote>';
+				$author = (strlen($argument) > 0 ? 'Quote from: ' . htmlentities($argument) . '' : "");
+				return '<div class="blockquoteHead finetext">' . $author . '<blockquote>';
+
+			case "table":
+				return '<table class="bbcodeTable">';
+
+			case "tr":
+				return '<tr class="bbcodeTable">';
+
+			case "td":
+				return '<td class="bbcodeTable">';
 
 
 
@@ -366,16 +445,28 @@
 				return '<img class="postImage" src="' . htmlentities($argument) . '">';
 
 			case "video":
-				return '<video preload="false" controls><source src="' . htmlentities($argument) . '"></source></video>';
+				return '<video preload="false" controls><source src="' . htmlentities($argument) . '" /></video>';
 
 			case "youtube":
 				$videoUrl = parse_url($argument);
-				parse_str($videoUrl['query'], $videoQuery);
-				return '<iframe width="500" height="281" src="https://www.youtube.com/embed/' . htmlentities($videoQuery['v']) . '" frameborder="0" allowfullscreen></iframe>';
+				$videoID = "";
+
+				if(isSet($videoUrl['query']))
+				{
+					parse_str($videoUrl['query'], $videoQuery);
+
+					if(isSet($videoQuery['v']))
+						$videoID = $videoQuery['v'];
+				}
+				else if(isSet($videoUrl['path']))
+					$videoID = $videoUrl['path'];
+
+				
+				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . htmlentities($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
 
 			case "vimeo":
 				$videoUrl = parse_url($argument);
-				return '<iframe width="500" height="281" src="https://player.vimeo.com/video' . htmlentities($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . htmlentities($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
 
 
 
@@ -431,8 +522,26 @@
 			case "just":
 				return '</div>';
 
+			case "tt":
+				return '</span>';
+
+			case "pre":
+				return '</pre>';
+
+			case "code":
+				return '</blockquote></div>';
+
 			case "quote":
 				return '</blockquote></div>';
+
+			case "table":
+				return '</table>';
+
+			case "tr":
+				return "</tr>";
+
+			case "td":
+				return "</td>";
 
 
 			default:

@@ -55,6 +55,106 @@ td
 	border-color: #AAF;
 }
 
+table.bbcodeTable
+{
+	border: unset;
+	min-width: unset;
+	vertical-align: unset;
+}
+
+tr.bbcodeTable
+{
+	border: unset;
+}
+
+td.bbcodeTable
+{
+	border: unset;
+}
+
+table.forumTable
+{
+	width: 75%;
+	min-width: 1000px
+	background-color: #212127;
+	vertical-align: middle;
+}
+
+table.navmenu
+{
+	width: 1000px;
+	height: 50px;
+}
+
+table.loginTable
+{
+	text-align: center;
+
+	padding: 3px;
+
+	min-width: 300px;
+	min-height: 100px;
+}
+
+tr.originalPost
+{
+	border-color: green;
+	border-style: solid;
+	border-width: 1px;
+}
+
+td.logocell
+{
+	width: 400px;
+	padding: 0px;
+}
+
+td.navmenu
+{
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+td.padding
+{
+	padding: 3px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+td.usernamerow
+{
+	width: 160px;
+	vertical-align: text-top;
+	background-color: #414141;
+
+	padding: 5px;
+	padding-top: 3px;
+}
+
+td.postdatarow
+{
+	padding: 5px;
+	height: 100%;
+	max-width: 1100px;
+	vertical-align: top;
+}
+
+td.lastpostrow
+{
+	width: 400px;
+}
+
+td.startedbyrow
+{
+	width: 170px;
+}
+
+td.buttonRow
+{
+	width: 65px;
+}
+
 td.loginTable
 {
 	padding: 0px;
@@ -168,7 +268,7 @@ a:visited:hover
 
 .finetext
 {
-	font-size: 13px;
+	font-size: 11px;
 }
 
 .rightAlign
@@ -202,87 +302,11 @@ blockquote
 	width: 100%;
 }
 
-table.forumTable
+blockquote.codeTag
 {
-	width: 75%;
-	min-width: 1000px
-	background-color: #212127;
-	vertical-align: middle;
-}
-
-table.navmenu
-{
-	width: 1000px;
-	height: 50px;
-}
-
-table.loginTable
-{
-	text-align: center;
-
-	padding: 3px;
-
-	min-width: 300px;
-	min-height: 100px;
-}
-
-tr.originalPost
-{
-	border-color: green;
-	border-style: solid;
-	border-width: 1px;
-}
-
-td.logocell
-{
-	width: 400px;
-	padding: 0px;
-}
-
-td.navmenu
-{
-	padding-left: 6px;
-	padding-right: 6px;
-}
-
-td.padding
-{
-	padding: 3px;
-	padding-left: 6px;
-	padding-right: 6px;
-}
-
-td.usernamerow
-{
-	width: 160px;
-	vertical-align: text-top;
-	background-color: #414141;
-
-	padding: 5px;
-	padding-top: 3px;
-}
-
-td.postdatarow
-{
-	padding: 5px;
-	height: 100%;
-	max-width: 1100px;
-	vertical-align: top;
-}
-
-td.lastpostrow
-{
-	width: 400px;
-}
-
-td.startedbyrow
-{
-	width: 170px;
-}
-
-td.buttonRow
-{
-	width: 65px;
+	font-family: monospace;
+	overflow-x: scroll;
+	white-space: pre;
 }
 
 
@@ -396,7 +420,7 @@ span.icon
 	height: 18px;
 
 	margin-top: 0px;
-	margin-bottom: 0px;
+	margin-bottom: -3px;
 	margin-right: 3px;
 	margin-left: 3px;
 	padding: 0px;
@@ -407,29 +431,37 @@ span.icon
 	display: inline-block;
 }
 
-.icon.stickyThread::before
+.icon.stickyThread
 {
-	content: "\1F4CC";
+	background-image: url("./ThreadSticky.png");
 }
 
-.icon.lockedThread::before
+.icon.lockedThread
 {
-	content: "\1F512";
+	background-image: url("./ThreadLocked.png");
 }
 
 .icon.messageUnread
 {
 	background-image: url("./MessageUnread.png");
-	margin-bottom: -2px;
 }
 
 .icon.messageRead
 {
 	background-image: url("./MessageRead.png");
-	margin-bottom: -2px;
 }
 
-.icon.messageReplied::before
+.icon.messageReplied
 {
-	content: "\1F4E7";
+	background-image: url("./MessageReplied.png");
+}
+
+.icon.Just
+{
+	background-image: url("./Just.png");
+}
+
+.icon.Sterling
+{
+	background-image: url("./Sterling.png");
 }

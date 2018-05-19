@@ -35,7 +35,13 @@ This is a reference of the currently implemented bbcode tags. This list should b
 [left][/left] - Inner elements are aligned to the left of the page.
 [right][/right] - Inner elements are aligned to the right of the page.
 [just][/just] - Inner text is justified.
+[tt][/tt] - Sets a monospace font. (Tag name stands for TeleType)
+[pre][/pre] - Preformatted text, fully preserves text spacing and sets a monospace font.
+[code][/code] - Indicates a block of code, sets a monospace font and preserves spacing.
 [quote Name][/quote] - Creates a blockquote of inner text from Name.
+[table][/table] - Defines a table.
+[tr][/tr] - Table row. Must be a child of table.
+[td][/td] - Table column. Must be a child of tr.
 [img][/img] - Embeds an image from the url specified by the inner text.
 [video][/video] - Embeds an HTML5 video from the url specified by the inner text. This must link directly to the video file, much like the img tag.
 [youtube][/youtube] - Embeds a video from Youtube using the youtube url specified by the inner text.

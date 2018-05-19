@@ -1,7 +1,7 @@
 <table class="navmenu">
 	<tr>
 		<td class="logocell">
-			<a href="./"><img src="./style/logo.png"></a>
+			<a href="./"><img src="./style/logo.png" alt="Agora logo"></a>
 		</td>
 		<td class="navmenu">
 			<?php
@@ -28,5 +28,23 @@
 			?>
 		</td>
 </table>
-<br>
-<hr>
+<br />
+<?php
+	global $show_eastereggs;
+
+	if($show_eastereggs == true && rand(0, 99) == 0)
+	{
+		if(is_file("./data/quotes"))
+		{
+			$quotes = file_get_contents("./data/quotes");
+			$quotes = explode("\n", $quotes);
+
+			$quote = $quotes[rand(0, count($quotes) - 1)];
+			$quote = str_replace(Array("[Just]", "[Sterling]"), Array('<span class="icon Just"></span>', '<span class="icon Sterling"></span>'), $quote);
+			$quote = trim($quote);
+
+			print($quote . "<br />");
+		}
+	}
+?>
+<hr />
