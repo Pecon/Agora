@@ -34,8 +34,9 @@ EOT;
 					<td>Email:</td><td class="loginTable"><input class="" type="email" name="email" tabIndex="4" required /></td>
 					</tr><tr>
 					<td class="loginTable"><input type="hidden" name="registering" value="true" />
-					<input class="postButtons" style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Register" tabIndex="5" />
-				</td>
+					<input style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Register" tabIndex="5" />
+					</td>
+					<td class="loginTable"></td>
 			</tr>
 		</table>
 		</form>
@@ -109,8 +110,6 @@ EOD;
 			finishPage();
 		}
 
-
-		finishPage("Test success.");
 		$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 		
 

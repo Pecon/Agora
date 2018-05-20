@@ -85,7 +85,7 @@
 					{
 						// Ignore.
 					}
-					else if(($searchChar == "\r" || $searchChar == "\n") || ($searchChar == "\\" && $startTagSearch == 1))
+					else if($searchChar == "\r" || $searchChar == "\n" || $searchChar == "/")
 					{
 						// Character invalidates this tag.
 						$found = true;
@@ -113,12 +113,6 @@
 				$tagName = strtolower($tagName);
 				if(strlen($tagName) < 1) // No tag name.
 				{
-					continue;
-				}
-
-				if($parentTag == $tagName)
-				{
-					array_push($errors, "Found a redundant nested [$tagName], ignoring.");
 					continue;
 				}
 
@@ -325,7 +319,6 @@
 			case "tr":
 				if($parentTag != "table")
 				{
-					warn($parentTag);
 					return true;
 				}
 				return 1;
@@ -333,7 +326,6 @@
 			case "td":
 				if($parentTag != "tr")
 				{
-					warn($parentTag);
 					return true;
 				}
 				return 1;

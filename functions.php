@@ -129,7 +129,7 @@
 		
 		global $force_ssl;
 
-		$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=resetpassword&amp;code=" . $verification . "&ampid=" . $result['id'];
+		$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=resetpassword&amp;code=" . $verification . "&amp;id=" . $result['id'];
 
 		$message = <<<EOF
 This email was sent to you because a password reset was initiated on your account. If you intended to do this, please click the link below:<br />
@@ -709,7 +709,7 @@ EOF;
 							<hr />
 							<form action="./?action=updateprofile" method=POST>
 								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
-								Website: <input type="url" name="website" maxLength="200" value="${website}"/><br />
+								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
 								<br />
 								Update profile text (you may use bbcode here):<br />
 								<textarea class="postbox" maxLength="1000" name="updateProfileText">${updateProfileText}</textarea><br />

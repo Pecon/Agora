@@ -96,6 +96,12 @@ table.loginTable
 	min-height: 100px;
 }
 
+.loginTable td
+{
+	padding: 0px;
+	height: 0%;
+}
+
 .loginTable input
 {
 	margin: 0px;

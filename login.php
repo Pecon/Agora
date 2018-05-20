@@ -9,8 +9,8 @@
 		<br>
 		<form method="POST">
 		<table class="loginTable">
-			<tr>
-				<td>
+			<tr class="loginTable">
+				<td class="loginTable">
 EOT;
 	addToBody($start);
 
@@ -26,22 +26,23 @@ EOT;
 				Username:
 			</td>
 			<td class="loginTable">
-				<input type="text" name="username" tabIndex="1" required />
+				<input style="margin: 0px; height: 100%;" type="text" name="username" tabIndex="1" required />
 			</td>
 			</tr>
-			<tr>
-				<td>
+			<tr class="loginTable">
+				<td class="loginTable">
 					Password:
 				</td>
 				<td class="loginTable">
-					<input type="password" name="password" tabIndex="2" required autocomplete="current-password" />
+					<input style="margin: 0px; height: 100%;" type="password" name="password" tabIndex="2" required autocomplete="current-password" />
 				</td>
 			</tr>
-			<tr>
+			<tr class="loginTable">
 				<td class="loginTable">
 					<input type="hidden" name="loggingin" value="true" />
-					<input class="postButtons" style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Log in" tabIndex="3" />
+					<input style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Log in" tabIndex="3" />
 				</td>
+				<td class="loginTable"></td>
 			</tr>
 		</table>
 		</form>

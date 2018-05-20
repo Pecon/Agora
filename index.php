@@ -513,22 +513,30 @@ EOT;
 					}
 					if(!isSet($_POST['newpassword']))
 					{
-						$form = <<<EOT
+						$form = <<<'EOD'
 						<h1>Complete Password Reset</h1>
 						<table border=1 style="align: center; padding: 3px;">
 							<form method="POST">
-								New password: <input type="password" name="newpassword" /><br />
-								Confirm password: <input type="password" name="confirmpassword" /><br />
-								<input class="postButtons" type="submit" value="Change password">
+								New password: <input type="password" class="" minLength="${min_password_length}" maxLength="72" name="password" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
+								Confirm password: <input type="password" name="confirmpassword" tabIndex="2" /><br />
+								<input class="postButtons" type="submit" value="Change password" tabIndex="3" />
 							</form>
 						</table>
-EOT;
+EOD;
 						addToBody($form);
 						break;
 					}
 					else
 					{
-						if($_POST['newpassword'] !== $_POST['confirmpassword'])
+						// Verify password requirements
+						// Matches a string between 2-72 characters with only alphanumeric characters, spaces, or most ascii special characters. Spaces are not allowed at the beginning or end of the string (typo protection since it's unlikely a user would want that intentionally).
+						// This same expression is used in the form html to let the client self-validate.
+						if(!preg_match('(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~]$)', $_POST['newpassword']))
+						{
+							error('Password is not valid. Passwords can contain alphanumeric characters, spaces, and common special characters. Unicode characters are not allowed and the password cannot begin or end with a space.  <br /><button onclick="goBack()">Try again</button>');
+							break;
+						}
+						else if($_POST['newpassword'] !== $_POST['confirmpassword'])
 						{
 							error("The passwords you entered did not match.");
 							break;
