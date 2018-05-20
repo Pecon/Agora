@@ -286,6 +286,8 @@ EOF;
 		// Speed up many requests by avoiding duplicate mysql queries
 		static $user = array();
 
+		$name = htmlentities(html_entity_decode(trim($name)));
+
 		if(isSet($user[$name]))
 			return $user[$name];
 
@@ -695,7 +697,7 @@ EOF;
 				$table = <<<EOT
 					<table class="forumTable">
 					<tr>
-						<td class="padding" style="min-width: 30px; max-width: 50px; vertical-align: top;">
+						<td class="padding" style="width: 190px; vertical-align: top;">
 							User&nbsp;settings<br />
 							<hr />
 							<a href="./?action=avatarchange">Change&nbsp;avatar</a><br />
@@ -707,7 +709,7 @@ EOF;
 							<hr />
 							<form action="./?action=updateprofile" method=POST>
 								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
-								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
+								Website: <input type="url" name="website" maxLength="200" value="${website}"/><br />
 								<br />
 								Update profile text (you may use bbcode here):<br />
 								<textarea class="postbox" maxLength="1000" name="updateProfileText">${updateProfileText}</textarea><br />

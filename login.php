@@ -23,24 +23,24 @@ EOT;
 	if(!isSet($_POST['loggingin']))
 	{
 		addToBody('
-					Username:
-				</td>
-				<td class="loginTable">
-					<input type="text" name="username" tabIndex="1">
-				</td>
+				Username:
+			</td>
+			<td class="loginTable">
+				<input type="text" name="username" tabIndex="1" required />
+			</td>
 			</tr>
 			<tr>
 				<td>
 					Password:
 				</td>
 				<td class="loginTable">
-					<input type="password" name="password" tabIndex="2">
+					<input type="password" name="password" tabIndex="2" required autocomplete="current-password" />
 				</td>
 			</tr>
 			<tr>
 				<td class="loginTable">
-					<input type="hidden" name="loggingin" value="true">
-					<input class="postButtons" style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Log in" tabIndex="3">
+					<input type="hidden" name="loggingin" value="true" />
+					<input class="postButtons" style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Log in" tabIndex="3" />
 				</td>
 			</tr>
 		</table>
@@ -60,8 +60,9 @@ EOT;
 			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
+		$username = $_POST['username'];
 
-		$userData = findUserByName(trim($_POST['username']));
+		$userData = findUserByName($username);
 		if($userData === false)
 		{
 			error('No user exists by that name.<br><a href="./login.php">Try again</a>');

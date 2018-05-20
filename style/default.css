@@ -75,7 +75,7 @@ td.bbcodeTable
 table.forumTable
 {
 	width: 75%;
-	min-width: 1000px
+	min-width: 1000px;
 	background-color: #212127;
 	vertical-align: middle;
 }
@@ -94,6 +94,15 @@ table.loginTable
 
 	min-width: 300px;
 	min-height: 100px;
+}
+
+.loginTable input
+{
+	margin: 0px;
+	width: calc(100% - 6px);
+
+	border-width: 2px;
+	padding: 1px;
 }
 
 tr.originalPost
@@ -361,19 +370,19 @@ blockquote.codeTag
 	margin-right: 7px;
 }
 
-img.postImage
+img.postImage, video.postMedia
 {
 	max-width: 100%;
+	max-height: 100vh;
 	height: auto;
+	width: auto;
 }
 
-/*Images inside of quotes get shrunk down*/
-blockquote img.postImage
+/* Media inside of quotes get shrunk down */
+blockquote img.postImage, blockquote video.postMedia
 {
 	max-width: 30%;
 	max-height: 300px;
-	width: auto;
-	height: auto;
 }
 
 img.avatar

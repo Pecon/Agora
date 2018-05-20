@@ -176,10 +176,10 @@ EOT;
 			<div style="text-align: left; width: 75%">
 				<form method="POST">
 					<table style="width: 100%;">
-					<tr><td>Forum name/Site name:<span class="rightAlign"><input type="text" name="sitename" value="Agora"/></span></td><td class="finetext">This will show up in the brower's title bar when visiting the home page.</td></tr>
+					<tr><td>Forum name/Site name:<span class="rightAlign"><input type="text" name="sitename" value="Agora" required/></span></td><td class="finetext">This will show up in the brower's title bar when visiting the home page.</td></tr>
 					<tr><td>Forum timezone:<span class="rightAlign"><select name="timezone">$timezones</select></span></td><td class="finetext">This timezone will be used across the site by default.</td></tr>
 					<tr><td>Require email verification:<span class="rightAlign"><select name="verify"><option value="false" selected>No</option><option value="true">Yes</option></select></span></td><td class="finetext">If enabled, requires users to click a link sent to their email address before logging in for the first time.</td></tr>
-					<tr><td>Minimum password length:<span class="rightAlign"><input type="text" name="passminchars" value="12" /></span></td><td class="finetext">The minimum number of characters users will need to have in their passwords. Recommended value: 12.</td></tr>
+					<tr><td>Minimum password length:<span class="rightAlign"><input type="text" name="passminchars" value="12" minlength="2" maxlength="72" inputmode="numeric" required /></span></td><td class="finetext">The minimum number of characters users will need to have in their passwords. Recommended value: 12.</td></tr>
 					<tr><td>Force site-wide ssl:<span class="rightAlign"><select name="ssl"><option value="false" selected>No</option><option value="true">Yes</option></select></span></td><td class="finetext">If enabled, will force all traffic to be redirected to https. If you don't know what this is or https doesn't work on your site, leave this disabled.</td></td>
 					<tr></tr>
 
@@ -236,10 +236,10 @@ EOT;
 			<div style="text-align: left; width: 75%">
 				<form method="POST">
 					<table style="width: 100%;">
-					<tr><td>Forum name/Site name:<span class="rightAlign"><input type="text" name="sitename" value="$site_name"/></span></td><td class="finetext">This will show up in the brower's title bar when visiting the home page.</td></tr>
+					<tr><td>Forum name/Site name:<span class="rightAlign"><input type="text" name="sitename" value="$site_name" required/></span></td><td class="finetext">This will show up in the brower's title bar when visiting the home page.</td></tr>
 					<tr><td>Forum timezone:<span class="rightAlign"><select name="timezone">$timezones</select></span></td><td class="finetext">This timezone will be used across the site by default.</td></tr>
 					<tr><td>Require email verification:<span class="rightAlign"><select name="verify"><option value="false" selected>No</option><option value="true">Yes</option></select></span></td><td class="finetext">If enabled, requires users to click a link sent to their email address before logging in for the first time.</td></tr>
-					<tr><td>Minimum password length:<span class="rightAlign"><input type="text" name="passminchars" value="$passwordMinimum" /></span></td><td class="finetext">The minimum number of characters users will need to have in their passwords. Recommended value: 12.</td></tr>
+					<tr><td>Minimum password length:<span class="rightAlign"><input type="text" name="passminchars" value="$passwordMinimum" minlength="2" maxlength="72" inputmode="numeric" required /></span></td><td class="finetext">The minimum number of characters users will need to have in their passwords. Recommended value: 12.</td></tr>
 					<tr><td>Force site-wide ssl:<span class="rightAlign"><select name="ssl"><option value="false" selected>No</option><option value="true">Yes</option></select></span></td><td class="finetext">If enabled, will force all traffic to be redirected to https. If you don't know what this is or https doesn't work on your site, leave this disabled.</td></td>
 					<tr></tr>
 
@@ -336,7 +336,7 @@ EOT;
 			$sql = "CREATE TABLE IF NOT EXISTS `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(20) NOT NULL,
-  `passkey` varchar(128) NOT NULL,
+  `passkey` varchar(255) NOT NULL,
   `reg_date` bigint(20) unsigned NOT NULL DEFAULT '0',
   `lastActive` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `email` varchar(200) NOT NULL DEFAULT '',

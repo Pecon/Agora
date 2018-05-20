@@ -154,11 +154,12 @@ function finishPage()
 			$_title
 	</title>
 	<link rel="stylesheet" type="text/css" href="./style/default.css"/>
-	<link href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i&amp;subset=latin-ext,cyrillic,cyrillic-ext,vietnamese" rel="stylesheet">
+	<link async href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i&amp;subset=latin-ext,cyrillic,cyrillic-ext,vietnamese" rel="stylesheet">
 	<link rel="icon" type="image/png" href="./style/favicon.png"/>
 
 	<meta HTTP-EQUIV="Pragma" content="no-cache"/>
 	<meta HTTP-EQUIV="Expires" content="-1"/>
+	<meta name="viewport" content="width=1100">
 
 	<meta name="description" content="$_description">
 	<meta name="keywords" content="$keywords">

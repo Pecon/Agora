@@ -5,7 +5,7 @@ A basic PHP/MySQL powered forum system with a minimal storage footprint.
 Test out or discuss Agora forum here: https://agora.leopard.hosting/
 
 ## Features
- - Uncomplicated code (No regex, and things are written in a pretty straightforward manner)  
+ - Uncomplicated code (No unexplained regex, things are generally written in a pretty straightforward manner)  
  - All features supported without Javascript (Javascript still enhances some features)
  - Powerful BBCode parser written specifically for Agora (again, no regex. Very straightforward to edit.)  
  - Optional email address confirmation system  
@@ -43,6 +43,7 @@ This is a reference of the currently implemented bbcode tags. This list should b
 [tr][/tr] - Table row. Must be a child of table.
 [td][/td] - Table column. Must be a child of tr.
 [img][/img] - Embeds an image from the url specified by the inner text.
+[audio][/audio] - Embeds HTML5 audio from the url specified by the inner text. This must link directly to the audio file, much like an img tag.
 [video][/video] - Embeds an HTML5 video from the url specified by the inner text. This must link directly to the video file, much like the img tag.
 [youtube][/youtube] - Embeds a video from Youtube using the youtube url specified by the inner text.
 [vimeo][/vimeo] - Embeds a video from Vimeo using the vimeo url specified by the inner text.

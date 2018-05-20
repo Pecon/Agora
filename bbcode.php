@@ -344,6 +344,9 @@
 			case "img":
 				return 0;
 
+			case "audio":
+				return 0;
+
 			case "video":
 				return 0;
 
@@ -444,8 +447,11 @@
 			case "img":
 				return '<img class="postImage" src="' . htmlentities($argument) . '">';
 
+			case "audio":
+				return '<audio class="postMedia" preload="metadata" volume=0.3 controls><source src="' . htmlentities($argument) . '" /></audio>';
+
 			case "video":
-				return '<video preload="false" controls><source src="' . htmlentities($argument) . '" /></video>';
+				return '<video class="postMedia" preload="metadata" muted controls><source src="' . htmlentities($argument) . '" /></video>';
 
 			case "youtube":
 				$videoUrl = parse_url($argument);
