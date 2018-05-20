@@ -5,16 +5,15 @@ A basic PHP/MySQL powered forum system with a minimal storage footprint.
 Test out or discuss Agora forum here: https://agora.leopard.hosting/
 
 ## Features
- - Uncomplicated code (No unexplained regex, things are generally written in a pretty straightforward manner)  
+ - Uncomplicated code (No unexplained regex, things are generally written in a pretty straightforward manner)
  - All features supported without Javascript (Javascript still enhances some features)
- - Powerful BBCode parser written specifically for Agora (again, no regex. Very straightforward to edit.)  
- - Optional email address confirmation system  
+ - Powerful BBCode parser written specifically for Agora (No regex used. Very straightforward to edit.)
+ - Optional email address confirmation system
  - Private messaging system
  - Lack of feature bloat (or just an excuse as to this list being short)
 
 ## To-do
  - Add boards  
- - Add more bbcode tags  
  - Add more admin tools and improve existing ones  
  - Overhaul visual design
  - Search feature
