@@ -136,7 +136,7 @@
 				{
 					$searchChar = $searchChar = charAt($startTag, $startTagSearch);
 
-					if($searchChar == "=" || $searchChar == "]")
+					if(($searchChar == "=" && $startTagSearch < strlen($tagName) + 5) || $searchChar == "]")
 					{
 						// Ignore.
 					}

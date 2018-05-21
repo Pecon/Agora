@@ -151,11 +151,28 @@
 						error("Please make your post longer.");
 						break;
 					}
-					else if(strLen(trim($_POST['newtopicpost'])) > 10000)
+					else if(isSet($_POST['preview']))
+					{
+						$preview = bb_parse(htmlentities(html_entity_decode($_POST['newtopicpost'])));
+
+						addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
+						addToBody($preview);
+						addToBody('</td></tr></table><br />');
+
+						addToBody('<form action="./?action=newtopic" method="POST" >
+							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
+							Original post:<br />
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . $_POST['newtopicpost'] . '</textarea><br />
+							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
+							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
+						</form>');
+						break;
+					}
+					else if(strLen(trim($_POST['newtopicpost'])) > 30000)
 					{
 						if(!$_SESSION['admin'])
 						{
-							error("Your post is over the 10000 character limit. Size: " . strLen(trim($_POST['newtopicpost'])));
+							error("Your post is over the 30000 character limit. Size: " . strLen(trim($_POST['newtopicpost'])));
 							break;
 						}
 						else if(strLen(trim($_POST['newtopicpost'])) > 100000)
@@ -168,6 +185,7 @@
 							$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 							header("Location: ./?topic=${threadID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
+							$_SESSION['lastpostingtime'] = time();
 						}
 					}
 					else if($_SESSION['lastpostdata'] == $_POST['newtopicsubject'])
@@ -185,12 +203,13 @@
 
 				else
 				{
-					addToBody("<form action=\"./?action=newtopic\" method=\"POST\" >
-							Subject: <input type=\"text\" name=\"newtopicsubject\" tabIndex=\"1\"><br />
+					addToBody('<form action="./?action=newtopic" method="POST" >
+							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" tabIndex="1" required><br />
 							Original post:<br />
-							<textarea class=\"postbox\" name=\"newtopicpost\" tabIndex=\"2\"></textarea><br />
-							<input class=\"postButtons\" type=\"submit\" value=\"Create thread\" tabIndex=\"3\">
-						</form>");
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2"></textarea><br />
+							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
+							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
+						</form>');
 				}
 				break;
 
@@ -276,9 +295,9 @@
 					}
 
 					addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
-					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1">
+					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1" required>
 					<br />
-					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2">
+					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2" required>
 					<br />
 					<textarea name="postcontent" class="postbox" tabIndex="3">' . htmlentities($_POST['postcontent']) . '</textarea>
 					<br />
@@ -289,9 +308,9 @@
 				}
 
 				addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
-					To: <input type="text" name="toName" value="" tabIndex="1">
+					To: <input type="text" name="toName" value="" tabIndex="1" required>
 					<br />
-					Subject: <input type="text" name="subject" value="" tabIndex="2">
+					Subject: <input type="text" name="subject" value="" tabIndex="2" required>
 					<br />
 					<textarea name="postcontent" class="postbox" tabIndex="3"></textarea>
 					<br />
