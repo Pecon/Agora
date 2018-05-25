@@ -286,6 +286,9 @@
 			case "url":
 				return 1;
 
+			case "iurl":
+				return 1;
+
 			case "abbr":
 				return 1;
 
@@ -353,6 +356,9 @@
 			case "hr":
 				return -1;
 
+			case "anchor":
+				return -1;
+
 
 
 			case "nobbc":
@@ -396,6 +402,9 @@
 
 			case "url":
 				return '<a href="' . htmlentities($argument) . '" target="_BLANK">';
+
+			case "iurl":
+				return '<a href="' . htmlentities($argument) . '">';
 
 			case "abbr":
 				return '<span title="' . htmlentities($argument) . '">';
@@ -471,6 +480,9 @@
 			case "hr":
 				return "<hr>";
 
+			case "anchor":
+				return '<span id="' . htmlentities($argument) . '" ></span>';
+
 			default:
 				return false;
 		}
@@ -503,6 +515,9 @@
 				return "</span>";
 
 			case "url":
+				return "</a>";
+
+			case "iurl":
 				return "</a>";
 
 			case "abbr":

@@ -239,8 +239,12 @@
 
 				if(isSet($_GET['id']))
 					displayMessage($_GET['id']);
+				else if(isSet($_GET['page']))
+				{
+					displayRecentMessages($_GET['page'], false);
+				}
 				else
-					displayRecentMessages(0, 10, false);
+					displayRecentMessages(0, false);
 
 				break;
 
@@ -253,8 +257,12 @@
 
 				if(isSet($_GET['id']))
 					displayMessage($_GET['id']);
+				else if(isSet($_GET['page']))
+				{
+					displayRecentMessages($_GET['page'], true);
+				}
 				else
-					displayRecentMessages(0, 10, true);
+					displayRecentMessages(0, true);
 
 				break;
 
@@ -750,28 +758,7 @@ EOT;
 		else
 			$page = intVal($_GET['page']);
 
-		$sql = "SELECT COUNT(*) FROM topics;";
-		$result = querySQL($sql) -> fetch_assoc();
-		$totalPages = (int)$result["COUNT(*)"] / 20;
-
-		displayRecentThreads(20 * $page, 20 * ($page + 1));
-
-		if($page > 2)
-			addToBody('<a href="./">0</a> ... <a href="./?page=' . $page - 2 . '">' . $page - 2 . '</a> <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a>');
-		else if($page == 2)
-			addToBody(' <a href="./?page=' . $page - 2 . '">' . $page - 2 . '</a> <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a>');
-		else if($page == 1)
-			addToBody(' <a href="./?page=' . $page - 1 . '">' . $page - 1 . '</a> ');
-
-		if($totalPages > 1)
-			addToBody("[${page}]");
-
-		if($page < $totalPages - 3)
-			addToBody('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a> <a href="./?page=' . $page + 2 . '">' . $page + 2 . '</a> ... <a href="./?page=' . $totalPages - 1 . '">' . $totalPages - 1 . '</a>');
-		else if($page == $totalPages - 3)
-			addToBody('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a> <a href="./?page=' . $page + 2 . '">' . $page + 2 . '</a>');
-		else if($page == $totalPages - 2)
-			addToBody('<a href="./?page=' . $page + 1 . '">' . $page + 1 . '</a>');
+		displayRecentThreads($page);
 
 		if(isSet($_SESSION['loggedin']))
 			addToBody("<br /><br /><a href=\"./?action=newtopic\">Post a new topic</a>\n");

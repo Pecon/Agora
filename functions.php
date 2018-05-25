@@ -762,8 +762,13 @@ EOT;
 		return true;
 	}
 
-	function displayRecentThreads($start, $num)
+	function displayRecentThreads($page)
 	{
+		global $items_per_page;
+		$page = intval($page);
+		$start = ceil($page * $items_per_page);
+		$num = $items_per_page;
+
 		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
 		$result = querySQL($sql);
 
@@ -781,6 +786,7 @@ EOT;
 				$topicName = $row['topicName'];
 
 				$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()['COUNT(*)'];
+				$numPosts = intval($numPosts);
 				$creator = findUserByID($row['creatorUserID']);
 				$creatorName = $creator['username'];
 				$description = $description . "\n$topicName, by $creatorName";
@@ -795,30 +801,21 @@ EOT;
 				$lastPostTime = date("F d, Y H:i:s", $lastPost['postDate']);
 				$postUserName = findUserByID($lastPost['userID'])['username'];
 
-				$quickPages = "&laquo; <a href=\"./?topic={$topicID}&amp;page=0\">0</a>";
-				if($numPosts > 10)
-				{
-					$quickPages = $quickPages . " <a href=\"./?topic={$topicID}&amp;page=1\">1</a>";
+				addToBody("<tr><td>${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>");
 
-					if($numPosts > 20)
-					{
-						$pagenum = ceil($numPosts / 10) - 2;
-						$quickPages = $quickPages . " ... <a href=\"./?topic={$topicID}&amp;page={$pagenum}\">{$pagenum}</a>";
+				global $items_per_page;
+				if($numPosts > $items_per_page) // Don't show page nav buttons if there is only one page
+					displayPageNavigationButtons(0, $numPosts, "topic=${topicID}");
 
-						$pagenum++;
-						$quickPages = $quickPages . "  <a href=\"./?topic={$topicID}&amp;page={$pagenum}\">{$pagenum}</a>";
-					}
-				}
-
-				$quickPages = $quickPages . " &raquo;";
-
-				addToBody("<tr><td>${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>${quickPages}</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
+				addToBody("</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
 			}
 			addToBody("</table>");
 		}
 		else
 			addToBody("There are no threads to display!");
 
+		$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
+		displayPageNavigationButtons($page, $totalTopics, null);
 		setPageDescription($description);
 	}
 
@@ -922,8 +919,9 @@ EOT;
 
 	function displayThread($topicID, $page)
 	{
-		$start = $page * 10;
-		$end = $start + 10;
+		global $items_per_page;
+		$start = $page * $items_per_page;
+		$end = $start + $items_per_page;
 		$topicID = intval($topicID);
 
 		$row = findTopicbyID($topicID);
@@ -1042,34 +1040,8 @@ EOT;
 		}
 		addToBody("</table>\n");
 
-		if($page - 2 >= 0)
-		{
-			$jumpPage = $page - 2;
-			addToBody("<a href=\"./?topic=${topicID}&amp;page=${jumpPage}\">{$jumpPage}</a> ");
-		}
-
-		if($page - 1 >= 0)
-		{
-			$jumpPage = $page - 1;
-			addToBody("<a href=\"./?topic={$topicID}&amp;page={$jumpPage}\">{$jumpPage}</a> ");
-		}
-
-		addToBody("[${page}] ");
-
 		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()["COUNT(*)"];
-		$highestPage = floor(($numPosts - 1) / 10);
-
-		if($page + 1 <= $highestPage)
-		{
-			$jumpPage = $page + 1;
-			addToBody("<a href=\"./?topic={$topicID}&amp;page={$jumpPage}\">{$jumpPage}</a> ");
-		}
-
-		if($page + 2 <= $highestPage)
-		{
-			$jumpPage = $page + 2;
-			addToBody("<a href=\"./?topic={$topicID}&amp;page={$jumpPage}\">{$jumpPage}</a> ");
-		}
+		displayPageNavigationButtons($page, $numPosts, "topic=${topicID}");
 
 		addToBody("<br><br>\n");
 
@@ -1315,8 +1287,13 @@ EOT;
 
 	// Private messaging functions
 
-	function displayRecentMessages($start, $num, $sent)
+	function displayRecentMessages($page, $sent)
 	{
+		global $items_per_page;
+		$page = intval($page);
+		$start = ($page * $items_per_page);
+		$num = $items_per_page;
+
 		$sql = "SELECT * FROM privateMessages WHERE " . ($sent ? "senderID=" : "recipientID=") . $_SESSION['userid'] . ($sent ? "" : " AND deleted=0") . " ORDER BY messageDate DESC LIMIT {$start},{$num}";
 		$result = querySQL($sql);
 
@@ -1336,7 +1313,6 @@ EOT;
 				$messageID = $row['messageID'];
 				$subject = $row['subject'];
 
-				$numPosts = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = $messageID ;") -> fetch_assoc()['COUNT(*)'];
 				$creator = findUserByID($sent ? $row['recipientID'] : $row['senderID']);
 				$creatorName = $creator['username'];
 				$description = $description . "\n$subject, " . ($sent ? "to" : "from") . " $creatorName";
@@ -1364,15 +1340,17 @@ EOT;
 
 				$sentTime = date("F d, Y H:i:s", $row['messageDate']);
 
-				addToBody("<tr><td>$threadStatus <a href=\"./?action=messaging&id=$messageID \">$subject</a></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user=${creator['id']}\">$creatorName</a></td><td class=lastpostrow>$sentTime</td>" . (!$sent ? '<td class="buttonRow"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="submit" value="Delete" /></form></td>' : '') . "</tr>\n");
+				addToBody("<tr><td>$threadStatus <a href=\"./?action=messaging&amp;id=$messageID \">$subject</a></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user=${creator['id']}\">$creatorName</a></td><td class=lastpostrow>$sentTime</td>" . (!$sent ? '<td class="buttonRow"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="submit" value="Delete" /></form></td>' : '') . "</tr>\n");
 			}
-			addToBody("</table><br />");
+			addToBody("</table>");
+			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = $messageID ;") -> fetch_assoc()['COUNT(*)'];
+			displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"));
 		}
 		else
 			addToBody("No messages.<br /><br />");
 
 		//addToBody("<a href=\"./?action=" . ($sent ? 'outbox' : 'messaging') . "\">Refresh messages</a><br /><br />");
-		addToBody("<a href=\"./?action=" . ($sent ? 'messaging' : 'outbox') . "\">View " . ($sent ? 'inbox' : 'outbox') . "</a><br /><br />");
+		addToBody("<br /><br /><a href=\"./?action=" . ($sent ? 'messaging' : 'outbox') . "\">View " . ($sent ? 'inbox' : 'outbox') . "</a><br /><br />");
 		addToBody("<a href=\"./?action=composemessage\">Compose message</a><br /><br />");
 
 		setPageDescription($description);
@@ -1508,7 +1486,43 @@ EOT;
 		}
 	}
 
+	function displayPageNavigationButtons($currentPage, $totalItems, $pageAction)
+	{
+		// This value can be modified from your .settings.json file (under the /data directory)
+		global $items_per_page;
 
+		if($pageAction === null)
+			$pageAction = "./?page=";
+		else
+		{
+			$pageAction = htmlentities($pageAction);
+			$pageAction = "./?${pageAction}&amp;page=";
+		}
+		
+		$currentPage = intval($currentPage);
+		$totalItems = intval($totalItems);
+		$totalPages = ceil($totalItems / $items_per_page);
+
+		$quickPages = "&laquo; " . ($currentPage == 0 ? "[" : "") . "<a href=\"${pageAction}0\">0</a>" . ($currentPage == 0 ? "]" : "") . "\n";
+		if($totalPages > 1)
+		{
+			$quickPages = $quickPages . " " . ($currentPage == 1 ? "[" : "") . "<a href=\"${pageAction}1\">1</a>" . ($currentPage == 1 ? "]" : "") . "\n";
+
+			if($totalPages > 2)
+			{
+				$pagenum = $totalTopics - 2;
+				$quickPages = $quickPages . " ... " . ($currentPage == $pagenum ? "[" : "") . "<a href=\"${pageAction}${pagenum}\">${pagenum}</a>" . ($currentPage == $pagenum ? "]" : "") . "\n";
+
+				$pagenum++;
+				$quickPages = $quickPages . "  " . ($currentPage == $pagenum ? "[" : "") . "<a href=\"${pageAction}${pagenum}\">${pagenum}</a>" . ($currentPage == $pagenum ? "]" : "") . "\n";
+			}
+		}
+
+		$quickPages = $quickPages . " &raquo;";
+		//addToBody('<br />');
+		// addToBody('<div class="finetext">Navigation</div>');
+		addToBody($quickPages);
+	}
 
 	// Other functions
 

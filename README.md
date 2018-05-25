@@ -29,6 +29,8 @@ This is a reference of the currently implemented bbcode tags. This list should b
 [color=CSScolor][/color] - Inner text has the specified CSS color applied to it (CSS colors are things like "Red", "Green" "#EEFF33", "rgba(125, 255, 120, 0.8)", "transparent", etc.).
 [size=fontsize][/size] - Sets the text size to a certain size specified (fontsize is just a number with a unit like 'pt' appended. "20pt", "15px", "2em", etc. are all valid).
 [url=URL][/url] - Makes the inner elements a link to the specified URL.
+[iurl=URL][/iurl] - Inline link. Like the previous tag except that the link opens in the same page. Useful for anchor links.
+[anchor=pageanchor] - Creates a page anchor of the specified name. Refer to one in a link (ie. "[iurl=#pageanchor]click to scroll to the anchor[/iurl]") to create links that navigate to specific parts of the post.
 [abbr=Text][/abbr] - Inner elements show Text when the mouse is hovered over it.
 [center][/center] - Inner elements are centered on the page.
 [left][/left] - Inner elements are aligned to the left of the page.
