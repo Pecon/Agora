@@ -750,9 +750,8 @@ EOT;
 		}
 
 		$id = intval($id);
-		$rawText = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
-		$text = sanitizeSQL(bb_parse($rawText));
-		$rawText = sanitizeSQL($rawText);
+		$rawText = sanitizeSQL(htmlentities(html_entity_decode($rawText), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$text = sanitizeSQL(bb_parse($text));
 		$website = sanitizeSQL(trim($website));
 		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
@@ -1148,9 +1147,8 @@ EOT;
 		}
 
 		// Cleanse post data
-		$postData = htmlentities(html_entity_decode($postData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$parsedPost = sanitizeSQL(bb_parse($postData));
-		$postData = sanitizeSQL($postData);
+		$postData = sanitizeSQL(htmlentities(html_entity_decode($postData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 		$date = time();
 
 		// Make entry in posts table
@@ -1205,9 +1203,8 @@ EOT;
 		querySQL($sql);
 
 		$changeID = getLastInsertID();
-		$newPostData = htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$newPostParsed = sanitizeSQL(bb_parse($newPostData));
-		$newPostData = sanitizeSQL($newPostData);
+		$newPostData = sanitizeSQL(htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
 		querySQL($sql);
@@ -1454,8 +1451,8 @@ EOT;
 	{
 		$recipient = findUserbyName($to);
 		$subject = sanitizeSQL(htmlentities(html_entity_decode($subject), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
-		$text = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$parsedText = sanitizeSQL(bb_parse($text));
+		$text = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		if($recipient === false)
 		{
@@ -1503,22 +1500,39 @@ EOT;
 		$totalItems = intval($totalItems);
 		$totalPages = ceil($totalItems / $items_per_page);
 
-		$quickPages = "&laquo; " . ($currentPage == 0 ? "[" : "") . "<a href=\"${pageAction}0\">0</a>" . ($currentPage == 0 ? "]" : "") . "\n";
-		if($totalPages > 1)
+		// Pages Start At One
+		$quickPages = " [" . ($currentPage + 1) . "] ";
+
+		if($currentPage - 1 >= 0)
 		{
-			$quickPages = $quickPages . " " . ($currentPage == 1 ? "[" : "") . "<a href=\"${pageAction}1\">1</a>" . ($currentPage == 1 ? "]" : "") . "\n";
+			$quickPages = '<a href="' . $pageAction . ($currentPage - 1) . '">' . $currentPage . '</a> ' . $quickPages;
 
-			if($totalPages > 2)
+			if($currentPage - 2 >= 0)
 			{
-				$pagenum = $totalTopics - 2;
-				$quickPages = $quickPages . " ... " . ($currentPage == $pagenum ? "[" : "") . "<a href=\"${pageAction}${pagenum}\">${pagenum}</a>" . ($currentPage == $pagenum ? "]" : "") . "\n";
+				$quickPages = '<a href="' . $pageAction . ($currentPage - 2) . '">' . ($currentPage - 1) . '</a> ' . $quickPages;
 
-				$pagenum++;
-				$quickPages = $quickPages . "  " . ($currentPage == $pagenum ? "[" : "") . "<a href=\"${pageAction}${pagenum}\">${pagenum}</a>" . ($currentPage == $pagenum ? "]" : "") . "\n";
+				if($currentPage - 3 >= 0)
+					$quickPages = '<a href="' . $pageAction . '0' . '">' . '1' . '</a> ... ' . $quickPages;
 			}
 		}
 
-		$quickPages = $quickPages . " &raquo;";
+		if($currentPage + 1 < $totalPages)
+		{
+			$quickPages = $quickPages . ' <a href="' . $pageAction . ($currentPage + 1) . '">' . ($currentPage + 2) . '</a>';
+
+			if($currentPage + 2 < $totalPages)
+			{
+				$quickPages = $quickPages . ' <a href="' . $pageAction . ($currentPage + 2) . '">' . ($currentPage + 3) . '</a>';
+
+				if($currentPage + 3 < $totalPages)
+				{
+					$quickPages = $quickPages . ' ... <a href="' . $pageAction . ($totalPages - 1) . '">' . $totalPages . '</a>';
+				}
+			}
+		}
+
+		$quickPages = '&laquo; ' . $quickPages . ' &raquo;';
+
 		//addToBody('<br />');
 		// addToBody('<div class="finetext">Navigation</div>');
 		addToBody($quickPages);

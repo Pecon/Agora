@@ -14,7 +14,7 @@
 			return false;
 		}
 
-		$tagText = trim($tagText);
+		$tagText = trim(html_entity_decode($tagText));
 		$cursor = -1;
 		$length = strlen($tagText);
 		$char = "";
@@ -23,12 +23,23 @@
 
 		$errors = Array();
 		$newText = "";
+		$stringBuffer = "";
 
 		while($cursor <= $length)
 		{
-			$cursor++;
-			$newText = $newText . $char;
-			$char = charAt($tagText, $cursor);
+			$stringBuffer = "";
+			while($cursor <= $length)
+			{
+				$cursor++;
+				$stringBuffer = $stringBuffer . $char;
+				$char = charAt($tagText, $cursor);
+
+				if($char == "\n" || $char == "\r" || $char == "[")
+					break;
+			}
+
+			$newText = $newText . htmlentities($stringBuffer, ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+			
 
 			if($char == "\n")
 			{
@@ -38,6 +49,7 @@
 			}
 			else if($char == "\r")
 			{
+				$char = '';
 				continue;
 			}
 			else if($char == "[") // Found the beginning of a tag?
@@ -217,10 +229,11 @@
 					else if($tagType == 2)
 					{
 						$processed = subStr($tagText, $startTagEndPos + 1, $endTagPos - $startTagEndPos - 1);
+						$processed = htmlentities($processed, ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 						$newText = $newText . $processed;
 						$cursor = $endTagEndPos + 1;
 					}
-					else
+					else // tagType = 0
 					{
 						$processed = tagStartHTML($tagName, subStr($tagText, $startTagEndPos + 1, $endTagPos - $startTagEndPos - 1));
 						$newText = $newText . $processed;
@@ -374,8 +387,9 @@
 
 	function tagStartHTML($tagName, $argument)
 	{
+		$argument = html_entity_decode($argument);
 		$argument = strip_tags($argument);
-		$argument = str_replace(Array("<", ">", "{", "}", ";"), "", $argument);
+		$argument = str_replace(Array("<", ">", "{", "}", ";"), Array("%3C", "%3E", "%7B", "%7D", "%3B"), $argument);
 
 		switch($tagName)
 		{
@@ -401,22 +415,22 @@
 				return '<span style="font-family: \'' . htmlentities($argument) . '\';">';
 
 			case "url":
-				return '<a href="' . htmlentities($argument) . '" target="_BLANK">';
+				return '<a href="' . filter_url($argument) . '" target="_BLANK">';
 
 			case "iurl":
-				return '<a href="' . htmlentities($argument) . '">';
+				return '<a href="' . filter_url($argument) . '">';
 
 			case "abbr":
-				return '<span title="' . htmlentities($argument) . '">';
+				return '<span title="' . filter_url($argument) . '">';
 
 			case "center":
-				return '<div style="display: inline-block; width: 100%; text-align: center;">';
+				return '<div style="display: inline-block; width: 100%; text-align: center; content-align: center;">';
 
 			case "left":
-				return '<div style="display: inline-block; width: 100%; text-align: left;">';
+				return '<div style="display: inline-block; width: 100%; text-align: left; content-align: left;">';
 
 			case "right":
-				return '<div style="display: inline-block; width: 100%; text-align: right;">';
+				return '<div style="display: inline-block; width: 100%; text-align: right; content-align: right;">';
 
 			case "just":
 				return '<div style="display: inline-block; width: 100%; text-align: justify;">';
@@ -446,13 +460,13 @@
 
 
 			case "img":
-				return '<img class="postImage" src="' . htmlentities($argument) . '">';
+				return '<img class="postImage" src="' . filter_url(html_entity_decode($argument)) . '">';
 
 			case "audio":
-				return '<audio class="postMedia" preload="metadata" volume=0.3 controls><source src="' . htmlentities($argument) . '" /></audio>';
+				return '<audio class="postMedia" preload="metadata" volume=0.3 controls><source src="' . filter_url(html_entity_decode($argument)) . '" /></audio>';
 
 			case "video":
-				return '<video class="postMedia" preload="metadata" muted controls><source src="' . htmlentities($argument) . '" /></video>';
+				return '<video class="postMedia" preload="metadata" muted controls><source src="' . filter_url(html_entity_decode($argument)) . '" /></video>';
 
 			case "youtube":
 				$videoUrl = parse_url($argument);
@@ -469,11 +483,11 @@
 					$videoID = $videoUrl['path'];
 
 				
-				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . htmlentities($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . filter_url($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
 
 			case "vimeo":
 				$videoUrl = parse_url($argument);
-				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . htmlentities($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . filter_url($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
 
 
 
@@ -569,5 +583,10 @@
 			return false;
 
 		return substr($string, $index, 1);
+	}
+
+	function filter_url($string)
+	{
+		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
 	}
 ?>

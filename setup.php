@@ -392,6 +392,7 @@ EOT;
 			$json['force_ssl'] = $force_ssl;
 			$json['site_name'] = $site_name;
 			$json['site_timezone'] = $site_timezone;
+			$json['items_per_page'] = 15;
 			$json['show_eastereggs'] = false;
 
 			$jsonText = json_encode($json, JSON_PRETTY_PRINT);

@@ -29,13 +29,13 @@
 
 				else if(isSet($_POST['preview']))
 				{
-					$postStuff = htmlentities($_POST['postcontent']);
-					$preview = bb_parse(htmlentities(html_entity_decode($postStuff)));
+					$postStuff = $_POST['postcontent'];
+					$preview = bb_parse($postStuff);
 
 					addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
 					addToBody($preview);
 					addToBody('</td></tr></table><br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . $postStuff . '</textarea>
+						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
 						<br />
 						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
 						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
@@ -153,7 +153,7 @@
 					}
 					else if(isSet($_POST['preview']))
 					{
-						$preview = bb_parse(htmlentities(html_entity_decode($_POST['newtopicpost'])));
+						$preview = bb_parse($_POST['newtopicpost']);
 
 						addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
 						addToBody($preview);
@@ -162,7 +162,7 @@
 						addToBody('<form action="./?action=newtopic" method="POST" >
 							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
 							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . $_POST['newtopicpost'] . '</textarea><br />
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
 							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
 							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
 						</form>');
@@ -278,8 +278,8 @@
 					if(isSet($_POST['preview']))
 					{
 						// Create preview
-						$postStuff = htmlentities($_POST['postcontent']);
-						$preview = bb_parse(htmlentities(html_entity_decode($postStuff)));
+						$postStuff = $_POST['postcontent'];
+						$preview = bb_parse($postStuff);
 						
 						addToBody('Here is a preview of your message.<br /><table class="forumTable"><tr><td class="postcontent">');
 						addToBody($preview);
