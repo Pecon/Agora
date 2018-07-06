@@ -340,6 +340,7 @@ EOT;
   `reg_date` bigint(20) unsigned NOT NULL DEFAULT '0',
   `lastActive` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `email` varchar(200) NOT NULL DEFAULT '',
+  `blid` int(7) NOT NULL,
   `verification` varchar(64) NOT NULL DEFAULT '0',
   `verified` tinyint(1) NOT NULL DEFAULT '1',
   `newEmail` varchar(200) DEFAULT NULL,

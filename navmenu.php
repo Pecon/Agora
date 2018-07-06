@@ -12,7 +12,7 @@
 
 				if(!isSet($_SESSION['loggedin']))
 				{
-					print('Welcome to ' . $site_name . '! Please <a href="login.php">Log in</a> to participate on this forum!<div class="bottomstuff" ><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></div>');
+					print('Welcome to ' . $site_name . '! Please <a href="login.php">Log in</a> !<div class="bottomstuff" ><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></div>');
 				}
 				
 				else if($_SESSION['loggedin'])

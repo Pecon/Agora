@@ -15,6 +15,35 @@
 EOT;
 	addToBody($head);
 
+	function BlocklandAuthenticate($username)
+	{
+		$username = mb_convert_encoding(urldecode($username), "ISO-8859-1");
+		$username = str_replace("%", "%25", $username);
+		$encodeChars = array(" ", "@", "$", "&", "?", "=", "+", ":", ",", "/");
+		$encodeValues = array("%20", "%40", "%24", "%26", "%3F", "%3D", "%2B", "3A","%2C", "%2F");
+		$username = str_replace($encodeChars, $encodeValues, $username);
+		
+		$postData = "NAME=${username}&IP=${_SERVER['REMOTE_ADDR']}";
+		
+		$opts = array('http' => array('method' => 'POST', 'header' => "Connection: keep-alive\r\nUser-Agent: Blockland-r1986\r\nContent-type: application/x-www-form-urlencoded\r\nContent-Length: ". strlen($postData) . "\r\n", 'content' => $postData));
+		
+		$context  = stream_context_create($opts);
+		$result = file_get_contents('http://auth.blockland.us/authQuery.php', false, $context);
+		$parsedResult = explode(' ', trim($result));
+		
+		if($parsedResult[0] == "NO")
+			return false;
+		
+		else if(!is_numeric($parsedResult[1]))
+		{
+			print($result);
+			return false;
+		}
+		
+		else
+			return intval($parsedResult[1]);
+	}
+
 	if(!isSet($_POST['registering']))
 	{
 		$form = <<<'EOD'
@@ -30,11 +59,13 @@ EOT;
 					<tr>
 					<td>Confirm:</td><td class="loginTable"><input type="password" name="confirmpassword" tabIndex="3" required /></td>
 					</tr>
+					<td>BL in-game name:</td><td class="loginTable"><input type="text" name="ingamename" tabIndex="4" maxLength="30" required /></td>
+					</tr>
 					<tr>
-					<td>Email:</td><td class="loginTable"><input class="" type="email" name="email" tabIndex="4" required /></td>
+					<td>Email:</td><td class="loginTable"><input class="" type="email" name="email" tabIndex="5" required /></td>
 					</tr><tr>
 					<td class="loginTable"><input type="hidden" name="registering" value="true" />
-					<input style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Register" tabIndex="5" />
+					<input style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Register" tabIndex="6" />
 					</td>
 					<td class="loginTable"></td>
 			</tr>
@@ -43,8 +74,23 @@ EOT;
 EOD;
 		addToBody($form);
 	}
-	else if(isSet($_POST['username']) && isSet($_POST['password']) && isSet($_POST['email']))
+	else if(isSet($_POST['username']) && isSet($_POST['password']) && isSet($_POST['email']) && isSet($_POST['ingamename']))
 	{
+		// Verify blockland auth
+		$ingamename = trim($_POST['ingamename']);
+		if(strlen($ingamename > 30))
+			finishPage(error("Given name was too long", true));
+
+		$auth = BlocklandAuthenticate($ingamename);
+
+		if($auth === false)
+		{
+			error('Blockland authentication failed for ' . $ingamename . '. Please make sure you have logged into Blockland recently from this computer or network. <br /><button onclick="goBack()">Try again</button>');
+			addToBody("</tr></td></table></form>");
+			finishPage();
+		}
+		$auth = intval($auth);
+
 		// Verify username is OK
 		$username = $_POST['username'];
 
@@ -65,6 +111,17 @@ EOD;
 			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
+
+		// Check if BLID is already bound to an account
+		$idCheck = querySQL("SELECT id, username FROM users WHERE blid='$auth'") -> fetch_assoc();
+
+		if(isSet($idCheck['id']))
+		{
+			error("You already have an account registered with username ${idCheck['username']} and BLID $auth" . '<br /><button onclick="goBack()">Try again</button>');
+			addToBody("</tr></td></table></form>");
+			finishPage();
+		}
+
 
 		if(checkUserExists($username, $_POST['email']) !== false)
 		{
@@ -93,7 +150,7 @@ EOD;
 
 		if(strlen($_POST['password']) < $min_password_length)
 		{
-			error('Error: Password is too short. Use at least ${min_password_length} characters. <br /><button onclick="goBack()">Try again</button>');
+			error('Error: Password is too short. Use at least ' . $min_password_length . ' characters. <br /><button onclick="goBack()">Try again</button>');
 			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
@@ -150,7 +207,7 @@ EOF;
 		$password = sanitizeSQL($password);
 		$email = sanitizeSQL($_POST['email']);
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . intVal(!$settings['require_email_verification']) . "');";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, blid, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', '${auth}', 'New user', 'New user', '${verification}', '" . intVal(!$settings['require_email_verification']) . "');";
 
 		querySQL($sql);
 		addToBody("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a>");

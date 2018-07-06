@@ -654,6 +654,7 @@ EOF;
 		$reg_date = date('Y-m-d g:i:s', $userData['reg_date']);
 		$postCount = $userData['postCount'];
 		$tagLine = $userData['tagline'];
+		$blid = $userData['blid'];
 		$website = $userData['website'];
 		$profileText = $userData['profiletext'];
 		$profileDisplayText = $userData['profiletextPreparsed'];
@@ -671,7 +672,8 @@ EOF;
 
 		addToBody("\n${adminControl}<table class=\"forumTable\">\n<tr>\n<td class=\"padding\" style=\"background-color: #414141;\">\n${username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
 				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
-				"<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
+				"BL_ID: $blid<br />
+				<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
 				Posts: {$postCount}<br />
 				Date registered: {$reg_date}<br />
 				Last activity: {$lastActive}<br />" .
@@ -988,6 +990,10 @@ EOT;
 				addToBody("<div class=\"tagline finetext\">${user['tagline']}</div>");
 
 
+			// Display the user's BLID
+			addToBody('<div class="taglineBLID finetext">BL_ID: ' . $user['blid'] . '</div>');
+
+
 			// Display the user's avatar and the post date
 			$date = date("F d, Y H:i:s", $post['postDate']);
 			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
@@ -1012,7 +1018,7 @@ EOT;
 			// If logged in, show the quote button
 			if($quotesEnabled)
 			{
-				addToBody("<noscript><a class=\"inPostButtons\" href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
+				addToBody("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
 
 				if(isSet($_GET['quote']))
 				{

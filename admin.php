@@ -1,6 +1,6 @@
 <?php
 	require_once 'page.php';
-	require_once './functions.php';
+	require_once 'functions.php';
 
 	setPageTitle("$site_name - Admin");
 	addToBody("<h1>Admin</h1>");

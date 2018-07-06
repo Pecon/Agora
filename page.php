@@ -53,6 +53,8 @@ $_script_start = microtime(true);
 error_reporting(E_ALL);
 ini_set("log_errors", true);
 ini_set("error_log", "./php-error.log");
+ini_set("session.gc_maxlifetime", 18000);
+ini_set("session.cookie_lifetime", 18000);
 ob_start();
 session_start();
 
@@ -159,7 +161,7 @@ function finishPage()
 
 	<meta HTTP-EQUIV="Pragma" content="no-cache"/>
 	<meta HTTP-EQUIV="Expires" content="-1"/>
-	<meta name="viewport" content="width=1100">
+	<meta name="viewport" content="width=1025">
 
 	<meta name="description" content="$_description">
 	<meta name="keywords" content="$keywords">
