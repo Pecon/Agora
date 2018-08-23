@@ -157,12 +157,12 @@ td.postdatarow
 
 td.lastpostrow
 {
-	width: 400px;
+	width: 450px;
 }
 
 td.startedbyrow
 {
-	width: 170px;
+	width: 190px;
 }
 
 td.buttonRow
@@ -393,6 +393,8 @@ blockquote img.postImage, blockquote video.postMedia
 
 img.avatar
 {
+	margin-top: 5px;
+
 	max-height: 100px;
 	max-width: 100px;
 

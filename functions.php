@@ -675,7 +675,7 @@ EOF;
 				Posts: {$postCount}<br />
 				Date registered: {$reg_date}<br />
 				Last activity: {$lastActive}<br />" .
-				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />\n" : "Website: None") .
+				(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />\n" : "Website: None") .
 				"</td>
 				</tr>
 				<tr>
@@ -823,6 +823,8 @@ EOT;
 		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
 		$result = querySQL($sql);
 
+		global $items_per_page;
+
 		if($result -> num_rows > 0)
 		{
 			addToBody("<table class=forumTable border=1>\n");
@@ -832,7 +834,7 @@ EOT;
 				$user = findUserByID($row['userID']);
 				$username = $user['username'];
 				$date = date("F d, Y H:i:s", $row['postDate']);
-				$topicPage = floor($row['threadIndex'] / 10);
+				$topicPage = floor($row['threadIndex'] / $items_per_page);
 
 				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
@@ -920,7 +922,7 @@ EOT;
 	{
 		global $items_per_page;
 		$start = $page * $items_per_page;
-		$end = $start + $items_per_page;
+		$end = $items_per_page;
 		$topicID = intval($topicID);
 
 		$row = findTopicbyID($topicID);
@@ -1012,7 +1014,7 @@ EOT;
 			// If logged in, show the quote button
 			if($quotesEnabled)
 			{
-				addToBody("<noscript><a class=\"inPostButtons\" href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
+				addToBody("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
 
 				if(isSet($_GET['quote']))
 				{

@@ -1,7 +1,7 @@
 <?php
-	include_once 'functions.php';
-	include_once 'database.php';
-	include_once 'page.php';
+	require_once 'functions.php';
+	require_once 'database.php';
+	require_once 'page.php';
 
 	setPageTitle($site_name);
 	reauthuser();
@@ -198,6 +198,7 @@
 						$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 						header("Location: ./?topic=${threadID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
+						$_SESSION['lastpostingtime'] = time();
 					}
 				}
 

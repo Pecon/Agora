@@ -93,7 +93,7 @@ EOD;
 
 		if(strlen($_POST['password']) < $min_password_length)
 		{
-			error('Error: Password is too short. Use at least ${min_password_length} characters. <br /><button onclick="goBack()">Try again</button>');
+			error('Error: Password is too short. Use at least ' . $min_password_length . ' characters. <br /><button onclick="goBack()">Try again</button>');
 			addToBody("</tr></td></table></form>");
 			finishPage();
 		}
