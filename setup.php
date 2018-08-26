@@ -287,6 +287,7 @@ EOT;
   `changeTime` int(10) unsigned DEFAULT '0',
   `postID` int(10) unsigned NOT NULL,
   `threadID` int(10) unsigned NOT NULL,
+  KEY(`postID`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -299,12 +300,15 @@ EOT;
   `postID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `userID` int(10) unsigned DEFAULT NULL,
   `threadID` int(10) unsigned DEFAULT NULL,
-  `postDate` int(10) unsigned DEFAULT '0',
+  `postDate` bigint(20) unsigned DEFAULT '0',
   `postData` mediumtext,
   `postPreparsed` mediumtext NOT NULL,
   `threadIndex` int(10) unsigned DEFAULT '0',
   `changeID` int(10) unsigned DEFAULT NULL,
   FULLTEXT(`postData`),
+  KEY(`threadID`),
+  KEY(`postDate`),
+  KEY(`threadIndex`),
   PRIMARY KEY (`postID`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -323,6 +327,7 @@ EOT;
   `sticky` tinyint(1) NOT NULL DEFAULT '0',
   `locked` tinyint(1) NOT NULL DEFAULT '0',
   FULLTEXT(`topicName`),
+  KEY(`lastposttime`),
   PRIMARY KEY (`topicID`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -332,6 +337,20 @@ EOT;
 			}
 			else
 				addToBody("Created topics table...<br />\n");
+
+			$sql = "CREATE TABLE IF NOT EXISTS `boards` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `boardtitle` varchar(200) NOT NULL,
+  `boardcategory` varchar(255) NOT NULL,
+  `usergroup` enum('unverified','member','moderator','admin','superuser') DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+			$result = $mysqli -> query($sql);
+			
+			if($result === false)
+				finishPage(error("Failed to create boards table. " . $mysqli -> error, true));
+			else
+				addToBody("Created boards table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -346,12 +365,15 @@ EOT;
   `emailVerification` varchar(64) NOT NULL DEFAULT '0',
   `banned` tinyint(1) DEFAULT '0',
   `administrator` tinyint(1) DEFAULT '0',
+  `usergroup` enum('unverified','member','moderator','admin','superuser') DEFAULT NULL,
   `postCount` int(10) unsigned DEFAULT '0',
   `profiletext` varchar(1000) DEFAULT '',
   `profiletextPreparsed` varchar(3000) DEFAULT '',
   `tagline` varchar(40) NOT NULL DEFAULT '',
   `website` varchar(200) NOT NULL DEFAULT '',
   `avatar` blob DEFAULT NULL,
+  KEY(`username`),
+  KEY(`email`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -365,7 +387,7 @@ EOT;
   `messageID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `senderID` int(10) unsigned DEFAULT NULL,
   `recipientID` int(10) unsigned DEFAULT NULL,
-  `messageDate` int(10) unsigned DEFAULT '0',
+  `messageDate` bigint(20) unsigned DEFAULT '0',
   `messageData` mediumtext NOT NULL,
   `messagePreparsed` mediumtext NOT NULL,
   `subject` varchar(130) DEFAULT 'No Subject',
@@ -373,6 +395,9 @@ EOT;
   `deleted` tinyint(1) DEFAULT '0',
   FULLTEXT(`messageData`),
   FULLTEXT(`subject`),
+  KEY(`senderID`),
+  KEY(`recipientID`),
+  KEY(`messageDate`),
   PRIMARY KEY (`messageID`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -504,7 +529,7 @@ EOT;
 		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
 		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, administrator, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', true, 'Administrator')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, usergroup, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'superuser', 'Administrator')";
 
 		if($mysqli -> query($sql) === TRUE)
 		{
