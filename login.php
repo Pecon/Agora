@@ -93,7 +93,41 @@ EOT;
 
 		$_SESSION['loggedin'] = true;
 		$_SESSION['name'] = $username;
-		$_SESSION['admin'] = $userData['administrator'];
+
+		switch($userData['usergroup'])
+		{
+			case "superuser":
+				$_SESSION['superuser'] = true;
+				$_SESSION['admin'] = true;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "admin":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = true;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "moderator":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "member":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = false;
+				$_SESSION['member'] = true;
+				break;
+			case "unverified":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = false;
+				$_SESSION['member'] = false;
+				break;
+
+		}
 		$_SESSION['banned'] = $userData['banned'];
 		$_SESSION['userid'] = $userData['id'];
 		$_SESSION['lastpostdata'] = "";

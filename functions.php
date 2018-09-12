@@ -14,7 +14,41 @@
 		$userData = findUserByID($_SESSION['userid']);
 		$_SESSION['loggedin'] = true;
 		$_SESSION['name'] = $userData['username'];
-		$_SESSION['admin'] = $userData['administrator'];
+
+		switch($userData['usergroup'])
+		{
+			case "superuser":
+				$_SESSION['superuser'] = true;
+				$_SESSION['admin'] = true;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "admin":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = true;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "moderator":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "member":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = false;
+				$_SESSION['member'] = true;
+				break;
+			case "unverified":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = false;
+				$_SESSION['member'] = false;
+				break;
+
+		}
 		$_SESSION['banned'] = $userData['banned'];
 
 		$sql = "SELECT COUNT(*) FROM privateMessages WHERE `recipientID` = ${_SESSION['userid']} AND `read` = 0;";
@@ -936,9 +970,6 @@ EOT;
 		setPageDescription("Topic ${row['topicName']} by ${creator['username']}.");
 		$threadControls = "";
 
-		$sql = "SELECT * FROM posts WHERE threadID='${topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
-		$posts = querySQL($sql);
-
 		if(isSet($_SESSION['userid']))
 		{
 			$quotesEnabled = true;
@@ -966,9 +997,51 @@ EOT;
 			$threadStatus = (boolval($row['sticky']) ? '<span class="icon stickyThread"></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedThread"></span>' : "");
 
 		addToBody("<div class=\"threadHeader\"> ${threadStatus} Viewing thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=\"forumTable\">");
+
+		// Get all the posts into one array
+		$sql = "SELECT * FROM posts WHERE threadID='${topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
+		$posts = querySQL($sql);
+
+		$allPosts = Array();
 		while($post = $posts -> fetch_assoc())
+			array_push($allPosts, $post);
+
+		// Write one query to get all the user data we need
+		$sql = "SELECT id, username, administrator, banned, tagline FROM users WHERE ";
+		foreach($allPosts as $post)
+			$sql = $sql . "id = '${post['userID']}' OR ";
+
+		$sql = $sql . " id = '-1';";
+		$users = querySQL($sql);
+
+		if($users === false)
 		{
-			$user = findUserByID($post['userID']);
+			error("No users for this thread exist!");
+			finishPage();
+			return;
+		}
+
+		$allUsers = Array();
+		while($user = $users -> fetch_assoc())
+			array_push($allUsers, $user);
+
+		$allPostsUsers = Array();
+		foreach($allUsers as $user)
+			$allPostsUsers[$user['id']] = $user;
+
+		unset($users);
+		unset($user);
+		unset($allUsers);
+		unset($posts);
+		unset($post);
+
+		// Loop through and write each post
+		$count = count($allPosts);
+		for($i = 0; $i < $count; $i++)
+		{
+			$post = $allPosts[$i];
+			$user = $allPostsUsers[$post['userID']];
+
 			$username = $user['username'];
 
 			// Highlight the post if applicable
@@ -1059,7 +1132,7 @@ EOT;
 			<input class="postButtons" type="submit" name="post" value="Post" tabindex="3">
 			<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2">
 		</form>');
-		}
+		}			
 	}
 
 	function createThread($userID, $topic, $postData)
