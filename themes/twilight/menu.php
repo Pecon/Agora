@@ -1,7 +1,7 @@
 <table class="navmenu">
 	<tr>
 		<td class="logocell">
-			<a href="./"><img src="./style/logo.png" alt="Agora logo"></a>
+			<a href="./"><img src="./themes/twilight/images/logo.png" alt="Agora logo"></a>
 		</td>
 		<td class="navmenu">
 			<?php
@@ -34,9 +34,9 @@
 
 	if($show_eastereggs == true && rand(0, 99) == 0)
 	{
-		if(is_file("./data/quotes"))
+		if(is_file("./quotes"))
 		{
-			$quotes = file_get_contents("./data/quotes");
+			$quotes = file_get_contents("./quotes");
 			$quotes = explode("\n", $quotes);
 
 			$quote = $quotes[rand(0, count($quotes) - 1)];

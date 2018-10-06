@@ -802,25 +802,75 @@ EOT;
 		$start = ceil($page * $items_per_page);
 		$num = $items_per_page;
 
-		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
-		$result = querySQL($sql);
-
 		global $site_name;
 		$description = "Welcome to $site_name!";
 
-		if($result -> num_rows > 0)
+		// Get the data of all displayed threads
+		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
+		$result = querySQL($sql);
+
+		$threads = Array();
+		while($thread = $result -> fetch_assoc())
+			array_push($threads, $thread);
+
+		if(count($threads) > 0)
 		{
+			// Get the post counts for all these threads
+			// $sql = "SELECT COUNT(*) FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
+			// $counts = querySQL($sql);
+			// Nevermind I need to find a way to do this.
+
+			// Get all the creators for all these threads
+			$sql = "SELECT id, username FROM users WHERE ";
+
+			foreach($threads as $thread)
+				$sql = $sql . "ID='${thread['creatorUserID']}' OR ";
+			$sql = $sql . " ID=null;";
+
+			$result = querySQL($sql);
+			$users = Array();
+			while($user = $result -> fetch_assoc())
+				array_push($users, $user);
+
+			$allUserID = Array();
+			foreach($users as $user)
+				$allUserID[$user['id']] = $user;
+
+			unset($users);
+			unset($user);
+
+			// Get all last posts for these threads
+			$sql = "SELECT postID, userID, postDate FROM posts WHERE ";
+
+			foreach($threads as $thread)
+				$sql = $sql . "postID='${thread['lastpostid']}' OR ";
+			$sql = $sql . " postID=null;";
+
+			$result = querySQL($sql);
+			$posts = Array();
+			while($post = $result -> fetch_assoc())
+				array_push($posts, $post);
+
+			$allPostID = Array();
+			foreach($posts as $post)
+				$allPostID[$post['postID']] = $post;
+
+			unset($posts);
+			unset($post);
+
+			// Okay, start making the page now.
 			$description = $description . "\nRecent topics:";
 			addToBody("<table class=\"forumTable\" >");
 			addToBody("<tr><td>Topic name</td><td class=\"startedby\">Author</td><td>Last post by</td></tr>");
-			while($row = $result -> fetch_assoc())
+
+			foreach($threads as $row)
 			{
 				$topicID = $row['topicID'];
 				$topicName = $row['topicName'];
 
 				$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()['COUNT(*)'];
 				$numPosts = intval($numPosts);
-				$creator = findUserByID($row['creatorUserID']);
+				$creator = $allUserID[$row['creatorUserID']];
 				$creatorName = $creator['username'];
 				$description = $description . "\n$topicName, by $creatorName";
 
@@ -830,7 +880,7 @@ EOT;
 					$threadStatus = (boolval($row['sticky']) ? '<span class="icon stickyThread" title="This thread is sticky and will always stay at the top of the board."></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedThread" title="This thread is locked and cannot be posted in."></span>' : "");
 
 
-				$lastPost = fetchSinglePost($row['lastpostid']);
+				$lastPost = $allPostID[$row['lastpostid']];
 				$lastPostTime = date("F d, Y H:i:s", $lastPost['postDate']);
 				$postUserName = findUserByID($lastPost['userID'])['username'];
 
@@ -842,10 +892,12 @@ EOT;
 
 				addToBody("</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
 			}
+
 			addToBody("</table>");
 		}
 		else
 			addToBody("There are no threads to display!");
+		
 
 		$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
 		displayPageNavigationButtons($page, $totalTopics, null);

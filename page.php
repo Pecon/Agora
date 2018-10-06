@@ -65,6 +65,25 @@ $_headText = "";
 $_addToBody = "";
 $_navBarEnabled = true;
 
+function loadThemePart($part)
+{
+	if(is_file("./themes/$site_theme/$part.php"))
+	{
+		ob_start();
+		require_once "./themes/$site_theme/$part.php";
+		addToBody(ob_get_clean());
+	}
+	else
+		error("Theme part '$part' could not be found in the theme directory.");
+}
+
+function directLoadThemePart($part)
+{
+	if(is_file("./themes/$site_theme/$part.php"))
+		require_once "./themes/$site_theme/$part.php";
+	else
+		error("Theme part '$part' could not be found in the theme directory.");
+}
 
 function setPageTitle($title)
 {
@@ -149,67 +168,21 @@ function finishPage()
 	$_mysqli_numQueries = intval($_mysqli_numQueries);
 	$keywords = implode(",", $_tags);
 
-	$header = <<<EOT
-<!DOCTYPE html>
-<head>
-	<title>
-			$_title
-	</title>
-	<link rel="stylesheet" type="text/css" href="./style/default.css"/>
-	<link async href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i&amp;subset=latin-ext,cyrillic,cyrillic-ext,vietnamese" rel="stylesheet">
-	<link rel="icon" type="image/png" href="./style/favicon.png"/>
-
-	<meta HTTP-EQUIV="Pragma" content="no-cache"/>
-	<meta HTTP-EQUIV="Expires" content="-1"/>
-	<meta name="viewport" content="width=1025">
-
-	<meta name="description" content="$_description">
-	<meta name="keywords" content="$keywords">
-
-	<noscript>
-		<style>
-			.javascriptButton
-			{
-				display: none;
-			}
-		</style>
-	</noscript>
-
-	<script type="text/javascript">
-	function goBack()
-	{
-	    window.history.back();
-	}
-	</script>
-
-	$_headText
-</head>
-<body>
-<center>
-EOT;
-	print($header);
+	directLoadThemePart("head");
 
 	if($_navBarEnabled)
-		require_once 'navmenu.php';
+		directLoadThemePart("menu");
 
 	print($_bodyText);
 
-	$time = round((microtime(true) - $_script_start) * 1000, 3);
-	$queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
-	$year = date('Y');
-	$footer = <<<EOT
-<br />
-<br />
-<div class="finetext">
-Powered by Agora &#169; $year pecon.us <a href="./about.html">About</a>
-<br />
-Page created in $time milliseconds with $queries.
-</div>
-</center>
-</body>
-</html>
-EOT;
-	print($footer);
+	global $_version, $_time, $_queries, $_year;
+	$_version = "2.0.0b";
+	$_time = round((microtime(true) - $_script_start) * 1000, 3);
+	$_queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
+	$_year = date('Y');
+	
+	directLoadThemePart("foot");
+
 	exit();
 }
 
