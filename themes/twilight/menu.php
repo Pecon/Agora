@@ -1,33 +1,32 @@
-<table class="navmenu">
-	<tr>
-		<td class="logocell">
-			<a href="./"><img src="./themes/twilight/images/logo.png" alt="Agora logo"></a>
-		</td>
-		<td class="navmenu">
-			<?php
-				require_once 'data.php';
-				global $site_timezone, $site_name;
-				date_default_timezone_set($site_timezone);
-				$date = date("F j, Y G:i:s");
+<div class="topMenu">
+	<div class="siteImage">
+		<a href="./"><img src="./themes/twilight/images/logo.png" alt="Agora logo"></a>
+	</div>
+	<div class="topMenuContent">
+		<?php
+			require_once 'data.php';
+			global $site_timezone, $site_name;
+			date_default_timezone_set($site_timezone);
+			$date = date("F j, Y G:i:s");
 
-				if(!isSet($_SESSION['loggedin']))
-				{
-					print('Welcome to ' . $site_name . '! Please <a href="login.php">Log in</a> !<div class="bottomstuff" ><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></div>');
-				}
-				
-				else if($_SESSION['loggedin'])
-				{
-					if(!isSet($_SESSION['unreadMessages']))
-						$_SESSION['unreadMessages'] = 0;
+			if(!isSet($_SESSION['loggedin']))
+			{
+				print('<p>Welcome to ' . $site_name . '!</p><p><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></p>');
+			}
+			
+			else if($_SESSION['loggedin'])
+			{
+				if(!isSet($_SESSION['unreadMessages']))
+					$_SESSION['unreadMessages'] = 0;
 
-					print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>! The forum time is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile &amp; Settings</a><a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? " (${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? '<a href="./admin.php">Admin</a> ' : '') . '<a href="logout.php">Log out</a></div>');
-				}
-				
-				else
-					print(error("An error occurred loading the navigation menu.", true));
-			?>
-		</td>
-</table>
+				print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>! The forum time is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile &amp; Settings</a><a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? " (${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? '<a href="./admin.php">Admin</a> ' : '') . '<a href="logout.php">Log out</a></div>');
+			}
+			
+			else
+				print(error("An error occurred loading the navigation menu.", true));
+		?>
+	</div>
+</div>
 <br />
 <?php
 	global $show_eastereggs;

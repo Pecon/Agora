@@ -1,0 +1,484 @@
+body
+{
+	background-color: #111117;
+	/*background-image: url('./style/background.png');*/
+	color: #eeeeff;
+	font-family: Montserrat, sans-serif;
+	font-size: 17px;
+}
+
+h1
+{
+	font-size: 20pt;
+	font-weight: bold;
+	color: #ed1c24;
+	text-shadow: 0px 0px 16px #000;
+	text-align: center;
+}
+
+h2
+{
+	font-size: 15pt;
+	font-weight: bold;
+	color: #ed1c24;
+	text-shadow: 0px 0px 16px #000;
+	line-height: 2px;
+	padding-left: 1px;
+}
+
+table
+{
+	border-style: outset;
+	border-width: 4px;
+	border-color: #AAF;
+	border-collapse: collapse;
+
+	min-width: 300px;
+	vertical-align: middle;
+}
+
+tr
+{
+	border-style: solid;
+	border-width: 2px;
+	padding: 1px;
+	padding-left: 3px;
+	border-color: #AAA;
+}
+
+td
+{
+	border-style: solid;
+	border-width: 2px;
+	padding: 1px;
+	padding-left: 3px;
+	border-color: #AAF;
+}
+
+table.bbcodeTable
+{
+	border: unset;
+	min-width: unset;
+	vertical-align: unset;
+}
+
+tr.bbcodeTable
+{
+	border: unset;
+}
+
+td.bbcodeTable
+{
+	border: unset;
+}
+
+table.forumTable
+{
+	width: 90%;
+	min-width: 1000px;
+	background-color: #212127;
+	vertical-align: middle;
+}
+
+table.navmenu
+{
+	width: 1000px;
+	height: 50px;
+}
+
+table.loginTable
+{
+	text-align: center;
+
+	padding: 3px;
+
+	min-width: 300px;
+	min-height: 100px;
+}
+
+.loginTable td
+{
+	padding: 0px;
+	height: 0%;
+}
+
+.loginTable input
+{
+	margin: 0px;
+	width: calc(100% - 6px);
+
+	border-width: 2px;
+	padding: 1px;
+}
+
+tr.originalPost
+{
+	border-color: green;
+	border-style: solid;
+	border-width: 1px;
+}
+
+td.logocell
+{
+	width: 400px;
+	padding: 0px;
+}
+
+td.navmenu
+{
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+td.padding
+{
+	padding: 3px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+td.usernamerow
+{
+	width: 160px;
+	vertical-align: text-top;
+	background-color: #414141;
+
+	padding: 5px;
+	padding-top: 3px;
+}
+
+td.postdatarow
+{
+	padding: 5px;
+	height: 100%;
+	max-width: 1100px;
+	vertical-align: top;
+}
+
+td.lastpostrow
+{
+	width: 450px;
+}
+
+td.startedbyrow
+{
+	width: 190px;
+}
+
+td.buttonRow
+{
+	width: 65px;
+}
+
+td.loginTable
+{
+	padding: 0px;
+}
+
+input:invalid.validate
+{
+	background-color: #D11;
+}
+
+input
+{
+	background-color: #AAA;
+	color: #000;
+}
+
+input:focus
+{
+	background-color: #FFF;
+}
+
+input.textBox
+{
+	height: 100%;
+	min-width: 350px;
+}
+
+input.postButtons
+{
+	margin-top: 3px;
+	min-width: 100px;
+	height: 30px;
+}
+
+input:hover.postButtons
+{
+	background-color: #CCC;
+}
+
+textarea
+{
+	background-color: #AAA;
+	color: #000;
+}
+
+textarea:focus
+{
+	background-color: #FFF;
+}
+
+a
+{
+	color: #88F;
+	text-decoration: none;
+}
+
+a:hover
+{
+	color: #BBF;
+	text-decoration: none;
+}
+
+a:visited
+{
+	color: #88F;
+	text-decoration: none;
+}
+
+a:visited:hover
+{
+	color: #BBF;
+	text-decoration: none;
+}
+
+.topicHeader
+{
+	text-align: left;
+	width: 75%;
+	margin-bottom: 4px;
+	padding-left: 5%;
+}
+
+.adminform
+{
+	background-color: #a0a0a0;
+}
+
+.errorText
+{
+	color: #F00;
+	background-color: #000;
+	border-color: #F00;
+	border-style: dashed;
+	border-width: 3px;
+
+	padding: 10px;
+	margin: 20px;
+}
+
+.warningText
+{
+	color: #FF0;
+	background-color: #000;
+	border-color: #FF0;
+	border-style: solid;
+	border-width: 3px;
+
+	padding: 10px;
+	margin: 20px;
+}
+
+.finetext
+{
+	font-size: 11px;
+}
+
+.rightAlign
+{
+	text-align: right;
+	width: 100%;
+}
+
+.postbox
+{
+	width: 60%;
+	height: 100px;
+}
+
+blockquote
+{
+	background-color: #414141;
+	border: 2px dashed gray;
+	margin: 3px;
+	padding: 2px;
+	font-size: small;
+	max-width: 1000px;
+}
+
+.blockquoteHead
+{
+	color: #EEEEFF;
+	text-decoration: none;
+	text-align: left;
+	display: block;
+	width: 100%;
+}
+
+blockquote.codeTag
+{
+	font-family: monospace;
+	overflow-x: scroll;
+	white-space: pre;
+}
+
+
+/* Controls the style of the user's tagline text inside threads */
+.tagline
+{
+
+}
+
+.taglineAdmin
+{
+	color: #FF0;
+	text-shadow: 0px 0px 1px #FFA;
+}
+
+.taglineBanned
+{
+	color: #F00;
+}
+
+/* Style of username links */
+.userLink
+{
+	font-weight: bold;
+}
+
+/* Style of post dates */
+.postDate
+{
+	
+}
+
+.topicText
+{
+	min-height: 155px;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+
+.bottomstuff
+{
+	text-align: right;
+	vertical-align: bottom;
+	font-size: 13px;
+	padding-right: 3px;
+	padding-bottom: 3px;
+}
+
+.bottomstuff a
+{
+	margin-left: 7px;
+	margin-right: 7px;
+}
+
+img.postImage, video.postMedia
+{
+	max-width: 100%;
+	max-height: 100vh;
+	height: auto;
+	width: auto;
+}
+
+/* Media inside of quotes get shrunk down */
+blockquote img.postImage, blockquote video.postMedia
+{
+	max-width: 30%;
+	max-height: 300px;
+}
+
+img.avatar
+{
+	margin-top: 5px;
+
+	max-height: 100px;
+	max-width: 100px;
+
+	border-radius: 10px;
+}
+
+.inPostButtons
+{
+    margin-left: 8px;
+}
+
+.fatalErrorBox
+{
+	border-style: solid;
+	border-width: 1px;
+	border-color: #F00;
+	padding: 20px;
+
+	background-color: #000;
+	color: #F00;
+
+	font-size: 20px;
+	text-align: center;
+
+	width: 60%
+}
+
+textarea.license
+{
+	font-family: "Courier New", Courier, monospace;
+	width: 750px;
+	height: 400px;
+	background-color: #a0a0a0;
+}
+
+/* Icons */
+span.icon
+{
+	width: 24px;
+	height: 18px;
+
+	margin-top: 0px;
+	margin-bottom: -3px;
+	margin-right: 3px;
+	margin-left: 3px;
+	padding: 0px;
+
+	text-align: center;
+
+
+	display: inline-block;
+}
+
+.icon.stickyTopic
+{
+	background-image: url("./images/ThreadSticky.png");
+}
+
+.icon.lockedTopic
+{
+	background-image: url("./images/ThreadLocked.png");
+}
+
+.icon.messageUnread
+{
+	background-image: url("./images/MessageUnread.png");
+}
+
+.icon.messageRead
+{
+	background-image: url("./images/MessageRead.png");
+}
+
+.icon.messageReplied
+{
+	background-image: url("./images/MessageReplied.png");
+}
+
+.icon.Just
+{
+	background-image: url("./images/Just.png");
+}
+
+.icon.Sterling
+{
+	background-image: url("./images/Sterling.png");
+}

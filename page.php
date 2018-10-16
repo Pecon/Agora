@@ -55,7 +55,8 @@ ini_set("log_errors", true);
 ini_set("error_log", "./php-error.log");
 ini_set("session.gc_maxlifetime", 18000);
 ini_set("session.cookie_lifetime", 18000);
-ob_start();
+header('cache-control: private');
+header('expires: 0');
 session_start();
 
 $_title = "";
@@ -67,6 +68,8 @@ $_navBarEnabled = true;
 
 function loadThemePart($part)
 {
+	global $site_theme;
+
 	if(is_file("./themes/$site_theme/$part.php"))
 	{
 		ob_start();
@@ -79,6 +82,8 @@ function loadThemePart($part)
 
 function directLoadThemePart($part)
 {
+	global $site_theme;
+
 	if(is_file("./themes/$site_theme/$part.php"))
 		require_once "./themes/$site_theme/$part.php";
 	else
@@ -161,12 +166,11 @@ function finishPage()
 	if($numArgs > 0)
 		addToBody(func_get_arg(0));
 
-	global $_headText, $_bodyText, $_title, $_tags, $_description, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone;
+	global $_bodyText, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone;
 
 	date_default_timezone_set($site_timezone);
 
 	$_mysqli_numQueries = intval($_mysqli_numQueries);
-	$keywords = implode(",", $_tags);
 
 	directLoadThemePart("head");
 

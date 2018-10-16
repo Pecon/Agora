@@ -65,7 +65,7 @@
 				}
 				else if(isSet($_POST['postcontent']))
 				{
-					$postID = createPost($_SESSION['userid'], intVal($_GET['topic']), $_POST['postcontent']);
+					$postID = createPost($_SESSION['userid'], intval($_GET['topic']), $_POST['postcontent']);
 					addToBody("Post successful!");
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
@@ -85,7 +85,7 @@
 					error("No post specified.");
 					break;
 				}
-				$post = fetchSinglePost(intVal($_GET['post']));
+				$post = fetchSinglePost(intval($_GET['post']));
 				if($post['userID'] !== $_SESSION['userid'] && !$_SESSION['admin'] == true)
 				{
 					error("You do not have permission to edit this post!");
@@ -163,7 +163,7 @@
 							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
 							Original post:<br />
 							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
 							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
 						</form>');
 						break;
@@ -182,8 +182,8 @@
 						}
 						else
 						{
-							$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-							header("Location: ./?topic=${threadID}");
+							$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
+							header("Location: ./?topic=${topicID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 							$_SESSION['lastpostingtime'] = time();
 						}
@@ -195,8 +195,8 @@
 					}
 					else
 					{
-						$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-						header("Location: ./?topic=${threadID}");
+						$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
+						header("Location: ./?topic=${topicID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 						$_SESSION['lastpostingtime'] = time();
 					}
@@ -208,7 +208,7 @@
 							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" tabIndex="1" required><br />
 							Original post:<br />
 							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2"></textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
 							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
 						</form>');
 				}
@@ -227,7 +227,7 @@
 				}
 				else
 				{
-					displayPostEdits(intVal($_GET['post']));
+					displayPostEdits(intval($_GET['post']));
 				}
 				break;
 
@@ -303,7 +303,7 @@
 						break;
 					}
 
-					addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+					addToBody('<div class="topicHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
 					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1" required>
 					<br />
 					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2" required>
@@ -316,7 +316,7 @@
 					break;
 				}
 
-				addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+				addToBody('<div class="topicHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
 					To: <input type="text" name="toName" value="" tabIndex="1" required>
 					<br />
 					Subject: <input type="text" name="subject" value="" tabIndex="2" required>
@@ -360,7 +360,7 @@
 					break;
 				}
 
-				displayUserProfile(intVal($_GET['user']));
+				displayUserProfile(intval($_GET['user']));
 				break;
 
 			case "updateprofile":
@@ -614,46 +614,46 @@ EOT;
 					addToBody("Reset email sent! Please follow the link in the email to reset your password.");
 				break;
 
-			case "lockthread":
+			case "locktopic":
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
 					break;
 				}
 
-				if(!isSet($_GET['thread']))
+				if(!isSet($_GET['topic']))
 				{
 					error("No topic specified.");
 					break;
 				}
 
-				$result = lockThread($_GET['thread']);
+				$result = lockTopic($_GET['topic']);
 				if($result === -1)
 					break;
 
-				addToBody(($result ? "Locked" : "Unlocked") . " thread!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['thread']}'\" />");
+				addToBody(($result ? "Locked" : "Unlocked") . " topic!");
+				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
-			case "stickythread":
+			case "stickytopic":
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
 					break;
 				}
 
-				if(!isSet($_GET['thread']))
+				if(!isSet($_GET['topic']))
 				{
 					error("No topic specified.");
 					break;
 				}
 
-				$result = stickyThread($_GET['thread']);
+				$result = stickyTopic($_GET['topic']);
 				if($result === -1)
 					break;
 
-				addToBody(($result ? "Sticky'd" : "Unsticky'd") . " thread!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['thread']}'\" />");
+				addToBody(($result ? "Sticky'd" : "Unsticky'd") . " topic!");
+				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
 			case "deletepost":
@@ -745,19 +745,21 @@ EOT;
 	{
 		if(!isSet($_GET['page']))
 		{
-			$page = 0;
+			$_page = 0;
 		}
 		else
-		$page = intVal($_GET['page']);
+			$_page = intval($_GET['page']);
 
-		displayThread(intVal($_GET['topic']), $page);
+		$_topicID = intval($_GET['topic']);
+
+		loadThemePart("topic");
 	}
 	else if(!isSet($_GET['action']))
 	{
 		if(!isSet($_GET['page']))
 			$page = 0;
 		else
-			$page = intVal($_GET['page']);
+			$page = intval($_GET['page']);
 
 		displayRecentThreads($page);
 

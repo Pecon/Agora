@@ -7,7 +7,12 @@
 		
 		if($avatar === false)
 		{
-			$defaultAvatar = "./style/defaultavatar.png";
+			$defaultAvatar = "./themes/$site_theme/images/defaultavatar.png";
+
+			if(!is_file($defaultAvatar))
+			{
+				exit();
+			}
 			
 			header("Cache-control: max-age=1800");
 			header("Content-type: " . mime_content_type($defaultAvatar));

@@ -56,6 +56,8 @@
 	{
 		require_once 'page.php';
 		error("Missing server config: site_timezone");
+
+		date_default_timezone_set($site_timezone);
 	}
 
 	if(isSet($settings['require_email_verification']))
