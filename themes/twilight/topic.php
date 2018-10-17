@@ -37,11 +37,16 @@
 		$quotesEnabled = false;
 
 	if(!boolval($row['locked']) && !boolval($row['sticky']))
-		$topicStatus = "&rarr;";
+		$topicStatus = "&nbsp;&rarr;&nbsp;";
 	else
 		$topicStatus = (boolval($row['sticky']) ? '<span class="icon stickyTopic"></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedTopic"></span>' : "");
 
-	print("<div class=\"topicHeader\"> ${topicStatus} Viewing topic: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${topicControls}</div>\n<table class=\"forumTable\">");
+	print('<div class="topicContainer">');
+	print("<div class=\"topicHeader\"><span>${topicStatus}</span><h3><a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a></h3>\n<br />${topicControls}<br />\n");
+
+	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
+	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
+	print("</div>");
 
 	// Get all the posts into one array
 	$sql = "SELECT * FROM posts WHERE threadID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
@@ -90,49 +95,49 @@
 		$username = $user['username'];
 
 		// Highlight the post if applicable
-		if($post['threadIndex'])
-			print('<tr class="originalPost">');
+		if(!$post['threadIndex'])
+			print('<div class="post originalPost">');
 		else
-			print('<tr>');
+			print('<div class="post">');
 
 		// Display username of poster
-		print("<td class=\"usernamerow\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br>");
+		print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a>");
 
 
 		// Display the user's tagline
 		if($user['banned'])
-			print("<div class=\"taglineBanned finetext\">${user['tagline']}</div>");
+			print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
 		else if($user['administrator'])
-			print("<div class=\"taglineAdmin finetext\">${user['tagline']}</div>");
+			print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
 		else
-			print("<div class=\"tagline finetext\">${user['tagline']}</div>");
+			print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");
 
 
 		// Display the user's avatar and the post date
 		$date = date("F d, Y H:i:s", $post['postDate']);
-		print("<br /><img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
+		print("<img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><div class=\"postDate finetext\">${date}</div><div class=\"userPostSeperator\"></div></div>");
 
 
 		// Display the post body
-		print("<td class=\"postdatarow\"><div class=\"topicText\">{$post['postPreparsed']}</div>");
+		print("\n<div class=\"postBody\"><div class=\"postText\">{$post['postPreparsed']}</div>");
 
 
 		// Moving on to the post controls
-		print("<div class=\"bottomstuff\">");
+		print("\n<div class=\"postFooter\">");
 
 
 		// If admin, show the delete button
 		if(isSet($_SESSION['loggedin']))
 		{
 			if($_SESSION['admin'])
-				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a>");
+				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a> ");
 		}
 
 
 		// If logged in, show the quote button
 		if($quotesEnabled)
 		{
-			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
+			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a> ");
 
 			if(isSet($_GET['quote']))
 			{
@@ -146,27 +151,26 @@
 
 			// If the post owner, show the edit button
 			if($post['userID'] == $_SESSION['userid'])
-				print("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
+				print("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit&nbsp;post</a> ");
 		}
 
 
 		// If logged in and there are edits, display the view edits button
 		if($post['changeID'] > 0 && isSet($_SESSION['userid']))
-			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>");
+			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 		// Display the permalink button and wrap up.
-		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></td></tr>\n");
+		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></div></div>\n");
 	}
-	print("</table>\n");
+	print("</div>\n<div class=\"topicFooter\">");
 
-	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
-	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}");
+	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
 
-	print("<br><br>\n");
+	print("</div>\n<br><br>\n");
 
 	if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 	{
-		print("<form action=\"./?action=post&amp;topic=${_topicID}&amp;page=${page}\" method=\"POST\">");
+		print("<form action=\"./?action=post&amp;topic=${_topicID}&amp;page=${_page}\" method=\"POST\">");
 		print('<input type="hidden" name="action" value="newpost">
 		<textarea id="replytext" class="postbox" name="postcontent" tabindex="1">');
 

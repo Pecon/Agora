@@ -7,11 +7,11 @@
 			require_once 'data.php';
 			global $site_timezone, $site_name;
 			date_default_timezone_set($site_timezone);
-			$date = date("F j, Y G:i:s");
+			$date = str_replace(" ", "&nbsp;", date("F j, Y G:i:s"));
 
 			if(!isSet($_SESSION['loggedin']))
 			{
-				print('<p>Welcome to ' . $site_name . '!</p><p><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></p>');
+				print('Welcome to ' . $site_name . '! <div class="bottomstuff"><a href="./">Home</a><a href="login.php">Log in</a><a href="register.php">Register</a></div>');
 			}
 			
 			else if($_SESSION['loggedin'])
@@ -19,7 +19,7 @@
 				if(!isSet($_SESSION['unreadMessages']))
 					$_SESSION['unreadMessages'] = 0;
 
-				print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>! The forum time is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile &amp; Settings</a><a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? " (${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? '<a href="./admin.php">Admin</a> ' : '') . '<a href="logout.php">Log out</a></div>');
+				print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>!  The&nbsp;forum&nbsp;time&nbsp;is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile&nbsp;&amp;&nbsp;Settings</a> <a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? "&nbsp;(${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? ' <a href="./admin.php">Admin</a> ' : '') . ' <a href="logout.php">Log out</a></div>');
 			}
 			
 			else
@@ -27,7 +27,6 @@
 		?>
 	</div>
 </div>
-<br />
 <?php
 	global $show_eastereggs;
 
@@ -46,4 +45,3 @@
 		}
 	}
 ?>
-<hr />

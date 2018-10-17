@@ -30,9 +30,22 @@ h2
 	padding-left: 1px;
 }
 
+h3
+{
+	display: inline;
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+p
+{
+	margin: 5px;
+}
+
 a
 {
 	color: #88F;
+	text-decoration: none;
 }
 
 a:hover
@@ -62,7 +75,7 @@ textarea.license
 
 .contentContainer
 {
-	width: 80%;
+	width: 90%;
 
 	background-color: #414141;
 
@@ -93,6 +106,7 @@ textarea.license
 	background-color: #505050;
 
 	margin: 10px;
+	margin-bottom: 30px;
 	text-align: left;
 
 	border-radius: 5px;
@@ -120,6 +134,7 @@ textarea.license
 
 	height: inherit;
 	padding-left: 5%;
+	padding-top: 9px;
 
 	text-align: left;
 }
@@ -132,7 +147,12 @@ textarea.license
 
 .topMenuContent a
 {
-	margin-right: 5px;
+	margin-right: 7px;
+}
+
+.topMenuContent a.userLink
+{
+	margin-right: unset;
 }
 
 @media (max-width: 999px)
@@ -140,9 +160,10 @@ textarea.license
 	.topMenu
 	{
 		width: calc(100% - 10px);
-		height: 130px;
+		height: 150px;
 
 		margin: 5px;
+		margin-bottom: 15px;
 		text-align: center;
 	}
 
@@ -161,8 +182,217 @@ textarea.license
 
 		height: 100%;
 		padding-left: 0px;
+		padding-top: 0px;
 
 		text-align: center;
+	}
+}
+
+
+/* Topic view */
+.topicContainer
+{
+	width: calc(100%);
+}
+
+.topicHeader
+{
+	width: 100%;
+	text-align: left;
+	padding-left: 15px;
+	padding-bottom: 10px;
+}
+
+.topicFooter
+{
+	padding-left: 15px;
+	padding-top: 10px;
+	text-align: left;
+}
+
+.post
+{
+	width: 100%;
+
+	vertical-align: top;
+	text-align: left;
+
+	border-width: 0px;
+	border-style: solid;
+	border-color: #888;
+	border-bottom-width: 1px;
+}
+
+.originalPost
+{
+	border-top-width: 1px;
+}
+
+.postUser
+{
+	display: inline-block;
+
+	width: 160px;
+
+	padding: 5px;
+	padding-left: 10px;
+}
+
+.postUser .userLink
+{
+	display: block;
+}
+
+.postUser .userTagline
+{
+	display: block;
+}
+
+.postUser .postDate
+{
+	display: block;
+}
+
+.postUser .userPostSeperator
+{
+	display: none;
+}
+
+.postBody
+{
+	display: inline-block;
+	width: calc(100% - 205px);
+	height: 100%;
+	min-height: 170px;
+	padding: 10px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+
+	vertical-align: top;
+
+	/*position: relative;
+	top: -20%;
+	margin-bottom: -20%;*/
+}
+
+.postText
+{
+	height: 100%;
+	min-height: 140px;
+
+	padding-top: 5px;
+
+	overflow: hidden;
+	overflow-wrap: break-word;
+}
+
+.postFooter
+{
+	height: 20px;
+
+	text-align: right;
+	font-size: 13px;
+}
+
+.postFooter a
+{
+	margin-left: 5px;
+}
+
+@media (max-width: 999px)
+{
+	.topicContainer
+	{
+	}
+
+	.topicHeader
+	{
+		text-align: center;
+		padding-left: 0px;
+		padding-bottom: 5px;
+	}
+
+	.topicFooter
+	{
+		text-align: center;
+	}
+
+	.post
+	{
+		padding-bottom: 5px;
+	}
+
+	.postUser
+	{
+		display: block;
+		position: relative;
+
+		width: calc(100% - 15px);
+		min-height: 40px;
+	}
+
+	.postUser .userLink
+	{
+		width: calc(100% - 105px);
+		position: absolute;
+		top: 5px;
+		left: 105px;
+	}
+
+	.postUser .userTagline
+	{
+		width: calc(100% - 105px);
+		position: absolute;
+		top: 25px;
+		left: 105px;
+	}
+
+	.postUser .postDate
+	{
+		width: calc(100% - 105px);
+		position: absolute;
+		top: 35px;
+		left: 105px;
+	}
+
+	.postUser img.avatar
+	{
+		max-height: 65px;
+		max-width: 80px;
+		width: auto;
+		height: auto;
+	}
+
+	.postUser .userPostSeperator
+	{
+		display: block;
+		width: 98%;
+		height: 0px;
+		margin-left: 1%;
+		margin-right: 1%;
+
+		border-style: solid;
+		border-color: #555;
+		border-width: 0px;
+		border-top-width: 1px;
+	}
+
+	.postBody
+	{
+		display: block;
+
+		width: calc(100% - 20px);
+		min-height: unset;
+	}
+
+	.postText
+	{
+		min-height: unset;
+	}
+
+	.postFooter
+	{
+		height: unset;
 	}
 }
 

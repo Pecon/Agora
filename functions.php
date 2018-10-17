@@ -888,7 +888,7 @@ EOT;
 
 				global $items_per_page;
 				if($numPosts > $items_per_page) // Don't show page nav buttons if there is only one page
-					displayPageNavigationButtons(0, $numPosts, "topic=${topicID}");
+					displayPageNavigationButtons(0, $numPosts, "topic=${topicID}", false);
 
 				addToBody("</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
 			}
@@ -900,7 +900,7 @@ EOT;
 		
 
 		$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
-		displayPageNavigationButtons($page, $totalTopics, null);
+		displayPageNavigationButtons($page, $totalTopics, null, false);
 		setPageDescription($description);
 	}
 
@@ -1291,7 +1291,7 @@ EOT;
 			}
 			addToBody("</table>");
 			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = $messageID ;") -> fetch_assoc()['COUNT(*)'];
-			displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"));
+			displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"), false);
 		}
 		else
 			addToBody("No messages.<br /><br />");
@@ -1433,7 +1433,7 @@ EOT;
 		}
 	}
 
-	function displayPageNavigationButtons($currentPage, $totalItems, $pageAction)
+	function displayPageNavigationButtons($currentPage, $totalItems, $pageAction, $print)
 	{
 		// This value can be modified from your .settings.json file (under the /data directory)
 		global $items_per_page;
@@ -1455,37 +1455,40 @@ EOT;
 
 		if($currentPage - 1 >= 0)
 		{
-			$quickPages = '<a href="' . $pageAction . ($currentPage - 1) . '">' . $currentPage . '</a> ' . $quickPages;
+			$quickPages = '<a href="' . $pageAction . ($currentPage - 1) . '">' . $currentPage . '</a>&nbsp;' . $quickPages;
 
 			if($currentPage - 2 >= 0)
 			{
-				$quickPages = '<a href="' . $pageAction . ($currentPage - 2) . '">' . ($currentPage - 1) . '</a> ' . $quickPages;
+				$quickPages = '<a href="' . $pageAction . ($currentPage - 2) . '">' . ($currentPage - 1) . '</a>&nbsp;' . $quickPages;
 
 				if($currentPage - 3 >= 0)
-					$quickPages = '<a href="' . $pageAction . '0' . '">' . '1' . '</a> ... ' . $quickPages;
+					$quickPages = '<a href="' . $pageAction . '0' . '">' . '1' . '</a>&nbsp;...&nbsp;' . $quickPages;
 			}
 		}
 
 		if($currentPage + 1 < $totalPages)
 		{
-			$quickPages = $quickPages . ' <a href="' . $pageAction . ($currentPage + 1) . '">' . ($currentPage + 2) . '</a>';
+			$quickPages = $quickPages . '&nbsp;<a href="' . $pageAction . ($currentPage + 1) . '">' . ($currentPage + 2) . '</a>';
 
 			if($currentPage + 2 < $totalPages)
 			{
-				$quickPages = $quickPages . ' <a href="' . $pageAction . ($currentPage + 2) . '">' . ($currentPage + 3) . '</a>';
+				$quickPages = $quickPages . '&nbsp;<a href="' . $pageAction . ($currentPage + 2) . '">' . ($currentPage + 3) . '</a>';
 
 				if($currentPage + 3 < $totalPages)
 				{
-					$quickPages = $quickPages . ' ... <a href="' . $pageAction . ($totalPages - 1) . '">' . $totalPages . '</a>';
+					$quickPages = $quickPages . '&nbsp;...&nbsp;<a href="' . $pageAction . ($totalPages - 1) . '">' . $totalPages . '</a>';
 				}
 			}
 		}
 
-		$quickPages = '&laquo; ' . $quickPages . ' &raquo;';
+		$quickPages = '&laquo;&nbsp;' . $quickPages . '&nbsp;&raquo;';
 
 		//addToBody('<br />');
 		// addToBody('<div class="finetext">Navigation</div>');
-		addToBody($quickPages);
+		if($print)
+			print($quickPages);
+		else
+			addToBody($quickPages);
 	}
 
 	// Other functions
