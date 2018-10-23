@@ -72,7 +72,6 @@ textarea.license
 }
 
 /* Container */
-
 .contentContainer
 {
 	width: 90%;
@@ -84,6 +83,14 @@ textarea.license
 	border-style: solid;
 	border-color: #DDD;
 	border-radius: 5px;
+}
+
+@media (max-width: 1299px)
+{
+	.contentContainer
+	{
+		width: calc(98% - 4px);
+	}
 }
 
 @media (max-width: 999px)
@@ -130,10 +137,10 @@ textarea.license
 {
 	position: absolute;
 	top: 0px;
-	left: 400px;
+	left: calc(500px + 2%);
 
 	height: inherit;
-	padding-left: 5%;
+	padding-left: 0%;
 	padding-top: 9px;
 
 	text-align: left;
@@ -155,12 +162,12 @@ textarea.license
 	margin-right: unset;
 }
 
-@media (max-width: 999px)
+@media (max-width: 1099px)
 {
 	.topMenu
 	{
 		width: calc(100% - 10px);
-		height: 150px;
+		height: 140px;
 
 		margin: 5px;
 		margin-bottom: 15px;
@@ -180,6 +187,8 @@ textarea.license
 		left: 0px;
 		display: block;
 
+		overflow: unset;
+
 		height: 100%;
 		padding-left: 0px;
 		padding-top: 0px;
@@ -189,18 +198,91 @@ textarea.license
 }
 
 
+
+/* Board view */
+.boardContainer
+{
+	width: 100%;
+}
+
+.topicEntry
+{
+	width: calc(100% - 20px);
+
+	padding: 5px;
+	margin: 5px;
+
+	background-color: #505050;
+
+	overflow-wrap: break-word;
+	text-align: left;
+}
+
+.firstTopicEntry
+{
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.lastTopicEntry
+{
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.topicTitle
+{
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-right: 5px;
+
+	width: 60%;
+}
+
+.topicDate
+{
+	display: inline-block;
+	vertical-align: middle;
+
+	width: calc(39% - 25px);
+}
+
+@media (max-width: 999px)
+{
+	.topicTitle
+	{
+		display: block;
+		width: 100%;
+
+		margin-right: 0px;
+	}
+
+	.topicDate
+	{
+		display: block;
+		width: 100%;
+
+		font-size: 11px;
+	}
+}
+
+
+
 /* Topic view */
 .topicContainer
 {
-	width: calc(100%);
+	width: 100%;
 }
 
 .topicHeader
 {
-	width: 100%;
+	width: calc(100% - 15px);
 	text-align: left;
 	padding-left: 15px;
 	padding-bottom: 10px;
+
+	overflow-wrap: break-word;
 }
 
 .topicFooter
@@ -221,6 +303,16 @@ textarea.license
 	border-style: solid;
 	border-color: #888;
 	border-bottom-width: 1px;
+}
+
+.postBackgroundA
+{
+	background-color: #393939;
+}
+
+.postBackgroundB
+{
+	background-color: #414141;
 }
 
 .originalPost
@@ -289,6 +381,8 @@ textarea.license
 .postFooter
 {
 	height: 20px;
+	padding-top: 2px;
+	padding-bottom: 2px;
 
 	text-align: right;
 	font-size: 13px;
@@ -299,7 +393,7 @@ textarea.license
 	margin-left: 5px;
 }
 
-@media (max-width: 999px)
+@media (max-width: 700px)
 {
 	.topicContainer
 	{
@@ -333,7 +427,6 @@ textarea.license
 
 	.postUser .userLink
 	{
-		width: calc(100% - 105px);
 		position: absolute;
 		top: 5px;
 		left: 105px;
@@ -455,6 +548,46 @@ textarea.license
 }
 
 
+/* Input classes */
+input
+{
+	color: #FFF;
+	background-color: #232729;
+	height: 32px;
+}
+
+input[type=text], input[type=password]
+{
+	padding: 1px;
+	border-width: 2px;
+	border-style: inset;
+	border-color: #232729;
+}
+
+input[type=button], input[type=submit], input[type=reset]
+{
+	padding: 0px;
+	padding-left: 8px;
+	padding-right: 8px;
+	border-width: 5px;
+	border-right-width: 17px;
+	border-left-width: 17px;
+	border-style: solid;
+	border-color: #232729;
+}
+
+textarea
+{
+	color: #FFF;
+	background-color: #232729;
+
+	padding: 1px;
+	border-width: 2px;
+	border-style: inset;
+	border-color: #232729;
+}
+
+
 /* BBcode formatting styles */
 .rightAlign
 {
@@ -467,8 +600,8 @@ blockquote
 	background-color: #414141;
 	border: 2px dashed gray;
 	margin: 3px;
-	padding: 2px;
-	font-size: small;
+	padding: 4px;
+	font-size: 13px;
 	max-width: 1000px;
 }
 
@@ -521,8 +654,8 @@ span.icon
 
 	margin-top: 0px;
 	margin-bottom: -3px;
-	margin-right: 3px;
-	margin-left: 3px;
+	margin-right: 0px;
+	margin-left: 0px;
 	padding: 0px;
 
 	text-align: center;

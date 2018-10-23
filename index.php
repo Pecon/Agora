@@ -757,11 +757,11 @@ EOT;
 	else if(!isSet($_GET['action']))
 	{
 		if(!isSet($_GET['page']))
-			$page = 0;
+			$_page = 0;
 		else
-			$page = intval($_GET['page']);
+			$_page = intval($_GET['page']);
 
-		displayRecentThreads($page);
+		loadThemePart("board");
 
 		if(isSet($_SESSION['loggedin']))
 			addToBody("<br /><br /><a href=\"./?action=newtopic\">Post a new topic</a>\n");

@@ -85,6 +85,8 @@
 	unset($posts);
 	unset($post);
 
+	$backgroundSwitch = false;
+
 	// Loop through and write each post
 	$count = count($allPosts);
 	for($i = 0; $i < $count; $i++)
@@ -94,11 +96,12 @@
 
 		$username = $user['username'];
 
-		// Highlight the post if applicable
+		// Highlight the post if applicable, swap background colors
+		$backgroundSwitch = !$backgroundSwitch;
 		if(!$post['threadIndex'])
-			print('<div class="post originalPost">');
+			print('<div class="post originalPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 		else
-			print('<div class="post">');
+			print('<div class="post' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 
 		// Display username of poster
 		print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a>");
