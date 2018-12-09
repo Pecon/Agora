@@ -367,6 +367,25 @@ EOF;
 			return false;
 	}
 
+	function findUserbyID_nocache($ID)
+	{
+		$ID = intval($ID);
+		$sql = "SELECT * FROM users WHERE id = {$ID}";
+		$result = querySQL($sql);
+
+		if($numResults = $result -> num_rows > 0)
+		{
+			while($row = $result -> fetch_assoc())
+			{
+				$user[$ID] = $row;
+				return $row;
+			}
+			return false;
+		}
+		else
+			return false;
+	}
+
 	function getUserNameByID($id)
 	{
 		$id = intval($id);
@@ -660,108 +679,24 @@ EOF;
 
 	function displayUserProfile($id)
 	{
-		$userData = findUserByID($id);
+		global $_userData, $_id;
+		$_userData = findUserByID_nocache($id);
+		$_id = $id;
 
-		if($userData == false)
+		if($_userData == false)
 		{
 			error("No user by this user id exists.");
 			return;
 		}
 
-		global $site_name;
-		setPageTitle("Profile of " . $userData['username']);
-		setPageDescription("View the profile of ${userData['username']} on $site_name!");
-
-		if(!isSet($_SESSION['loggedin']))
-			$adminControl = "";
-		else
-		{
-			if($_SESSION['admin'])
-				$adminControl = "<a href=\"./?action=ban&amp;id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${id}\">" . ($userData['administrator'] ? "Demote" : "Promote") . " this user</a><br >\n";
-			else
-				$adminControl = "";
-		}
-
-
-		$username = $userData['username'];
-		$lastActive = $userData['lastActive'];
-		$reg_date = date('Y-m-d g:i:s', $userData['reg_date']);
-		$postCount = $userData['postCount'];
-		$tagLine = $userData['tagline'];
-		$website = $userData['website'];
-		$profileText = $userData['profiletext'];
-		$profileDisplayText = $userData['profiletextPreparsed'];
-
-		$taglineColor = "#FFFFFF";
-		if($userData['administrator'])
-			$taglineColor = "#FFFF00; text-shadow: 0px 0px 1px #FFFFAA"; // subtle xss ((just kidding))
-		if($userData['banned'])
-			$taglineColor = "#FF0000";
-
-		$websiteComps = parse_url($website);
-		if(isSet($websiteComps['host']))
-			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
-
-
-		addToBody("\n${adminControl}<table class=\"forumTable\">\n<tr>\n<td class=\"padding\" style=\"background-color: #414141;\">\n${username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
-				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
-				"<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
-				Posts: {$postCount}<br />
-				Date registered: {$reg_date}<br />
-				Last activity: {$lastActive}<br />" .
-				(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />\n" : "Website: None") .
-				"</td>
-				</tr>
-				<tr>
-				<td class=padding>
-				<br />
-				${profileDisplayText}
-				<br \><br \>
-				</td>
-				</tr>
-				</table><br />\n");
-
-		if(strlen($website) == 0)
-			$website = "http://";
-
-		if(isSet($_SESSION['userid']))
-			if($_SESSION['userid'] == $id)
-			{
-				$updateProfileText = $profileText;
-				$table = <<<EOT
-					<table class="forumTable">
-					<tr>
-						<td class="padding" style="width: 190px; vertical-align: top;">
-							User&nbsp;settings<br />
-							<hr />
-							<a href="./?action=avatarchange">Change&nbsp;avatar</a><br />
-							<a href="./?action=emailchange">Change&nbsp;email</a><br />
-							<a href="./?action=passwordchange">Change&nbsp;password</a><br />
-						</td>
-						<td class="padding">
-							Profile info<br />
-							<hr />
-							<form action="./?action=updateprofile" method=POST>
-								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
-								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
-								<br />
-								Update profile text (you may use bbcode here):<br />
-								<textarea class="postbox" maxLength="1000" name="updateProfileText">${updateProfileText}</textarea><br />
-								<input class="postButtons" type="submit" value="Update profile">
-							</form>
-						</td>
-					</tr>
-				</table>
-EOT;
-				addToBody($table);
-			}
+		loadThemePart("profile");
 	}
 
 	function updateUserProfileText($id, $text, $tagLine, $website)
 	{
-		if(strlen($text) > 1000)
+		if(strlen($text) > 1001)
 		{
-			error("Your profile info text cannot exceed 1000 characters.");
+			error("Your profile info text cannot exceed 1000 characters. (" . strlen($text) . ")");
 			return false;
 		}
 
@@ -776,7 +711,7 @@ EOT;
 				$website = "";
 		}
 
-		if(strlen($tagLine) > 40)
+		if(strlen($tagLine) > 30)
 		{
 			error("Your tagline is too long.");
 
@@ -784,10 +719,16 @@ EOT;
 		}
 
 		$id = intval($id);
-		$rawText = sanitizeSQL(htmlentities(html_entity_decode($rawText), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$rawText = sanitizeSQL(htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 		$text = sanitizeSQL(bb_parse($text));
 		$website = sanitizeSQL(trim($website));
 		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+
+		if(strlen($text) > 2000)
+		{
+			error("Your bbcode formatting exceeded storage parameters. Use fewer tags that expand into lots of html.");
+			return false;
+		}
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
 		$result = querySQL($sql);

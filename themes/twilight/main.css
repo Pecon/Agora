@@ -78,6 +78,7 @@ textarea.license
 
 	background-color: #414141;
 
+	padding-bottom: 10px;
 	margin-top: 10px;
 	border-width: 2px;
 	border-style: solid;
@@ -102,6 +103,8 @@ textarea.license
 		margin-top: 5px;
 	}
 }
+
+
 
 /* Navigation menu */
 .topMenu
@@ -205,12 +208,23 @@ textarea.license
 	width: 100%;
 }
 
+.boardHeader
+{
+	width: calc(100% - 15px);
+	text-align: left;
+	padding-left: 15px;
+	padding-bottom: 10px;
+	overflow-wrap: break-word;
+}
+
 .topicEntry
 {
-	width: calc(100% - 20px);
+	width: calc(100% - 30px);
 
 	padding: 5px;
 	margin: 5px;
+	margin-right: 10px;
+	margin-left: 10px;
 
 	background-color: #505050;
 
@@ -237,7 +251,17 @@ textarea.license
 
 	margin-right: 5px;
 
-	width: 60%;
+	width: 50%;
+}
+
+.topicReplies
+{
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-right: 5px;
+
+	width: calc(10% - 10px);
 }
 
 .topicDate
@@ -245,11 +269,33 @@ textarea.license
 	display: inline-block;
 	vertical-align: middle;
 
-	width: calc(39% - 25px);
+	width: calc(40% - 0px);
+}
+
+.boardFooter
+{
+	padding-left: 15px;
+	padding-top: 10px;
+	text-align: left;
 }
 
 @media (max-width: 999px)
 {
+	.boardHeader
+	{
+		text-align: center;
+		padding-left: 0px;
+		padding-bottom: 5px;
+	}
+
+	.topicEntry
+	{
+		width: calc(100% - 20px);
+
+		margin-right: unset;
+		margin-left: unset;
+	}
+
 	.topicTitle
 	{
 		display: block;
@@ -258,12 +304,25 @@ textarea.license
 		margin-right: 0px;
 	}
 
+	.topicReplies
+	{
+		display: block;
+		width: 100%;
+
+		font-size: 11px;
+	}
+
 	.topicDate
 	{
 		display: block;
 		width: 100%;
 
 		font-size: 11px;
+	}
+
+	.boardFooter
+	{
+		text-align: center;
 	}
 }
 
@@ -333,16 +392,19 @@ textarea.license
 .postUser .userLink
 {
 	display: block;
+	overflow-wrap: break-word;
 }
 
 .postUser .userTagline
 {
 	display: block;
+	overflow-wrap: break-word;
 }
 
 .postUser .postDate
 {
 	display: block;
+	overflow-wrap: break-word;
 }
 
 .postUser .userPostSeperator
@@ -391,6 +453,13 @@ textarea.license
 .postFooter a
 {
 	margin-left: 5px;
+}
+
+textarea.postbox
+{
+	width: 90%;
+	max-width: 1200px;
+	height: 100px;
 }
 
 @media (max-width: 700px)
@@ -487,7 +556,210 @@ textarea.license
 	{
 		height: unset;
 	}
+
+	textarea.postbox
+	{
+		width: calc(100% - 12px);
+	}
 }
+
+@media (max-height: 200px)
+{
+	textarea.postbox:focus
+	{
+		height: calc(100vh - 34px);
+		min-height: 40px;
+	}
+}
+
+
+
+/* Profile view */
+
+.profileContainer
+{
+	width: calc(100% - 40px);
+	background-color: #505050;
+
+	text-align: left;
+	
+	padding: 10px;
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-bottom: 20px;
+	border-radius: 5px;
+}
+
+.profileContents
+{
+	vertical-align: top;
+
+	border-width: 0px;
+	border-style: solid;
+	border-color: #888;
+	border-bottom-width: 1px;
+}
+
+.profileStats
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: 300px;
+}
+
+.profileEntry
+{
+	padding: 2px;
+
+	text-align: left;
+	overflow-wrap: break-word;
+}
+
+.profileText
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: calc(100% - 310px);
+
+	padding: 2px;
+	padding-top: 12px;
+	padding-bottom: 20px; 
+
+	overflow-wrap: break-word;
+	overflow: hidden;
+}
+
+.profileControls
+{
+	vertical-align: top;
+
+	padding-top: 30px;
+}
+
+.profileUserSettings
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: 300px;
+}
+
+.profileSettings
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: calc(100% - 310px);
+}
+
+.userTagline
+{
+
+}
+
+.tagline
+{
+
+}
+
+.taglineAdmin
+{
+	color: yellow;
+	text-shadow: 0px 0px 1px #FFA;
+}
+
+.taglineBanned
+{
+	color: red;
+}
+
+@media (max-width: 1099px)
+{
+	.profileContainer
+	{
+		width: calc(100% - 20px);
+
+		padding: 5px;
+
+		margin-bottom: 10px;
+	}
+
+	.profileContents
+	{
+		border-width: 0px;
+	}
+
+	.profileStats
+	{
+		display: block;
+
+		width: 100%;
+
+		padding-bottom: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+	}
+
+	.profileEntry
+	{
+	}
+
+	.profileText
+	{
+		display: block;
+
+		width: calc(100% - 10px);
+
+		padding: 2px;
+		padding-top: 8px;
+		padding-bottom: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+
+		overflow-wrap: break-word;
+		overflow: hidden;
+	}
+
+	.profileControls
+	{
+		padding-top: 10px;
+
+		border-width: 0px;
+	}
+
+	.profileUserSettings
+	{
+		display: block;
+
+		padding-bottom: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+
+		width: 100%;
+	}
+
+	.profileSettings
+	{
+		display: block;
+
+		width: 100%;
+
+		padding-top: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+	}
+}
+
 
 
 /* Generic smaller text */
@@ -495,6 +767,7 @@ textarea.license
 {
 	font-size: 11px;
 }
+
 
 
 /* Error boxes */
@@ -535,8 +808,9 @@ textarea.license
 	font-size: 20px;
 	text-align: center;
 
-	width: 60%
+	width: 90%;
 }
+
 
 
 /* Topic text */
@@ -548,6 +822,7 @@ textarea.license
 }
 
 
+
 /* Input classes */
 input
 {
@@ -556,16 +831,19 @@ input
 	height: 32px;
 }
 
-input[type=text], input[type=password]
+input[type=text], input[type=password], input[type=email]
 {
 	padding: 1px;
 	border-width: 2px;
 	border-style: inset;
 	border-color: #232729;
+
+	height: 20px;
 }
 
 input[type=button], input[type=submit], input[type=reset]
 {
+	height: 32px;
 	padding: 0px;
 	padding-left: 8px;
 	padding-right: 8px;
@@ -581,11 +859,13 @@ textarea
 	color: #FFF;
 	background-color: #232729;
 
+	margin: 0px;
 	padding: 1px;
 	border-width: 2px;
 	border-style: inset;
 	border-color: #232729;
 }
+
 
 
 /* BBcode formatting styles */
@@ -645,6 +925,8 @@ img.avatar
 
 	border-radius: 10px;
 }
+
+
 
 /* Icons */
 span.icon

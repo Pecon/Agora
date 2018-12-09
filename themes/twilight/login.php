@@ -1,28 +1,25 @@
 <?php
-	require_once 'page.php';
-	require_once 'functions.php';
-
+	global $site_name;
 	setPageTitle("$site_name - Login");
 
-	$start = <<<EOT
+	?>
 		<h1>Forum Login</h1>
 		<br>
 		<form method="POST">
 		<table class="loginTable">
 			<tr class="loginTable">
 				<td class="loginTable">
-EOT;
-	addToBody($start);
+	<?php
 
 	if(isSet($_SESSION['loggedin']))
 	{
-		error("You are already logged in.");
-		addToBody("</tr></td></table></form>");
-		finishPage();
+		print(error("You are already logged in.", true));
+		print("</tr></td></table></form>");
+		return;
 	}
 	if(!isSet($_POST['loggingin']))
 	{
-		addToBody('
+		?>
 				Username:
 			</td>
 			<td class="loginTable">
@@ -49,7 +46,8 @@ EOT;
 		<br><br>
 		...or <a href=register.php>register here</a>
 		<br><br><br><h2>Lost password?</h2><br>
-		<a href="./index.php?action=resetpassword">Reset your password</a><br>');
+		<a href="./index.php?action=resetpassword">Reset your password</a><br>
+		<?php
 	}
 	else
 	{
@@ -57,19 +55,19 @@ EOT;
 
 		if(!isSet($_POST['username']) || !isSet($_POST['password']))
 		{
-			error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.");
-			addToBody("</tr></td></table></form>");
-			finishPage();
+			print(error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.", true));
+			print("</tr></td></table></form>");
+			return;
 		}
 		$username = $_POST['username'];
 
 		$userData = findUserByName($username);
 		if($userData === false)
 		{
-			error('No user exists by that name.<br><a href="./login.php">Try again</a>');
-			addToBody("</tr></td></table></form>");
+			print(error('No user exists by that name.<br><a href="./login.php">Try again</a>', true));
+			print("</tr></td></table></form>");
 			addToHead('<meta http-equiv="refresh" content="3;URL=./login.php" />');
-			finishPage();
+			return;
 		}
 
 		$username = $userData['username'];
@@ -77,18 +75,18 @@ EOT;
 
 		if(!password_verify($_POST['password'], $passkey))
 		{
-			error('Incorrect password.<br><a href="./login.php">Try again</a>');
-			addToBody("</tr></td></table></form>");
+			print(error('Incorrect password.<br><a href="./login.php">Try again</a>', true));
+			print("</tr></td></table></form>");
 			addToHead('<meta http-equiv="refresh" content="3;URL=./login.php" />');
-			finishPage();
+			return;
 		}
 
 		if($require_email_verification && $userData['verified'] == 0)
 		{
-			error("You must verify your email address before logging in.");
-			addToBody("</tr></td></table></form>");
+			print(error("You must verify your email address before logging in.", true));
+			print("</tr></td></table></form>");
 			addToHead('<meta http-equiv="refresh" content=\"3;URL=./login.php" />');
-			finishPage();
+			return;
 		}
 
 		$_SESSION['loggedin'] = true;
@@ -135,23 +133,24 @@ EOT;
 
 		if($_SESSION['banned'] == true)
 		{
-			error("Your account is banned. Goodbye.");
-			addToBody("</tr></td></table></form>");
+			print(error("Your account is banned. Goodbye.", true));
+			// print("</tr></td></table></form>");
 			session_destroy();
 			addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./login.php'\" />");
 		}
 		else
 		{
 			if($_SESSION['admin'] == true)
-				addToBody("Logged in as administrator.");
+				print("Logged in as administrator.");
 
-			addToBody("Logged in!<br><a href=\"./\">Continue</a>");
-			addToBody("</tr></td></table></form>");
+			print("Logged in!<br><a href=\"./\">Continue</a>");
+			// print("</tr></td></table></form>");
 			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
 		}
-
-		addToBody("</td></tr></table></form>");
 	}
 
-	finishPage();
-?>
+		?>
+				</td>
+			</tr>
+		</table>
+		</form>

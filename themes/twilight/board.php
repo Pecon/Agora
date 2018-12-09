@@ -15,6 +15,8 @@ $threads = Array();
 while($thread = $result -> fetch_assoc())
 	array_push($threads, $thread);
 
+$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
+
 if(count($threads) > 0)
 {
 	// Get the post counts for all these threads
@@ -61,8 +63,12 @@ if(count($threads) > 0)
 	unset($post);
 
 	$description = $description . "\nRecent topics:";
-	addToBody('<div class="boardContainer" >');
-	// addToBody("<tr><td>Topic name</td><td class=\"startedby\">Author</td><td>Last post by</td></tr>");
+	print('<div class="boardContainer">');
+	// print("<tr><td>Topic name</td><td class=\"startedby\">Author</td><td>Last post by</td></tr>");
+	
+	print('<div class="boardHeader">');
+	displayPageNavigationButtons($page, $totalTopics, null, true);
+	print('</div>');
 
 	foreach($threads as $index => $row)
 	{
@@ -92,22 +98,23 @@ if(count($threads) > 0)
 		else
 			$topicEntryClass = "";
 
-		addToBody("<div class=\"topicEntry${topicEntryClass}\"><div class=\"topicTitle\">${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>");
+		print("<div class=\"topicEntry${topicEntryClass}\"><div class=\"topicTitle\">${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>");
 
 		global $items_per_page;
 		if($numPosts > $items_per_page) // Don't show page nav buttons if there is only one page
-			displayPageNavigationButtons(0, $numPosts, "topic=${topicID}", false);
+			displayPageNavigationButtons(0, $numPosts, "topic=${topicID}", true);
 
-		addToBody("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
+		print("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicReplies\">${numPosts} " . ($numPosts == 1 ? "Reply" : "Replies") . "</div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
 	}
 
-	addToBody("</div>");
+	print("</div>");
 }
 else
-	addToBody("There are no threads to display!");
+	print("There are no threads to display!");
 
 
-$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
-displayPageNavigationButtons($page, $totalTopics, null, false);
+print('<div class="boardFooter">');
+displayPageNavigationButtons($page, $totalTopics, null, true);
+print('</div>');
 setPageDescription($description);
 ?>

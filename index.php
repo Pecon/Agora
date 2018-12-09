@@ -10,6 +10,18 @@
 	{
 		switch(strToLower($_GET['action']))
 		{
+			case "login":
+				loadThemePart("login");
+				break;
+
+			case "logout":
+				loadThemePart("logout");
+				break;
+
+			case "register":
+				loadThemePart("register");
+				break;
+
 			case "post":
 				if(!isSet($_SESSION['loggedin']))
 				{
@@ -376,7 +388,8 @@
 				}
 
 				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText'], $_POST['tagline'], $_POST['website']);
-				header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+				displayUserProfile($_SESSION['userid']);
+				// header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
 				break;
 
 			case "avatarchange":
