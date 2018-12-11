@@ -1,5 +1,6 @@
 <?php
 	$site_timezone = "UTC";
+	$site_theme = "twilight";
 	require_once 'page.php';
 
 	setNavBarEnabled(false);
@@ -474,8 +475,8 @@ EOT;
 			<h2>Create first administrator account</h2><br />
 			<form method="POST">
 				<input type="hidden" name="setup" value="3"/>
-				Username: <input type="text" name="username" /><br />
-				Password: <input type="password" name="password"/><br />
+				Username: <input type="text" name="username" maxlength="19" /><br />
+				Password: <input type="password" name="password" maxlength="72" /><br />
 				Confirm Password: <input type="password" name="confirmpassword" /></span><br />
 				Email: <input type="email" name="email" /><br />
 				<input type="submit" value="Create" />

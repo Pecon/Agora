@@ -78,7 +78,7 @@
 				else if(isSet($_POST['postcontent']))
 				{
 					$postID = createPost($_SESSION['userid'], intval($_GET['topic']), $_POST['postcontent']);
-					addToBody("Post successful!");
+					info("Post successful!", "Post topic");
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
 					$_SESSION['lastpostingtime'] = time();
@@ -309,7 +309,7 @@
 						if($success)
 						{
 							$_SESSION['lastpostingtime'] = time();
-							addToBody("Message sent successfully!");
+							info("Message sent successfully!", "Send message");
 							header('location: ./?action=outbox');
 						}
 						break;
@@ -355,7 +355,7 @@
 					if($result)
 					{
 						header('location: ./?action=messaging');
-						addToBody("Successfully deleted message.");
+						info("Successfully deleted message.", "Delete message");
 					}
 					else
 						error("Could not delete message.");
@@ -418,7 +418,11 @@
 						$success = updateAvatarByID($_SESSION['userid'], $location);
 
 						if($success)
-							header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+						{
+							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							//header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+							info("Avatar updated successfully.", "Avatar change");
+						}
 						else
 						{
 							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=avatarchange'\" />");
@@ -430,12 +434,12 @@
 				{
 					$form = <<<EOT
 					<form enctype="multipart/form-data" method="POST">
-						Avatar upload: <input type="file" accept=".jpg,.png,.gif,.bmp" name="avatar" />
+						Avatar upload: <input type="file" accept=".jpg,.jpeg,.png,.gif,.bmp,.webp" name="avatar" />
 						<input class="postButtons" type="submit" value="Upload" />
 					</form><br />
-					png, jpg, bmp, and gif files supported<br />
-					Non-PNG images will be converted to PNG.<br />
-					For best results, make your avatar a PNG of 100x100px or smaller.
+					png, jpg, bmp, webp, and gif files are supported<br />
+					Non-png/gif images will be converted to png.<br />
+					For best results, make your avatar a png of 100x100px or smaller.
 EOT;
 					addToBody($form);
 				}
@@ -455,7 +459,7 @@ EOT;
 						if($_POST['newpassword'] == $_POST['confirmnewpassword'])
 						{
 							updatePasswordByID($_SESSION['userid'], password_hash($_POST['newpassword'], PASSWORD_BCRYPT));
-							addToBody("Your password has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>");
+							info("Your password has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change password");
 							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 						}
 						else
@@ -485,7 +489,7 @@ EOT;
 				{
 					if(verifyEmailChange($_GET['id'], $_GET['code']))
 					{
-						addToBody("Your new email was successfully verified!");
+						info("Your new email address was successfully verified!", "Change email");
 						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
 						break;
 					}
@@ -506,10 +510,10 @@ EOT;
 					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
 					{
 						if($require_email_verification)
-							addToBody("A confirmation email has been sent to the new email address. Please click the link in the email to confirm this change.");
+							info("A confirmation email has been sent to the new email address. Please click the link in the email to confirm this change.", "Change email");
 						else
 						{
-							addToBody("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>");
+							info("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change email");
 							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 						}
 					}
@@ -540,7 +544,7 @@ EOT;
 					break;
 				}
 
-				addToBody("Account verified!");
+				info('Your account has been verified!<br /><a href="./?action=login">Log in</a>', "Account verification");
 				addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
 				break;
 
@@ -574,7 +578,7 @@ EOD;
 						// This same expression is used in the form html to let the client self-validate.
 						if(!preg_match('(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~]$)', $_POST['newpassword']))
 						{
-							error('Password is not valid. Passwords can contain alphanumeric characters, spaces, and common special characters. Unicode characters are not allowed and the password cannot begin or end with a space.  <br /><button onclick="goBack()">Try again</button>');
+							error('Password is not valid. Passwords can contain alphanumeric characters, spaces, and common special characters. Unicode characters are not allowed and the password cannot begin or end with a space.');
 							break;
 						}
 						else if($_POST['newpassword'] !== $_POST['confirmpassword'])
@@ -584,12 +588,12 @@ EOD;
 						}
 						else if(strlen($_POST['newpassword']) < $min_password_length)
 						{
-							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br /><button onclick=\"goBack()\">Try again</button>");
+							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
 							break;
 						}
 						else if(stripos($_POST['newpassword'], "password") !== false && strlen($_POST['password']) < 16)
 						{
-							error("You've got to be kidding me. <br /><button onclick=\"goBack()\">Try again</button>");
+							error("You've got to be kidding me.");
 							break;
 						}
 
@@ -597,7 +601,7 @@ EOD;
 						updatePasswordByID($_GET['id'], $newPassword);
 						clearVerificationByID($_GET['id']);
 
-						addToBody("Password reset completed successfully!");
+						info('Password reset successful!<br /><a href="./?action=login">Log in</a>', "Reset password");
 						break;
 					}
 				}
@@ -624,7 +628,7 @@ EOT;
 				}
 
 				if($error == 1)
-					addToBody("Reset email sent! Please follow the link in the email to reset your password.");
+					info("Reset email sent! Please follow the link in the email to reset your password.", "Reset password");
 				break;
 
 			case "locktopic":
@@ -644,7 +648,7 @@ EOT;
 				if($result === -1)
 					break;
 
-				addToBody(($result ? "Locked" : "Unlocked") . " topic!");
+				info(($result ? "Locked" : "Unlocked") . " topic!", "Topic controls");
 				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
@@ -665,7 +669,7 @@ EOT;
 				if($result === -1)
 					break;
 
-				addToBody(($result ? "Sticky'd" : "Unsticky'd") . " topic!");
+				info(($result ? "Sticky'd" : "Unsticky'd") . " topic!", "Topic controls");
 				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
@@ -696,7 +700,7 @@ EOT;
 					break;
 				}
 
-				error("Post deleted successfully.");
+				warn("Post deleted successfully.");
 				break;
 
 			case "ban":
@@ -718,7 +722,7 @@ EOT;
 				}
 
 				$result = toggleBanUserByID($_GET['id']);
-				addToBody(($result ? "Banned" : "Unbanned") . " user!");
+				warn(($result ? "Banned" : "Unbanned") . " user!");
 				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user=${_GET['id']}'\" />");
 				break;
 
@@ -741,7 +745,7 @@ EOT;
 				}
 
 				$result = togglePromoteUserByID($_GET['id']);
-				addToBody(($result ? "Promoted" : "Demoted") . " user!");
+				warn(($result ? "Promoted" : "Demoted") . " user!");
 				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user=${_GET['id']}'\" />");
 				break;
 

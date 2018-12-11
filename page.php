@@ -65,6 +65,9 @@ $_tags = Array();
 $_headText = "";
 $_addToBody = "";
 $_navBarEnabled = true;
+$_errors = Array();
+$_warns = Array();
+$_infos = Array();
 
 function loadThemePart($part)
 {
@@ -127,6 +130,23 @@ function setNavBarEnabled($bool)
 	$_navBarEnabled = $bool;
 }
 
+function info()
+{
+	$numArgs = func_num_args();
+
+	if($numArgs < 2)
+		return;
+
+	$text = '<div class="infoBox infoBoxClass"><div class="infoBoxHeader infoBoxHeaderClass">' . func_get_arg(1) . '</div>' . func_get_arg(0) . '</div>';
+
+	if($numArgs > 2)
+		if(func_get_arg(2))
+			return $text;
+
+	global $_infos;
+	array_push($_infos, $text);
+}
+
 function error()
 {
 	$numArgs = func_num_args();
@@ -134,13 +154,14 @@ function error()
 	if($numArgs < 1)
 		return;
 
-	$text = func_get_arg(0);
+	$text = '<div class="errorBox infoBoxClass"><div class="errorBoxHeader infoBoxHeaderClass"></div>' . func_get_arg(0) . '</div>';
 
 	if($numArgs > 1)
 		if(func_get_arg(1))
-			return '<div class="errorText">' . $text . "</div>";
+			return $text;
 
-	addToBody('<div class="errorText">' . $text . "</div>");
+	global $_errors;
+	array_push($_errors, $text);
 }
 
 function warn()
@@ -150,13 +171,14 @@ function warn()
 	if($numArgs < 1)
 		return;
 
-	$text = func_get_arg(0);
+	$text = '<div class="warnBox infoBoxClass"><div class="warnBoxHeader infoBoxHeaderClass"></div>' . func_get_arg(0) . '</div>';
 
 	if($numArgs > 1)
 		if(func_get_arg(1))
-			return '<div class="warningText">' . $text . "</div>";
+			return $text;
 
-	addToBody('<div class="warningText">' . $text . "</div>");
+	global $_warns;
+	array_push($_warns, $text);
 }
 
 function finishPage()
@@ -166,7 +188,7 @@ function finishPage()
 	if($numArgs > 0)
 		addToBody(func_get_arg(0));
 
-	global $_bodyText, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone;
+	global $_bodyText, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone, $_errors, $_warns, $_infos;
 
 	date_default_timezone_set($site_timezone);
 
@@ -176,6 +198,16 @@ function finishPage()
 
 	if($_navBarEnabled)
 		directLoadThemePart("menu");
+
+	// Display infoboxes and errors between the menu and the page content
+	foreach($_errors as $error)
+		print($error . "\n");
+
+	foreach($_warns as $warn)
+		print($warn . "\n");
+
+	foreach($_infos as $info)
+		print($info . "\n");
 
 	print($_bodyText);
 

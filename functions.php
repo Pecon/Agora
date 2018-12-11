@@ -58,7 +58,7 @@
 
 		if($_SESSION['banned'] == true)
 		{
-			error("Oh no. You're banned.");
+			error("You have been banned.");
 			session_destroy();
 			finishPage();
 		}
@@ -467,7 +467,7 @@ EOF;
 			else
 			{
 				unlink($imagePath);
-				error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.");
+				error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, bmp, webp, or gif type image.");
 				return false;
 			}
 
@@ -506,7 +506,7 @@ EOF;
 				if($error === false)
 				{
 					error("Unable to scale image.");
-					return;
+					return false;
 				}
 
 				imagedestroy($image);
