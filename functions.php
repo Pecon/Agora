@@ -537,7 +537,8 @@ EOF;
 			$id = intval($id);
 			$inputData = sanitizeSQL(fread(fopen($imagePath, "rb"), filesize($imagePath)));
 			unlink($imagePath);
-			$sql = "UPDATE users SET avatar='${inputData}' WHERE id=${id};";
+			$time = time();
+			$sql = "UPDATE users SET avatar='${inputData}', avatarUpdated='${time}' WHERE id=${id};";
 
 			querySQL($sql);
 		}
@@ -759,7 +760,7 @@ EOF;
 				$date = date("F d, Y H:i:s", $row['postDate']);
 				$topicPage = floor($row['threadIndex'] / $items_per_page);
 
-				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}&amp;cb=${row['avatarUpdated']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			addToBody("</table>\n");
 		}
@@ -1173,7 +1174,7 @@ EOF;
 
 			// Display the user's avatar and the post date
 			$date = date("F d, Y H:i:s", $message['messageDate']);
-			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${sender['id']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
+			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${sender['id']}&amp;cb=${sender['avatarUpdated']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
 
 			addToBody('<td class="postdatarow">' . $message['messagePreparsed'] . '</td></tr></table>');
 

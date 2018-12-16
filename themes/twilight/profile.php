@@ -36,7 +36,7 @@
 
 	print("\n<div class=\"profileContainer\">${adminControl}\n<div class=\"profileContents\"><div class=\"profileStats\"><div class=\"profileEntry\">\n${username}\n</div>\n<div class=\"profileEntry\">\n" .
 			(strLen($tagLine) > 0 ? "<span class=\"${taglineClass}\">${tagLine}</span></div>\n" : "</div>") .
-			"<div class=\"profileEntry\"><img class=avatar src=\"./avatar.php?user=${_id}\" /></div>
+			"<div class=\"profileEntry\"><img class=avatar src=\"./avatar.php?user=${_id}&amp;${_userData['avatarUpdated']}\" /></div>
 			<div class=\"profileEntry\">Posts: {$postCount}</div>
 			<div class=\"profileEntry\">Registered: {$reg_date}</div>
 			<div class=\"profileEntry\">Last active: {$lastActive}</div>\n<div class=\"profileEntry\">" .

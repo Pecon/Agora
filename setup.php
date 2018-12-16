@@ -373,6 +373,7 @@ EOT;
   `tagline` varchar(40) NOT NULL DEFAULT '',
   `website` varchar(200) NOT NULL DEFAULT '',
   `avatar` blob DEFAULT NULL,
+  `avatarUpdated` bigint(20) unsigned NOT NULL DEFAULT '0',
   KEY(`username`),
   KEY(`email`),
   PRIMARY KEY (`id`)

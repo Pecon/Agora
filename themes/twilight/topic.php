@@ -57,7 +57,7 @@
 		array_push($allPosts, $post);
 
 	// Write one query to get all the user data we need
-	$sql = "SELECT id, username, administrator, banned, tagline FROM users WHERE ";
+	$sql = "SELECT id, username, administrator, banned, tagline, avatarUpdated FROM users WHERE ";
 	foreach($allPosts as $post)
 		$sql = $sql . "id = '${post['userID']}' OR ";
 
@@ -115,10 +115,9 @@
 		else
 			print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");
 
-
 		// Display the user's avatar and the post date
 		$date = date("F d, Y H:i:s", $post['postDate']);
-		print("<img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><div class=\"postDate finetext\">${date}</div><div class=\"userPostSeperator\"></div></div>");
+		print("<img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}&amp;cb=${user['avatarUpdated']}\" /><div class=\"postDate finetext\">${date}</div><div class=\"userPostSeperator\"></div></div>");
 
 
 		// Display the post body

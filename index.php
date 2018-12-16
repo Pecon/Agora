@@ -419,13 +419,13 @@
 
 						if($success)
 						{
-							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 							//header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
 							info("Avatar updated successfully.", "Avatar change");
 						}
 						else
 						{
-							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=avatarchange'\" />");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=avatarchange'\" />");
 							error("Couldn't update avatar.");
 						}
 					}
@@ -490,7 +490,7 @@ EOT;
 					if(verifyEmailChange($_GET['id'], $_GET['code']))
 					{
 						info("Your new email address was successfully verified!", "Change email");
-						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
+						addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./'\" />");
 						break;
 					}
 					else
@@ -514,13 +514,13 @@ EOT;
 						else
 						{
 							info("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change email");
-							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 						}
 					}
 					else
 					{
 						error("That is not a valid email address.<br /><a href=\"./?action=emailchange\">Try again</a>");
-						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=emailchange'\" />");
+						addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=emailchange'\" />");
 					}
 				}
 				else
@@ -545,7 +545,7 @@ EOT;
 				}
 
 				info('Your account has been verified!<br /><a href="./?action=login">Log in</a>', "Account verification");
-				addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
+				addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./'\" />");
 				break;
 
 			case "resetpassword":
