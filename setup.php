@@ -282,12 +282,12 @@ EOT;
 				addToBody("Selected database...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `changes` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `lastChange` int(10) unsigned DEFAULT NULL,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `lastChange` int unsigned DEFAULT NULL,
   `postData` mediumtext NOT NULL,
-  `changeTime` int(10) unsigned DEFAULT '0',
-  `postID` int(10) unsigned NOT NULL,
-  `threadID` int(10) unsigned NOT NULL,
+  `changeTime` int unsigned DEFAULT '0',
+  `postID` int unsigned NOT NULL,
+  `threadID` int unsigned NOT NULL,
   KEY(`postID`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
@@ -298,14 +298,14 @@ EOT;
 				addToBody("Created changes table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `posts` (
-  `postID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `userID` int(10) unsigned DEFAULT NULL,
-  `threadID` int(10) unsigned DEFAULT NULL,
-  `postDate` bigint(20) unsigned DEFAULT '0',
+  `postID` int unsigned NOT NULL AUTO_INCREMENT,
+  `userID` int unsigned DEFAULT NULL,
+  `threadID` int unsigned DEFAULT NULL,
+  `postDate` bigint unsigned DEFAULT '0',
   `postData` mediumtext,
   `postPreparsed` mediumtext NOT NULL,
-  `threadIndex` int(10) unsigned DEFAULT '0',
-  `changeID` int(10) unsigned DEFAULT NULL,
+  `threadIndex` int unsigned DEFAULT '0',
+  `changeID` int unsigned DEFAULT NULL,
   FULLTEXT(`postData`),
   KEY(`threadID`),
   KEY(`postDate`),
@@ -319,14 +319,14 @@ EOT;
 				addToBody("Created posts table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `topics` (
-  `topicID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `creatorUserID` int(10) unsigned DEFAULT NULL,
+  `topicID` int unsigned NOT NULL AUTO_INCREMENT,
+  `creatorUserID` int unsigned DEFAULT NULL,
   `topicName` varchar(130) DEFAULT 'No Subject',
-  `lastposttime` bigint(20) unsigned DEFAULT '0',
-  `lastpostid` int(10) unsigned DEFAULT '0',
-  `numposts` int(10) unsigned DEFAULT '0',
-  `sticky` tinyint(1) NOT NULL DEFAULT '0',
-  `locked` tinyint(1) NOT NULL DEFAULT '0',
+  `lastposttime` bigint unsigned DEFAULT '0',
+  `lastpostid` int unsigned DEFAULT '0',
+  `numposts` int unsigned DEFAULT '0',
+  `sticky` tinyint NOT NULL DEFAULT '0',
+  `locked` tinyint NOT NULL DEFAULT '0',
   FULLTEXT(`topicName`),
   KEY(`lastposttime`),
   PRIMARY KEY (`topicID`)
@@ -340,9 +340,9 @@ EOT;
 				addToBody("Created topics table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `boards` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `boardtitle` varchar(200) NOT NULL,
-  `boardcategory` varchar(255) NOT NULL,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `boardtitle` varchar(256) NOT NULL,
+  `boardcategory` varchar(256) NOT NULL,
   `usergroup` enum('unverified','member','moderator','admin','superuser') DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
@@ -354,26 +354,26 @@ EOT;
 				addToBody("Created boards table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(20) NOT NULL,
-  `passkey` varchar(255) NOT NULL,
-  `reg_date` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `passkey` varchar(256) NOT NULL,
+  `reg_date` bigint unsigned NOT NULL DEFAULT '0',
   `lastActive` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `email` varchar(200) NOT NULL DEFAULT '',
+  `email` varchar(256) NOT NULL DEFAULT '',
   `verification` varchar(64) NOT NULL DEFAULT '0',
-  `verified` tinyint(1) NOT NULL DEFAULT '1',
-  `newEmail` varchar(200) DEFAULT NULL,
+  `verified` tinyint NOT NULL DEFAULT '1',
+  `newEmail` varchar(256) DEFAULT NULL,
   `emailVerification` varchar(64) NOT NULL DEFAULT '0',
-  `banned` tinyint(1) DEFAULT '0',
-  `administrator` tinyint(1) DEFAULT '0',
+  `banned` tinyint DEFAULT '0',
+  `administrator` tinyint DEFAULT '0',
   `usergroup` enum('unverified','member','moderator','admin','superuser') DEFAULT NULL,
-  `postCount` int(10) unsigned DEFAULT '0',
+  `postCount` int unsigned DEFAULT '0',
   `profiletext` varchar(1000) DEFAULT '',
   `profiletextPreparsed` varchar(3000) DEFAULT '',
   `tagline` varchar(40) NOT NULL DEFAULT '',
-  `website` varchar(200) NOT NULL DEFAULT '',
+  `website` varchar(256) NOT NULL DEFAULT '',
   `avatar` blob DEFAULT NULL,
-  `avatarUpdated` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `avatarUpdated` bigint unsigned NOT NULL DEFAULT '0',
   KEY(`username`),
   KEY(`email`),
   PRIMARY KEY (`id`)
@@ -386,15 +386,15 @@ EOT;
 				addToBody("Created users table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `privateMessages` (
-  `messageID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `senderID` int(10) unsigned DEFAULT NULL,
-  `recipientID` int(10) unsigned DEFAULT NULL,
-  `messageDate` bigint(20) unsigned DEFAULT '0',
+  `messageID` int unsigned NOT NULL AUTO_INCREMENT,
+  `senderID` int unsigned DEFAULT NULL,
+  `recipientID` int unsigned DEFAULT NULL,
+  `messageDate` bigint unsigned DEFAULT '0',
   `messageData` mediumtext NOT NULL,
   `messagePreparsed` mediumtext NOT NULL,
   `subject` varchar(130) DEFAULT 'No Subject',
-  `read` tinyint(1) DEFAULT '0',
-  `deleted` tinyint(1) DEFAULT '0',
+  `read` tinyint DEFAULT '0',
+  `deleted` tinyint DEFAULT '0',
   FULLTEXT(`messageData`),
   FULLTEXT(`subject`),
   KEY(`senderID`),

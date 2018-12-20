@@ -760,7 +760,7 @@ EOF;
 				$date = date("F d, Y H:i:s", $row['postDate']);
 				$topicPage = floor($row['threadIndex'] / $items_per_page);
 
-				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}&amp;cb=${row['avatarUpdated']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
+				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}&amp;cb=${user['avatarUpdated']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
 			}
 			addToBody("</table>\n");
 		}
@@ -792,54 +792,7 @@ EOF;
 
 	function displayPostEdits($postID)
 	{
-		$post = fetchSinglePost(intval($postID));
-
-		if($post['changeID'] == false)
-		{
-			error("There are no changes to view on this post.");
-			return;
-		}
-
-		$postID = intval($postID);
-		$username = getUserNameByID($post['userID']);
-
-		$changeID = $post['changeID'];
-
-		$sql = "SELECT * FROM changes WHERE id=${changeID}";
-		$result = querySQL($sql);
-
-		if($result === false)
-		{
-			error("There are no edits to display.");
-			return;
-		}
-
-		$change = $result -> fetch_assoc();
-		$changeID = $change['lastChange'];
-		$date = date("F d, Y H:i:s", $change['changeTime']);
-
-		addToBody("Viewing post edits<br>\n<table class=\"forumTable\"><tr><td class=\"usernamerow\"><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=\"postdatarow\">{$post['postPreparsed']}</td></tr>\n");
-
-		while($changeID > 0)
-		{
-			addToBody("<tr><td class=\"usernamerow\"><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=\"finetext\">${date}</span></td><td class=\"postdatarow\">${change['postData']}</td></tr>\n");
-
-			$sql = "SELECT * FROM changes WHERE id=${changeID}";
-			$result = querySQL($sql);
-
-			if($result == false)
-			{
-				error("Could not get edit.");
-				break;
-			}
-
-			$change = $result -> fetch_assoc();
-			$changeID = $change['lastChange'];
-			$date = date("F d, Y H:i:s", $change['changeTime']);
-		}
-
-		$date = date("F d, Y H:i:s", $post['postDate']);
-		addToBody("<tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n</table>");
+		
 	}
 
 	function displayThread($topicID, $page)
@@ -1074,131 +1027,12 @@ EOF;
 
 	function displayRecentMessages($page, $sent)
 	{
-		global $items_per_page;
-		$page = intval($page);
-		$start = ($page * $items_per_page);
-		$num = $items_per_page;
-
-		$sql = "SELECT * FROM privateMessages WHERE " . ($sent ? "senderID=" : "recipientID=") . $_SESSION['userid'] . ($sent ? "" : " AND deleted=0") . " ORDER BY messageDate DESC LIMIT {$start},{$num}";
-		$result = querySQL($sql);
-
-		global $site_name;
-		$description = "Welcome to $site_name!";
-
-		$threadStatus = "";
-
-		if($result -> num_rows > 0)
-		{
-			$description = $description . ($sent ? "\nRecently sent messages:" : "\nRecent messages:");
-			addToBody("<div class=\"threadHeader\">&rarr; Viewing " . ($sent ? "outbox" : "inbox") . "</div>");
-			addToBody('<table class="forumTable" >');
-			addToBody('<tr><td>Subject</td><td class="startedby">' . ($sent ? "To" : "From") . '</td><td>Date</td></tr>');
-			while($row = $result -> fetch_assoc())
-			{
-				$messageID = $row['messageID'];
-				$subject = $row['subject'];
-
-				$creator = findUserByID($sent ? $row['recipientID'] : $row['senderID']);
-				$creatorName = $creator['username'];
-				$description = $description . "\n$subject, " . ($sent ? "to" : "from") . " $creatorName";
-
-				switch(intval($row['read']))
-				{
-					case 0:
-						$threadStatus = '<span class="icon messageUnread" title="Unread message"></span>';
-						break;
-
-					case 1:
-						$threadStatus = '<span class="icon messageRead" title="Message has been read"></span>';
-						break;
-
-					case 2:
-						$threadStatus = '<span class="icon messageReplied" title="Message has been replied to"></span>';
-						break;
-
-					default:
-						$threadStatus = '<span class="icon messageRead"></span>';
-						break;
-
-
-				}
-
-				$sentTime = date("F d, Y H:i:s", $row['messageDate']);
-
-				addToBody("<tr><td>$threadStatus <a href=\"./?action=messaging&amp;id=$messageID \">$subject</a></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user=${creator['id']}\">$creatorName</a></td><td class=lastpostrow>$sentTime</td>" . (!$sent ? '<td class="buttonRow"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="submit" value="Delete" /></form></td>' : '') . "</tr>\n");
-			}
-			addToBody("</table>");
-			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = $messageID ;") -> fetch_assoc()['COUNT(*)'];
-			displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"), false);
-		}
-		else
-			addToBody("No messages.<br /><br />");
-
-		//addToBody("<a href=\"./?action=" . ($sent ? 'outbox' : 'messaging') . "\">Refresh messages</a><br /><br />");
-		addToBody("<br /><br /><a href=\"./?action=" . ($sent ? 'messaging' : 'outbox') . "\">View " . ($sent ? 'inbox' : 'outbox') . "</a><br /><br />");
-		addToBody("<a href=\"./?action=composemessage\">Compose message</a><br /><br />");
-
-		setPageDescription($description);
+		
 	}
 
 	function displayMessage($ID)
 	{
-		$message = fetchSingleMessage($ID);
-
-		if($message === false)
-		{
-			error("Could not find that message.");
-			return false;
-		}
-
-		$sender = findUserbyID($message['senderID']);
-		$recipient = $message['recipientID'];
-
-		if($_SESSION['userid'] != $sender['id'] && $_SESSION['userid'] != $recipient && !$_SESSION['admin'])
-		{
-			error("You do not have permission to view this message.");
-			return false;
-		}
-
-		addToBody("<div class=\"threadHeader\">&rarr; Viewing private message: ${message['subject']}</div>");
-		addToBody('<table class="forumTable">
-			<tr><td class="usernamerow"><a class="userLink" name=" ' . $sender['id'] . '"></a><a class="userLink" href="./?action=viewProfile&amp;user=' . $sender['id'] . '">' . $sender['username'] . '</a><br>');
-
-		if($sender['banned'])
-				addToBody("<div class=\"taglineBanned finetext\">${sender['tagline']}</div>");
-			else if($sender['administrator'])
-				addToBody("<div class=\"taglineAdmin finetext\">${sender['tagline']}</div>");
-			else
-				addToBody("<div class=\"tagline finetext\">${sender['tagline']}</div>");
-
-
-			// Display the user's avatar and the post date
-			$date = date("F d, Y H:i:s", $message['messageDate']);
-			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${sender['id']}&amp;cb=${sender['avatarUpdated']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
-
-			addToBody('<td class="postdatarow">' . $message['messagePreparsed'] . '</td></tr></table>');
-
-			if($_SESSION['userid'] == $recipient)
-			{
-				if(!$message['read'])
-				{
-					// Mark as read
-					$sql = "UPDATE privateMessages SET `read` = '1' WHERE `messageID` = '${message['messageID']}';";
-					$result = querySQL($sql);
-
-					if($result === false)
-						error("Failed to set message as read.");
-					else
-						$_SESSION['unreadMessages'] -= 1;
-				}
-
-				addToBody('<form method="POST" action="./?action=composemessage"><input type="hidden" name="toName" value="' . $sender['username'] . '" /><input type="hidden" name="subject" value="RE: ' . $message['subject'] . '" /><input type="hidden" name="replyID" value="' . $message['messageID'] . '" />');
-				addToBody('<textarea class="postbox" name="postcontent" tabindex="1">[quote ' . $sender['username'] . ']' . $message['messageData'] . "[/quote]\n</textarea><br />");
-				addToBody('<input class="postButtons" type="submit" name="send" value="Reply" tabindex="3">
-				<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2"></form>');
-			}
-			
-		return true;
+		
 	}
 
 	function fetchSingleMessage($ID)

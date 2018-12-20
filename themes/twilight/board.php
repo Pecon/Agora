@@ -107,14 +107,12 @@ if(count($threads) > 0)
 		print("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicReplies\">${numPosts} " . ($numPosts == 1 ? "Reply" : "Replies") . "</div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
 	}
 
-	print("</div>");
+	print('<div class="boardFooter">');
+	displayPageNavigationButtons($page, $totalTopics, null, true);
+	print('</div></div>');
 }
 else
 	print("There are no threads to display!");
 
-
-print('<div class="boardFooter">');
-displayPageNavigationButtons($page, $totalTopics, null, true);
-print('</div>');
 setPageDescription($description);
 ?>

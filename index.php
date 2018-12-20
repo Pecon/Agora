@@ -44,9 +44,14 @@
 					$postStuff = $_POST['postcontent'];
 					$preview = bb_parse($postStuff);
 
-					addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
-					addToBody($preview);
-					addToBody('</td></tr></table><br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+					global $_title, $_preview, $_user;
+					$_title = "Post Preview";
+					$_preview = $preview;
+					$_user = findUserByID($_SESSION['userid']);
+
+					loadThemePart("preview");
+
+					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
 						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
 						<br />
 						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
@@ -105,7 +110,19 @@
 				}
 				else if(!isSet($_POST['editpost']))
 				{
-					addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${post['postData']}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"></form>\n");
+
+				}
+				else if(isSet($_POST['preview']))
+				{
+					$postStuff = $_POST['editpost'];
+					$preview = bb_parse($postStuff);
+
+					global $_title, $_preview, $_user;
+					$_title = "Edit Preview";
+					$_preview = $preview;
+					$_user = findUserByID($_SESSION['userid']);
+
+					loadThemePart("preview");
 				}
 				else if(strLen(trim($_POST['editpost'])) < 3)
 				{
@@ -115,11 +132,19 @@
 				{
 					error("Your post is over the 10000 character limit.");
 				}
-				else
+				else if(isSet($_POST['editpost']) && !isSet($_POST['preview']))
 				{
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${post['postID']}");
+					break;
 				}
+
+				if(isSet($_POST['editpost']))
+					$prefill = $_POST['editpost'];
+				else
+					$prefill = $post['postData'];
+
+				addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${prefill}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"> <input class=\"postButtons\" type=\"submit\" name=\"preview\" value=\"Preview\"></form>\n");
 
 				break;
 
@@ -167,9 +192,12 @@
 					{
 						$preview = bb_parse($_POST['newtopicpost']);
 
-						addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
-						addToBody($preview);
-						addToBody('</td></tr></table><br />');
+						global $_title, $_preview, $_user;
+						$_title = htmlentities($_POST['newtopicsubject']) . ' (Preview)';
+						$_preview = $preview;
+						$_user = findUserByID($_SESSION['userid']);
+
+						loadThemePart("preview");
 
 						addToBody('<form action="./?action=newtopic" method="POST" >
 							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
@@ -239,7 +267,12 @@
 				}
 				else
 				{
-					displayPostEdits(intval($_GET['post']));
+					global $_post;
+					$_post = intval($_GET['post']);
+
+					loadThemePart("edits");
+
+					// displayPostEdits(intval($_GET['post']));
 				}
 				break;
 
@@ -251,13 +284,31 @@
 				}
 
 				if(isSet($_GET['id']))
-					displayMessage($_GET['id']);
+				{
+					global $_id;
+					$_id = intval($_GET['id']);
+
+					loadThemePart("message");
+					// displayMessage($_GET['id']);
+				}
 				else if(isSet($_GET['page']))
 				{
-					displayRecentMessages($_GET['page'], false);
+					global $_page, $_sent;
+					$_page = intval($_GET['page']);
+					$_sent = false;
+
+					loadThemePart("messages");
+					// displayRecentMessages($_GET['page'], false);
 				}
 				else
-					displayRecentMessages(0, false);
+				{
+					global $_page, $_sent;
+					$_page = 0;
+					$_sent = false;
+
+					loadThemePart("messages");
+					// displayRecentMessages(0, false);
+				}
 
 				break;
 
@@ -272,10 +323,22 @@
 					displayMessage($_GET['id']);
 				else if(isSet($_GET['page']))
 				{
-					displayRecentMessages($_GET['page'], true);
+					global $_page, $_sent;
+					$_page = intval($_GET['page']);
+					$_sent = true;
+
+					loadThemePart("messages");
+					// displayRecentMessages($_GET['page'], true);
 				}
 				else
-					displayRecentMessages(0, true);
+				{
+					global $_page, $_sent;
+					$_page = 0;
+					$_sent = true;
+
+					loadThemePart("messages");
+					// displayRecentMessages(0, true);
+				}
 
 				break;
 
@@ -293,10 +356,13 @@
 						// Create preview
 						$postStuff = $_POST['postcontent'];
 						$preview = bb_parse($postStuff);
-						
-						addToBody('Here is a preview of your message.<br /><table class="forumTable"><tr><td class="postcontent">');
-						addToBody($preview);
-						addToBody('</td></tr></table><br />');
+
+						global $_title, $_preview, $_user;
+						$_title = htmlentities($_POST['subject']) . ' (Preview)';
+						$_preview = $preview;
+						$_user = findUserByID($_SESSION['userid']);
+
+						loadThemePart("preview");
 					}
 					else if($_SESSION['lastpostingtime'] > time() - 20)
 					{
@@ -315,7 +381,7 @@
 						break;
 					}
 
-					addToBody('<div class="topicHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+					addToBody('<span>&nbsp;&rarr;&nbsp;</span><h3>Composing message</h3><br /><form action="./?action=composemessage" method="POST">
 					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1" required>
 					<br />
 					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2" required>

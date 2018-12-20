@@ -214,6 +214,9 @@ h2
 
 h3
 {
+	font-size: 15pt;
+	font-weight: bold;
+	color: #709ee3;
 	display: inline;
 	margin-top: 0px;
 	margin-bottom: 10px;
@@ -531,6 +534,7 @@ textarea.license
 	padding-left: 15px;
 	padding-top: 10px;
 	text-align: left;
+	margin-bottom: 20px;
 }
 
 .post
@@ -1155,6 +1159,7 @@ img.postImage, video.postMedia
 	width: auto;
 }
 
+/* Youtube and vimeo video frames should not spill out of posts */
 iframe
 {
 	max-width: 100%;

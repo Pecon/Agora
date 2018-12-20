@@ -121,7 +121,7 @@
 
 
 		// Display the post body
-		print("\n<div class=\"postBody\"><div class=\"postText\">{$post['postPreparsed']}</div>");
+		print("\n<div class=\"postBody\"><div class=\"postText\">${post['postPreparsed']}</div>");
 
 
 		// Moving on to the post controls
@@ -164,11 +164,11 @@
 		// Display the permalink button and wrap up.
 		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></div></div>\n");
 	}
-	print("</div>\n<div class=\"topicFooter\">");
+	print("\n<div class=\"topicFooter\">");
 
 	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
 
-	print("</div>\n<br><br>\n");
+	print("</div>\n</div>\n");
 
 	if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 	{

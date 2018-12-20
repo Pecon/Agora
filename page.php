@@ -93,6 +93,22 @@ function directLoadThemePart($part)
 		error("Theme part '$part' could not be found in the theme directory.");
 }
 
+function getThemePart($part)
+{
+	global $site_theme;
+
+	if(is_file("./themes/$site_theme/$part.php"))
+	{
+		ob_start();
+		require_once "./themes/$site_theme/$part.php";
+		return ob_get_clean();
+	}
+	else
+		error("Theme part '$part' could not be found in the theme directory.");
+
+	return false;
+}
+
 function setPageTitle($title)
 {
 	global $_title;
