@@ -744,30 +744,7 @@ EOF;
 
 	function displayRecentPosts($start, $num)
 	{
-		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
-		$result = querySQL($sql);
-
-		global $items_per_page;
-
-		if($result -> num_rows > 0)
-		{
-			addToBody("<table class=forumTable border=1>\n");
-			while($row = $result -> fetch_assoc())
-			{
-				$topic = findTopicbyID($row['threadID']);
-				$user = findUserByID($row['userID']);
-				$username = $user['username'];
-				$date = date("F d, Y H:i:s", $row['postDate']);
-				$topicPage = floor($row['threadIndex'] / $items_per_page);
-
-				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}&amp;cb=${user['avatarUpdated']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
-			}
-			addToBody("</table>\n");
-		}
-		else
-		{
-			addToBody("There are no posts to display!");
-		}
+		
 	}
 
 	function fetchSinglePost($postID)

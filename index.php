@@ -149,7 +149,12 @@
 				break;
 
 			case "recentposts":
-				displayRecentPosts(0, 40);
+				if(!isSet($_GET['page']))
+					$_page = 0;
+				else
+					$_page = intval($_GET['page']);
+
+				loadThemePart("recentposts");
 				break;
 
 			case "newtopic":
