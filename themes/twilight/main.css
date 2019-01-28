@@ -300,6 +300,7 @@ textarea.license
 
 	background-color: #505050;
 
+	padding: 0px;
 	margin: 10px;
 	margin-bottom: 30px;
 	text-align: left;
@@ -310,26 +311,28 @@ textarea.license
 
 .siteImage
 {
-	position: absolute;
-	top: 0px;
-	left: 0px;
+	display: inline-block;
+	width: 500px;
+	overflow: hidden;
 }
 
 .siteImage img
 {
-	max-width: 100%;
+	/*max-width: 100%;*/
 	vertical-align: bottom;
 }
 
 .topMenuContent
 {
-	position: absolute;
-	top: 0px;
-	left: calc(500px + 2%);
+	display: inline-block;
+	max-width: calc(100% - 535px);
 
 	height: inherit;
-	padding-left: 0%;
-	padding-top: 9px;
+	padding-top: 10px;
+	padding-left: 20px;
+	padding-right: 10px;
+
+	vertical-align: top;
 
 	text-align: left;
 }
@@ -350,12 +353,25 @@ textarea.license
 	margin-right: unset;
 }
 
+@media (min-width: 1600px)
+{
+	.siteImage
+	{
+		width: 800px;
+	}
+
+	.topMenuContent
+	{
+		max-width: calc(100% - 840px);
+	}
+}
+
 @media (max-width: 1099px)
 {
 	.topMenu
 	{
 		width: calc(100% - 10px);
-		height: 140px;
+		height: unset;
 
 		margin: 5px;
 		margin-bottom: 15px;
@@ -364,22 +380,20 @@ textarea.license
 
 	.siteImage
 	{
-		position: relative;
 		display: block;
+		width: 100%;
+		text-align: center;
 	}
 
 	.topMenuContent
 	{
-		position: relative;
-		top: 0px;
-		left: 0px;
 		display: block;
 
 		overflow: unset;
+		max-width: unset;
+		width: calc(100% - 10px);
 
-		height: 100%;
-		padding-left: 0px;
-		padding-top: 0px;
+		padding: 5px;
 
 		text-align: center;
 	}
@@ -464,7 +478,7 @@ textarea.license
 	text-align: left;
 }
 
-@media (max-width: 999px)
+@media (max-width: 1099px)
 {
 	.boardHeader
 	{

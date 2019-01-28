@@ -8,7 +8,54 @@
 	{
 		if(!isSet($_SESSION['userid']))
 		{
-			return;
+			// Attempt to find persistent session cookie
+
+			if(isSet($_COOKIE['agoraSession']))
+			{
+				$findSession = json_decode($_COOKIE['agoraSession']);
+
+				if($findSession === false)
+					return;
+
+				$idCheck = intval($findSession -> id);
+
+				$sql = "SELECT sessions FROM users WHERE id=$idCheck;";
+				$result = querySQL($sql);
+
+				if($numResults = $result -> num_rows > 0)
+				{
+					$checkSessions = $result -> fetch_assoc();
+					$checkSessions = json_decode($checkSessions);
+					
+					foreach($checkSessions as $session)
+					{
+						if($findSession -> token == $session -> token)
+						{
+							$userData = findUserbyID($idCheck);
+
+							$_SESSION['loggedin'] = true;
+							$_SESSION['name'] = $username;
+							$_SESSION['banned'] = $userData['banned'];
+							$_SESSION['userid'] = $userData['id'];
+							$_SESSION['lastpostdata'] = "";
+							$_SESSION['lastpostingtime'] = time();
+							$_SESSION['actionSecret'] = mt_rand(10000, 99999);
+							break;
+						}
+					}
+
+					if(!isSet($_SESSION['loggedin']))
+						return;
+					else if($_SESSION['loggedin'] == false)
+						return;
+
+					// User is now logged in if those checks passed. The rest of the function will handle group stuff and check if they're banned, etc.
+				}
+				else
+					return;
+			}
+			else
+				return;
 		}
 
 		$userData = findUserByID($_SESSION['userid']);
@@ -59,6 +106,7 @@
 		if($_SESSION['banned'] == true)
 		{
 			error("You have been banned.");
+			setcookie("agoraSession", "");
 			session_destroy();
 			finishPage();
 		}
@@ -260,7 +308,7 @@ EOF;
 	function promoteUserByID($id)
 	{
 		$id = intval($id);
-		$sql = "UPDATE users SET administrator=1, tagline='Administrator' WHERE id={$id}";
+		$sql = "UPDATE users SET usergroup='admin', tagline='Administrator' WHERE id={$id}";
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);

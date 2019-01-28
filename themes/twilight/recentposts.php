@@ -11,7 +11,7 @@
 		$numPosts = querySQL("SELECT COUNT(*) FROM posts;") -> fetch_assoc()["COUNT(*)"];
 
 		print('<div class="topicContainer">');
-		print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>Viewing all recent posts</h3>\n");
+		print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>All recent posts</h3>\n");
 		displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
 		print("</div>");
 
