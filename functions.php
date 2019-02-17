@@ -18,30 +18,48 @@
 					return;
 
 				$idCheck = intval($findSession -> id);
+				$tokenCheck = sanitizeSQL($findSession -> token);
 
-				$sql = "SELECT sessions FROM users WHERE id=$idCheck;";
+				$sql = "SELECT * FROM sessions WHERE userID=$idCheck AND token='$tokenCheck';";
 				$result = querySQL($sql);
 
-				if($numResults = $result -> num_rows > 0)
+				if($result -> num_rows > 0)
 				{
-					$checkSessions = $result -> fetch_assoc();
-					$checkSessions = json_decode($checkSessions);
-					
-					foreach($checkSessions as $session)
-					{
-						if($findSession -> token == $session -> token)
-						{
-							$userData = findUserbyID($idCheck);
+					$session = $result -> fetch_assoc();
 
-							$_SESSION['loggedin'] = true;
-							$_SESSION['name'] = $username;
-							$_SESSION['banned'] = $userData['banned'];
-							$_SESSION['userid'] = $userData['id'];
-							$_SESSION['lastpostdata'] = "";
-							$_SESSION['lastpostingtime'] = time();
-							$_SESSION['actionSecret'] = mt_rand(10000, 99999);
-							break;
+					if($findSession -> token == $session['token'])
+					{
+						if($session['lastSeenTime'] + 60*60*24*30*12 < time())
+						{
+							setcookie("agoraSession", "");
+							warn("Your session has expired.");
+							return;
 						}
+
+						$userData = findUserbyID($idCheck);
+
+						$_SESSION['loggedin'] = true;
+						$_SESSION['name'] = $userData['username'];
+						$_SESSION['banned'] = $userData['banned'];
+						$_SESSION['userid'] = $userData['id'];
+						$_SESSION['lastpostdata'] = "";
+						$_SESSION['lastpostingtime'] = time();
+						$_SESSION['actionSecret'] = mt_rand(10000, 99999);
+						$_SESSION['token'] = $session['token'];
+
+						// Refresh client's cookie
+						$newSession = new StdClass();
+						$newSession -> token = $session['token'];
+						$newSession -> id = $userData['id'];
+
+						setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12);
+
+						// Update the last seen time and IP in session table
+						$time = time();
+						$sql = "UPDATE sessions SET lastSeenIP='${_SERVER['REMOTE_ADDR']}', lastSeenTime=${time} WHERE id=${session['id']};";
+						querySQL($sql);
+
+						// info("Your session has been restored.", "Session restored");
 					}
 
 					if(!isSet($_SESSION['loggedin']))
@@ -236,11 +254,22 @@ EOF;
 		return true;
 	}
 
-	function findTopicbyID($ID)
+	function findTopicbyID()
 	{
-		static $topic = array();
+		$numArgs = func_num_args();
 
-		if(isSet($topic[$ID]))
+		if($numArgs < 1 || $numArgs > 2)
+			return;
+
+		$ID = func_get_arg(0);
+		$nocache = false;
+
+		if($numArgs > 1)
+			$nocache = boolval(func_get_arg(1));
+
+		static $topic = Array();
+
+		if(isSet($topic[$ID]) && !$nocache)
 			return $topic[$ID];
 
 		$ID = intval($ID);
@@ -326,13 +355,13 @@ EOF;
 			error("You cannot demote the superuser.");
 			return false;
 		}
-		else if($user['administrator'] == false)
+		else if($user['usergroup'] != 'admin')
 		{
 			error("That user isn't an administrator.");
 			return false;
 		}
 
-		$sql = "UPDATE users SET administrator=0, tagline='' WHERE id='${id}'";
+		$sql = "UPDATE users SET usergroup='member', tagline='' WHERE id='${id}'";
 		$result = querySQL($sql);
 
 		
@@ -350,7 +379,7 @@ EOF;
 			return;
 		}
 
-		if($user['administrator'])
+		if($user['usergroup'] == 'admin')
 		{
 			demoteUserByID($id);
 			return false;

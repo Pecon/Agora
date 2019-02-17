@@ -27,7 +27,7 @@
 	// Display the user's tagline
 	if($sender['banned'])
 		print("<div class=\"userTagline taglineBanned finetext\">${sender['tagline']}</div>");
-	else if($sender['administrator'])
+	else if($sender['usergroup'] == 'admin')
 		print("<div class=\"userTagline taglineAdmin finetext\">${sender['tagline']}</div>");
 	else
 		print("<div class=\"userTagline tagline finetext\">${sender['tagline']}</div>");

@@ -8,7 +8,7 @@
 	else
 	{
 		if($_SESSION['admin'])
-			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}\">" . ($_userData['administrator'] ? "Demote" : "Promote") . " this user</a><br >\n";
+			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
 		else
 			$adminControl = "";
 	}
@@ -24,7 +24,7 @@
 	$profileDisplayText = $_userData['profiletextPreparsed'];
 
 	$taglineClass = "tagline";
-	if($_userData['administrator'])
+	if($_userData['usergroup'] == 'admin')
 		$taglineClass = "taglineAdmin";
 	if($_userData['banned'])
 		$taglineClass = "taglineBanned";
@@ -42,6 +42,7 @@
 			<div class=\"profileEntry\">Last active: {$lastActive}</div>\n<div class=\"profileEntry\">" .
 			(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a>" : "Website: None") .
 			"</div>
+			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&user=${_userData['id']}\">View this user's posts</a></div>
 			</div>
 			<div class=\"profileText\">
 			${profileDisplayText}

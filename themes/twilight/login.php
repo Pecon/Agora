@@ -147,28 +147,20 @@
 		}
 
 		// Generate persistent session
-		$session = $userData['session'];
+		$time = time();
+		$token =  bin2hex(openssl_random_pseudo_bytes(32));
+		$ip = $_SERVER['REMOTE_ADDR'];
 
-		if($session == null)
-			$session = Array();
-		else
-			$session = json_decode($session);
-
-		if($session === false)
-			$session = Array();
-
-		$newSession = new StdClass();
-		$newSession -> 'time' = time();
-		$newSession -> 'token' =  bin2hex(openssl_random_pseudo_bytes(32));
-		$newSession -> 'id' = $userData['id'];
-
-		array_push($session, $newSession);
-		$session = sanitizeSQL(json_encode($session));
-
-		$sql = "UPDATE users SET sessions='${session}' WHERE id=${userData['id']};";
+		$sql = "INSERT INTO sessions (`id`, `userID`, `loginTime`, `lastSeenTime`, `token`, `creationIP`, `lastSeenIP`) VALUES (NULL, ${userData['id']}, ${time}, ${time}, '${token}', '${ip}', '${ip}');";
 		querySQL($sql);
 
+		$newSession = new StdClass();
+		$newSession -> token = $token;
+		$newSession -> id = $userData['id'];
+
 		setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12);
+
+		$_SESSION['token'] = $token;
 	}
 	else
 		showLoginForm("", "");

@@ -154,6 +154,9 @@
 				else
 					$_page = intval($_GET['page']);
 
+				if(isSet($_GET['user']))
+					$_user = intval($_GET['user']);
+
 				loadThemePart("recentposts");
 				break;
 
@@ -720,7 +723,7 @@ EOT;
 					break;
 
 				info(($result ? "Locked" : "Unlocked") . " topic!", "Topic controls");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
+				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
 			case "stickytopic":
@@ -741,7 +744,7 @@ EOT;
 					break;
 
 				info(($result ? "Sticky'd" : "Unsticky'd") . " topic!", "Topic controls");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
+				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
 			case "deletepost":
@@ -829,6 +832,7 @@ EOT;
 				break;
 		}
 	}
+	
 	if(isSet($_GET['topic']))
 	{
 		if(!isSet($_GET['page']))

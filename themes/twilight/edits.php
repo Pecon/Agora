@@ -38,7 +38,7 @@
 	// Display the user's tagline
 	if($user['banned'])
 		print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
-	else if($user['administrator'])
+	else if($user['usergroup'] == 'admin')
 		print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
 	else
 		print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");
@@ -79,7 +79,7 @@
 		// Display the user's tagline
 		if($user['banned'])
 			print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
-		else if($user['administrator'])
+		else if($user['usergroup'] == 'admin')
 			print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
 		else
 			print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");
@@ -98,7 +98,7 @@
 	// Display the user's tagline
 	if($user['banned'])
 		print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
-	else if($user['administrator'])
+	else if($user['usergroup'] == 'admin')
 		print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
 	else
 		print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");

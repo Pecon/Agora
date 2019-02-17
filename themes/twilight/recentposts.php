@@ -1,18 +1,42 @@
 <?php
-	global $_page, $items_per_page;
+	global $_page, $_user, $items_per_page;
 	$start = $_page * $items_per_page;
 	$num = $items_per_page;
 
-	$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
+	if(!isSet($_user))
+		$user = null;
+	else
+		$user = findUserByID($_user);
+
+	$title = "All recent posts";
+
+	if($user == null)
+		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
+	else
+	{
+		$title = "Recent posts of ${user['username']}";
+		$sql =  "SELECT * FROM posts WHERE userID=${user['id']} ORDER BY postID DESC LIMIT {$start},{$num}";
+	}
+
+	setPageTitle($title);
+
 	$result = querySQL($sql);
 
 	if($result -> num_rows > 0)
 	{
-		$numPosts = querySQL("SELECT COUNT(*) FROM posts;") -> fetch_assoc()["COUNT(*)"];
+		if($user == null)
+			$numPosts = querySQL("SELECT COUNT(*) FROM posts;") -> fetch_assoc()["COUNT(*)"];
+		else
+			$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE userID=${user['id']};") -> fetch_assoc()["COUNT(*)"];
 
 		print('<div class="topicContainer">');
-		print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>All recent posts</h3>\n");
-		displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
+		print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>$title</h3>\n");
+
+		if($user == null)
+			displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
+		else
+			displayPageNavigationButtons($_page, $numPosts, "action=recentposts&user=${user['id']}", true);
+
 		print("</div>");
 
 		$posts = Array();
@@ -40,7 +64,7 @@
 			// Display the user's tagline
 			if($user['banned'])
 				print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
-			else if($user['administrator'])
+			else if($user['usergroup'] == 'admin')
 				print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
 			else
 				print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");
@@ -73,7 +97,12 @@
 		}
 		
 		print("\n<div class=\"topicFooter\">");
-		displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
+
+		if($user == null)
+			displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
+		else
+			displayPageNavigationButtons($_page, $numPosts, "action=recentposts&user=${user['id']}", true);
+
 		print("</div>\n</div>\n");
 	}
 	else

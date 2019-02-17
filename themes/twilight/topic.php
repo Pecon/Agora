@@ -4,7 +4,7 @@
 	$start = $_page * $items_per_page;
 	$end = $items_per_page;
 
-	$row = findTopicbyID($_topicID);
+	$row = findTopicbyID($_topicID, true);
 	$creator = findUserbyID($row['creatorUserID']);
 	if($row === false)
 	{
@@ -57,7 +57,7 @@
 		array_push($allPosts, $post);
 
 	// Write one query to get all the user data we need
-	$sql = "SELECT id, username, administrator, banned, tagline, avatarUpdated FROM users WHERE ";
+	$sql = "SELECT id, username, usergroup, banned, tagline, avatarUpdated FROM users WHERE ";
 	foreach($allPosts as $post)
 		$sql = $sql . "id = '${post['userID']}' OR ";
 
@@ -110,7 +110,7 @@
 		// Display the user's tagline
 		if($user['banned'])
 			print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
-		else if($user['administrator'])
+		else if($user['usergroup'] == 'admin')
 			print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
 		else
 			print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");

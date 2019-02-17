@@ -1116,6 +1116,11 @@ input[type=button], input[type=submit], input[type=reset]
 	border-left-width: 17px;
 	border-style: solid;
 	border-color: #232729;
+
+	margin: 0px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	margin-right: 5px;
 }
 
 textarea
