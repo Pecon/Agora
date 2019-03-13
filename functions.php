@@ -1061,9 +1061,12 @@ EOF;
 			$sql = "DELETE FROM posts WHERE postID='${id}';";
 			querySQL($sql);
 
+			// Fix thread indexes
+			$sql = "UPDATE posts SET threadIndex=threadIndex-1 WHERE threadID='${post['threadID']}' AND threadIndex>'${post['threadIndex']}';";
+			querySQL($sql);
+
 			// De-increment user post count
-			$postCount = findUserByID($post['userID'])['postCount'] - 1;
-			$sql = "UPDATE users SET postCount='${postCount}' WHERE id='${post['userID']}';";
+			$sql = "UPDATE users SET postCount=postCount-1 WHERE id='${post['userID']}';";
 			querySQL($sql);
 
 			$sql = "DELETE FROM changes WHERE postID='${id}';";
