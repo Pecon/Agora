@@ -1,5 +1,5 @@
 <?php
-	global $site_name;
+	global $site_name, $min_password_length, $force_ssl, $settings;
 	setPageTitle("$site_name - Register");
 
 	function showRegisterForm($fillUsername, $fillPassword, $fillEmail)
@@ -8,7 +8,6 @@
 		$fillPassword = htmlentities($fillPassword);
 		$fillEmail = htmlentities($fillEmail);
 
-		global $min_password_length;
 		?>
 <h1>Forum Registration</h1>
 <br>
@@ -122,7 +121,7 @@
 			{
 				$uri = $_SERVER['REQUEST_URI'];
 
-				$uri = substr($uri, 0, strpos(substr($uri, 1), '/') + 2);
+				$uri = substr($uri, 0, strrpos($uri, '/') + 1);
 				if(strlen($uri) == 0)
 					$uri = "/";
 			}

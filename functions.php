@@ -222,7 +222,7 @@
 		{
 			$uri = $_SERVER['REQUEST_URI'];
 
-			$uri = substr($uri, 0, strpos(substr($uri, 1), '/') + 2);
+			$uri = substr($uri, 0, strrpos($uri, '/') + 1);
 			if(strlen($uri) == 0)
 				$uri = "/";
 		}

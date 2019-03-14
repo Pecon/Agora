@@ -375,6 +375,7 @@ EOT;
 	`avatarUpdated` bigint unsigned NOT NULL DEFAULT '0',
 	KEY(`username`),
 	KEY(`email`),
+	KEY(`verification`),
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
@@ -437,6 +438,7 @@ EOT;
 			$json['site_name'] = $site_name;
 			$json['site_timezone'] = $site_timezone;
 			$json['items_per_page'] = 15;
+			$json['theme'] = "twilight";
 			$json['show_eastereggs'] = false;
 
 			$jsonText = json_encode($json, JSON_PRETTY_PRINT);
@@ -548,7 +550,7 @@ EOT;
 		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
 		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, usergroup, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'superuser', 'Administrator')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, usergroup, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'admin', 'Administrator')";
 
 		if($mysqli -> query($sql) === TRUE)
 		{
