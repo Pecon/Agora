@@ -216,13 +216,13 @@
 		$verification = bin2hex(openssl_random_pseudo_bytes(32));
 		$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
-		if(!isSet($_SERVER['REQUST_URI']))
+		if(!isSet($_SERVER['REQUEST_URI']))
 			$uri = "/";
 		else
 		{
-			$uri = $_SERVER['REQUST_URI'];
+			$uri = $_SERVER['REQUEST_URI'];
 
-			$uri = substr($uri, 0, strrchr($uri, '/') + 1);
+			$uri = substr($uri, 0, strpos(substr($uri, 1), '/') + 2);
 			if(strlen($uri) == 0)
 				$uri = "/";
 		}

@@ -636,7 +636,7 @@ EOT;
 						<h1>Complete Password Reset</h1>
 						<table border=1 style="align: center; padding: 3px;">
 							<form method="POST">
-								New password: <input type="password" class="" minLength="${min_password_length}" maxLength="72" name="password" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
+								New password: <input type="password" class="" minLength="${min_password_length}" maxLength="72" name="newpassword" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
 								Confirm password: <input type="password" name="confirmpassword" tabIndex="2" /><br />
 								<input class="postButtons" type="submit" value="Change password" tabIndex="3" />
 							</form>
