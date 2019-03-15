@@ -427,6 +427,7 @@ textarea.license
 
 	background-color: #505050;
 
+	overflow: hidden;
 	overflow-wrap: break-word;
 	text-align: left;
 }
@@ -562,6 +563,8 @@ textarea.license
 	border-style: solid;
 	border-color: #888;
 	border-bottom-width: 1px;
+
+	overflow: hidden;
 }
 
 .postBackgroundA
@@ -798,6 +801,8 @@ textarea.postbox
 	border-style: solid;
 	border-color: #888;
 	border-bottom-width: 1px;
+
+	overflow: hidden;
 }
 
 .profileStats

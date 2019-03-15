@@ -41,12 +41,12 @@
 	else
 		$topicStatus = (boolval($row['sticky']) ? '<span class="icon stickyTopic"></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedTopic"></span>' : "");
 
-	print('<div class="topicContainer">');
-	print("<div class=\"topicHeader\"><span>${topicStatus}</span><h3><a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a></h3>\n<br />${topicControls}<br />\n");
+	print('<article class="topicContainer">');
+	print("<header class=\"topicHeader\"><span>${topicStatus}</span><h3><a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a></h3>\n<br />${topicControls}<br />\n");
 
 	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
 	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
-	print("</div>");
+	print("</header>");
 
 	// Get all the posts into one array
 	$sql = "SELECT * FROM posts WHERE threadID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
@@ -99,9 +99,9 @@
 		// Highlight the post if applicable, swap background colors
 		$backgroundSwitch = !$backgroundSwitch;
 		if(!$post['threadIndex'])
-			print('<div class="post originalPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
+			print('<section class="post originalPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 		else
-			print('<div class="post' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
+			print('<section class="post' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 
 		// Display username of poster
 		print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a>");
@@ -121,7 +121,7 @@
 
 
 		// Display the post body
-		print("\n<div class=\"postBody\"><div class=\"postText\">${post['postPreparsed']}</div>");
+		print("\n<div class=\"postBody\"><article class=\"postText\">${post['postPreparsed']}</article>");
 
 
 		// Moving on to the post controls
@@ -162,13 +162,13 @@
 			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 		// Display the permalink button and wrap up.
-		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></div></div>\n");
+		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></div></section>\n");
 	}
 	print("\n<div class=\"topicFooter\">");
 
 	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
 
-	print("</div>\n</div>\n");
+	print("</div>\n</article>\n");
 
 	if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 	{

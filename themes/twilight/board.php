@@ -53,7 +53,9 @@ if(count($threads) > 0)
 	$result = querySQL($sql);
 	$posts = Array();
 	while($post = $result -> fetch_assoc())
+	{
 		array_push($posts, $post);
+	}
 
 	$allPostID = Array();
 	foreach($posts as $post)
@@ -104,7 +106,9 @@ if(count($threads) > 0)
 		if($numPosts > $items_per_page) // Don't show page nav buttons if there is only one page
 			displayPageNavigationButtons(0, $numPosts, "topic=${topicID}", true);
 
-		print("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicReplies\">${numPosts} " . ($numPosts == 1 ? "Reply" : "Replies") . "</div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
+		$numReplies = $numPosts - 1;
+
+		print("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicReplies\">${numReplies} " . ($numReplies == 1 ? "Reply" : "Replies") . "</div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
 	}
 
 	print('<div class="boardFooter">');

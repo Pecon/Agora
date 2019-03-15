@@ -4,18 +4,18 @@
 	$num = $items_per_page;
 
 	if(!isSet($_user))
-		$user = null;
+		$_user = null;
 	else
-		$user = findUserByID($_user);
+		$_user = findUserByID($_user);
 
 	$title = "All recent posts";
 
-	if($user == null)
+	if($_user == null)
 		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
 	else
 	{
-		$title = "Recent posts of ${user['username']}";
-		$sql =  "SELECT * FROM posts WHERE userID=${user['id']} ORDER BY postID DESC LIMIT {$start},{$num}";
+		$title = "Recent posts of ${_user['username']}";
+		$sql =  "SELECT * FROM posts WHERE userID=${_user['id']} ORDER BY postID DESC LIMIT {$start},{$num}";
 	}
 
 	setPageTitle($title);
@@ -24,18 +24,18 @@
 
 	if($result -> num_rows > 0)
 	{
-		if($user == null)
+		if($_user == null)
 			$numPosts = querySQL("SELECT COUNT(*) FROM posts;") -> fetch_assoc()["COUNT(*)"];
 		else
-			$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE userID=${user['id']};") -> fetch_assoc()["COUNT(*)"];
+			$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE userID=${_user['id']};") -> fetch_assoc()["COUNT(*)"];
 
 		print('<div class="topicContainer">');
 		print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>$title</h3>\n");
 
-		if($user == null)
+		if($_user == null)
 			displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
 		else
-			displayPageNavigationButtons($_page, $numPosts, "action=recentposts&user=${user['id']}", true);
+			displayPageNavigationButtons($_page, $numPosts, "action=recentposts&user=${_user['id']}", true);
 
 		print("</div>");
 
@@ -98,10 +98,10 @@
 		
 		print("\n<div class=\"topicFooter\">");
 
-		if($user == null)
+		if($_user == null)
 			displayPageNavigationButtons($_page, $numPosts, "action=recentposts", true);
 		else
-			displayPageNavigationButtons($_page, $numPosts, "action=recentposts&user=${user['id']}", true);
+			displayPageNavigationButtons($_page, $numPosts, "action=recentposts&user=${_user['id']}", true);
 
 		print("</div>\n</div>\n");
 	}
