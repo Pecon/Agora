@@ -30,7 +30,7 @@
 			$result = querySQL($sql);
 			$result = $result -> fetch_assoc();
 
-			$topicControls = $topicControls . "<a href=\"./?action=sticktopic&amp;topic=${_topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}\">Delete topic</a> &nbsp;&nbsp; ";
+			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic=${_topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}\">Delete topic</a> &nbsp;&nbsp; ";
 		}
 	}
 	else

@@ -228,7 +228,7 @@ function finishPage()
 	print($_bodyText);
 
 	global $_version, $_time, $_queries, $_year;
-	$_version = "2.0.0b";
+	$_version = "2.0.0-beta2";
 	$_time = round((microtime(true) - $_script_start) * 1000, 3);
 	$_queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
 	$_year = date('Y');
