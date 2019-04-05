@@ -447,11 +447,23 @@ EOT;
 				finishPage(error("Fatal error: Unable to encode json file."));
 
 			if(!file_exists("./data"))
+			{
 				if(mkdir("./data") === false)
-					finishPage(error("Fatal error: Unable to create data directory. Make sure the directory Agora is installed in is writable."));
+				{
+					chmod(".", 0775);
+
+					if(mkdir("./data") === false)
+						finishPage(error("Fatal error: Unable to create data directory. Make sure the directory Agora is installed in is writable."));
+				}
+
+				chmod("./data", 0775);
+			}
+
 
 			if(file_put_contents("./data/.settings.json", $jsonText) === false)
 				finishPage(error("Fatal error: Unable to save settings file. Make sure the ./data directory is writable."));
+
+			chmod("./data/.settings.json", 0775);
 
 			$form = <<<EOT
 			<br /><br />
@@ -555,7 +567,7 @@ EOT;
 		if($mysqli -> query($sql) === TRUE)
 		{
 			addToBody("<h1>Installation complete</h1><br>");
-			addToBody("Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a><br /><br /><br />For security reasons, setup.php has been deleted.");
+			addToBody("Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a><br /><br /><br />For security reasons, setup.php has been deleted.");
 			unlink("./setup.php"); // Delete the setup file afterwards for security reasons.
 		}
 		else

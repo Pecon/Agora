@@ -155,7 +155,7 @@ EOF;
 		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, usergroup) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
 
 		querySQL($sql);
-		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a>", "Register");
+		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a>", "Register");
 
 		disconnectSQL();
 	}

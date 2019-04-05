@@ -40,7 +40,7 @@
 	}
 	else
 	{
-		info("You cannot log out if you haven't logged in yet... <br><a href=\"./login.php\">Log in</a>", "Logout");
+		info("You cannot log out if you haven't logged in yet... <br><a href=\"./?action=login\">Log in</a>", "Logout");
 		addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=login'\" />");
 	}
 

@@ -24,11 +24,9 @@ if(isSet($force_ssl))
 			$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
 			$uri =  $_SERVER['REQUEST_URI'];
-			$uripos = strrchr($uri, '/');
+			$uripos = strrpos($uri, '/');
 			if($uripos === false)
 				$uri = "/";
-			else
-				$uri = substr($uri, 0, $uripos + 1);
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri;
 			header('Location: ' . $url);
@@ -38,11 +36,9 @@ if(isSet($force_ssl))
 			$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
 			$uri =  $_SERVER['REQUEST_URI'];
-			$uripos = strrchr($uri, '/');
+			$uripos = strrpos($uri, '/');
 			if($uripos === false)
 				$uri = "/";
-			else
-				$uri = substr($uri, 0, $uripos + 1);
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri;
 			header('Location: ' . $url);

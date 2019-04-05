@@ -37,7 +37,7 @@
 </table>
 </form>
 <br><br>
-...or <a href=register.php>register here</a>
+...or <a href="./?action=register">register here</a>
 <br><br><br><h2>Lost password?</h2><br>
 <a href="./index.php?action=resetpassword">Reset your password</a>
 <br>
