@@ -4,6 +4,7 @@
 
 	function showRegisterForm($fillUsername, $fillPassword, $fillEmail)
 	{
+		global $site_name, $min_password_length, $force_ssl, $settings;
 		$fillUsername = htmlentities($fillUsername);
 		$fillPassword = htmlentities($fillPassword);
 		$fillEmail = htmlentities($fillEmail);
@@ -11,29 +12,58 @@
 		?>
 <h1>Forum Registration</h1>
 <br>
+<br>
+<br>
 <form method="POST">
 <table class="loginTable">
 	<tr>
 		<td>
 			Username:
-			</td>
-			<td class="loginTable">
-				<input type="text" minLength="2" maxLength="20" name="username" tabIndex="1" class="" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,18}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillUsername); ?>" />
-			</td>
-			</tr>
-			<tr>
-			<td>Password:</td><td class="loginTable"><input type="password" class="" minLength="<?php print($min_password_length); ?>" maxLength="72" name="password" tabIndex="2" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillPassword); ?>"/></td>
-			</tr>
-			<tr>
-			<td>Confirm:</td><td class="loginTable"><input type="password" name="confirmpassword" tabIndex="3" required /></td>
-			</tr>
-			<tr>
-			<td>Email:</td><td class="loginTable"><input class="" type="email" name="email" tabIndex="4" required value="<?php print($fillEmail); ?>" /></td>
-			</tr><tr>
-			<td class="loginTable">
+		</td>
+		<td class="loginTable">
+				<input type="text" class="registerUsername" minLength="2" maxLength="20" name="username" tabIndex="1" class="" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,18}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillUsername); ?>" />
+				<p class="usernameRequirements requirements">
+					Usernames can be 2 to 20 characters long. Usernames can use most normal ASCII characters, but cannot start or end with spaces.
+				</p>
+		</td>
+	</tr>
+	<tr>
+		<td>Password:</td>
+		<td class="loginTable">
+			<input type="password" class="registerPassword" minLength="<?php print($min_password_length); ?>" maxLength="72" name="password" tabIndex="2" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillPassword); ?>"/>
+			<p class="passwordRequirements requirements">
+				Passwords must be at least <?php print($min_password_length); ?> characters and no more than 72 characters long. Only letters, numbers, and most common ASCII special characters are allowed. Your password cannot begin or end with spaces.
+			</p>
+		</td>
+	</tr>
+	<tr>
+		<td>Confirm:</td>
+		<td class="loginTable">
+			<input type="password" class="registerConfirmPassword" name="confirmpassword" tabIndex="3" required />
+			<p class="passwordConfirm requirements">
+				Re-enter your chosen password to confirm that you know it well enough to log in again with it.
+			</p>
+		</td>
+	</tr>
+	<tr>
+		<td>Email:</td>
+		<td class="loginTable">
+			<input class="registerEmail" type="email" name="email" tabIndex="4" required value="<?php print($fillEmail); ?>" />
+			<p class="emailRequirements requirements">
+				You must enter a valid email address which can be used for password recovery. 
+				<?php if($settings['require_email_verification']) { ?>
+				You will have to confirm this email before you can log in.
+				<?php } else { ?>
+				Email confirmation is not required.
+				<?php } ?>
+			</p>
+		</td>
+	</tr>
+	<tr>
+		<td class="loginTable">
 			<input style="margin: 0px; height: 100%; width: 100%;" type="submit" value="Register" tabIndex="5" />
-			</td>
-			<td class="loginTable"></td>
+		</td>
+		<td class="loginTable"></td>
 	</tr>
 </table>
 </form>

@@ -1097,6 +1097,79 @@ textarea.postbox
 
 
 
+/* Registration page styles */
+p.requirements
+{
+	position: absolute;
+	left: calc(50vw - 190px);
+
+	background-color: rgba(143, 0, 0, 0.7);
+	width: 350px;
+	padding: 2px;
+	font-size: small;
+	text-align: center;
+	border-radius: 5px;
+	/*margin: 5px 0px 5px 0px;*/
+	display: none;
+}
+
+@media (max-width: 1099px)
+{
+	p.requirements
+	{
+		top: 180px;
+	}
+}
+
+@media (min-width: 1100px)
+{
+	p.requirements
+	{
+		top: 150px;
+	}
+}
+
+input.registerUsername:invalid:focus + .usernameRequirements
+{
+	display: block;
+}
+
+input.registerUsername:valid
+{
+	background-color: darkgreen;
+}
+
+input.registerPassword:invalid:focus + .passwordRequirements
+{
+	display: block;
+}
+
+input.registerPassword:valid
+{
+	background-color: darkgreen;
+}
+
+input.registerConfirmPassword:invalid:focus + .passwordConfirm
+{
+	display: block;
+}
+
+input.registerConfirmPassword:valid
+{
+	background-color: darkgreen;
+}
+
+input.registerEmail:invalid:focus + .emailRequirements
+{
+	display: block;
+}
+
+input.registerEmail:valid
+{
+	background-color: darkgreen;
+}
+
+
 /* Input classes */
 input
 {
@@ -1144,7 +1217,6 @@ textarea
 	border-style: inset;
 	border-color: #232729;
 }
-
 
 
 /* BBcode formatting styles */
