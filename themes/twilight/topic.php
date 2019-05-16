@@ -99,7 +99,9 @@
 		// Highlight the post if applicable, swap background colors
 		$backgroundSwitch = !$backgroundSwitch;
 		if(!$post['threadIndex'])
-			print('<section class="post originalPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
+			print('<section class="post originalPost topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
+		else if($i == 0)
+			print('<section class="post topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 		else
 			print('<section class="post' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 
