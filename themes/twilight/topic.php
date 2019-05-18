@@ -98,12 +98,17 @@
 
 		// Highlight the post if applicable, swap background colors
 		$backgroundSwitch = !$backgroundSwitch;
-		if(!$post['threadIndex'])
-			print('<section class="post originalPost topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
-		else if($i == 0)
-			print('<section class="post topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
-		else
-			print('<section class="post' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
+		$postClasses = "post";
+
+		if(!$post['threadIndex']) // OP. Apply special style to distinguish it from the rest of the thread.
+			$postClasses .= " originalPost";
+
+		if($i == 0) // Top post of the page. Apply top post style so that it is not missing a top border.
+			$postClasses .= " topPost";
+
+		$postClasses .= $backgroundSwitch ? " postBackgroundA" : " postBackgroundB";
+
+		print('<section class="' . $postClasses . '">');
 
 		// Display username of poster
 		print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a>");
@@ -119,7 +124,8 @@
 
 		// Display the user's avatar and the post date
 		$date = date("F d, Y H:i:s", $post['postDate']);
-		print("<img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}&amp;cb=${user['avatarUpdated']}\" /><div class=\"postDate finetext\">${date}</div><div class=\"userPostSeperator\"></div></div>");
+		$timeTag = date('c', $post['postDate']);
+		print("<img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}&amp;cb=${user['avatarUpdated']}\" /><time datetime=\"${timeTag}\" class=\"postDate finetext\">${date}</time><div class=\"userPostSeperator\"></div></div>");
 
 
 		// Display the post body

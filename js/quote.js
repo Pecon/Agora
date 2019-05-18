@@ -39,10 +39,10 @@ function updatePostboxText(text)
 	var postbox = document.getElementById("replytext");
 
 	var line;
-	if(postbox.innerHTML.length == 0)
+	if(postbox.value.length == 0)
 		line = "";
 	else
 		line = "\n";
 
-	postbox.innerHTML = postbox.innerHTML + line + quote;
+	postbox.value = postbox.value + line + quote;
 }

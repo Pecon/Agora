@@ -1,6 +1,7 @@
 <?php
 	global $site_name, $min_password_length, $force_ssl, $settings;
 	setPageTitle("$site_name - Register");
+	setPageDescription("Register for $site_name to participate in this community!");
 
 	function showRegisterForm($fillUsername, $fillPassword, $fillEmail)
 	{
@@ -21,7 +22,7 @@
 			Username:
 		</td>
 		<td class="loginTable">
-				<input type="text" class="registerUsername" minLength="2" maxLength="20" name="username" tabIndex="1" class="" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,18}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillUsername); ?>" />
+				<input type="text" class="registerUsername" minLength="2" maxLength="20" name="username" tabIndex="1" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,18}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillUsername); ?>" />
 				<p class="usernameRequirements requirements">
 					Usernames can be 2 to 20 characters long. Usernames can use most normal ASCII characters, but cannot start or end with spaces.
 				</p>
@@ -159,7 +160,7 @@
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=verify&code=" . $verification;
 
 			$message = <<<EOF
-Thank you for registering on $site_name! Please verify your email by visiting the following url:<br />
+Thank you for registering on $site_name! Your username is ${username}. Please verify your email by visiting the following url:<br />
 <br />
 <a target="_BLANK" href="${url}">${url}</a><br />
 <br />

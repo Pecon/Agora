@@ -32,7 +32,7 @@ function getSQLConnection()
 	}
 
 	return $_mysqli;
-	}
+}
 
 function disconnectSQL()
 {

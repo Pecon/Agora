@@ -30,6 +30,7 @@ if(isSet($force_ssl))
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri;
 			header('Location: ' . $url);
+			exit();
 		}
 		else if(strlen($_SERVER['HTTPS']) < 1 || $_SERVER['HTTPS'] == "off")
 		{
@@ -42,6 +43,7 @@ if(isSet($force_ssl))
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri;
 			header('Location: ' . $url);
+			exit();
 		}
 	}
 
