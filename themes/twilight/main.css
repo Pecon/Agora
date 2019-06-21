@@ -1105,6 +1105,7 @@ p.requirements
 
 	background-color: rgba(143, 0, 0, 0.7);
 	width: 350px;
+	max-width: calc(100vw - 4px);
 	padding: 2px;
 	font-size: small;
 	text-align: center;

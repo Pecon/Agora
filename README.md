@@ -1,8 +1,8 @@
-![Agora Logo](https://agora.leopard.hosting/style/logo.png)
+![Agora Logo](https://agora.evalyn.app/themes/twilight/images/logo.png)
 # Agora forum
 A basic PHP/MySQL powered forum system with a minimal storage footprint.
 
-Test out or discuss Agora forum here: https://agora.leopard.hosting/
+Test out or discuss Agora forum here: https://agora.evalyn.app/
 
 ## Features
  - Uncomplicated code (No unexplained regex, things are generally written in a pretty straightforward manner)
@@ -40,7 +40,7 @@ This is a reference of the currently implemented bbcode tags. This list should b
 [pre][/pre] - Preformatted text, fully preserves text spacing and sets a monospace font.
 [code][/code] - Indicates a block of code, sets a monospace font and preserves spacing.
 [quote Name][/quote] - Creates a blockquote of inner text from Name.
-[table][/table] - Defines a table.
+[table][/table] - Defines a table. Optional: Add 'border' as a tag argument to create a bordered table.
 [tr][/tr] - Table row. Must be a child of table.
 [td][/td] - Table column. Must be a child of tr.
 [img][/img] - Embeds an image from the url specified by the inner text.
