@@ -10,6 +10,18 @@
 	{
 		switch(strToLower($_GET['action']))
 		{
+			case "login":
+				loadThemePart("login");
+				break;
+
+			case "logout":
+				loadThemePart("logout");
+				break;
+
+			case "register":
+				loadThemePart("register");
+				break;
+
 			case "post":
 				if(!isSet($_SESSION['loggedin']))
 				{
@@ -32,9 +44,14 @@
 					$postStuff = $_POST['postcontent'];
 					$preview = bb_parse($postStuff);
 
-					addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
-					addToBody($preview);
-					addToBody('</td></tr></table><br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+					global $_title, $_preview, $_user;
+					$_title = "Post Preview";
+					$_preview = $preview;
+					$_user = findUserByID($_SESSION['userid']);
+
+					loadThemePart("preview");
+
+					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
 						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
 						<br />
 						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
@@ -65,8 +82,8 @@
 				}
 				else if(isSet($_POST['postcontent']))
 				{
-					$postID = createPost($_SESSION['userid'], intVal($_GET['topic']), $_POST['postcontent']);
-					addToBody("Post successful!");
+					$postID = createPost($_SESSION['userid'], intval($_GET['topic']), $_POST['postcontent']);
+					info("Post successful!", "Post topic");
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
 					$_SESSION['lastpostingtime'] = time();
@@ -85,7 +102,7 @@
 					error("No post specified.");
 					break;
 				}
-				$post = fetchSinglePost(intVal($_GET['post']));
+				$post = fetchSinglePost(intval($_GET['post']));
 				if($post['userID'] !== $_SESSION['userid'] && !$_SESSION['admin'] == true)
 				{
 					error("You do not have permission to edit this post!");
@@ -93,7 +110,19 @@
 				}
 				else if(!isSet($_POST['editpost']))
 				{
-					addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${post['postData']}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"></form>\n");
+
+				}
+				else if(isSet($_POST['preview']))
+				{
+					$postStuff = $_POST['editpost'];
+					$preview = bb_parse($postStuff);
+
+					global $_title, $_preview, $_user;
+					$_title = "Edit Preview";
+					$_preview = $preview;
+					$_user = findUserByID($_SESSION['userid']);
+
+					loadThemePart("preview");
 				}
 				else if(strLen(trim($_POST['editpost'])) < 3)
 				{
@@ -103,16 +132,32 @@
 				{
 					error("Your post is over the 10000 character limit.");
 				}
-				else
+				else if(isSet($_POST['editpost']) && !isSet($_POST['preview']))
 				{
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${post['postID']}");
+					break;
 				}
+
+				if(isSet($_POST['editpost']))
+					$prefill = $_POST['editpost'];
+				else
+					$prefill = $post['postData'];
+
+				addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${prefill}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"> <input class=\"postButtons\" type=\"submit\" name=\"preview\" value=\"Preview\"></form>\n");
 
 				break;
 
 			case "recentposts":
-				displayRecentPosts(0, 40);
+				if(!isSet($_GET['page']))
+					$_page = 0;
+				else
+					$_page = intval($_GET['page']);
+
+				if(isSet($_GET['user']))
+					$_user = intval($_GET['user']);
+
+				loadThemePart("recentposts");
 				break;
 
 			case "newtopic":
@@ -155,15 +200,18 @@
 					{
 						$preview = bb_parse($_POST['newtopicpost']);
 
-						addToBody('Here is a preview of your post.<br /><table class="forumTable"><tr><td class="postcontent">');
-						addToBody($preview);
-						addToBody('</td></tr></table><br />');
+						global $_title, $_preview, $_user;
+						$_title = htmlentities($_POST['newtopicsubject']) . ' (Preview)';
+						$_preview = $preview;
+						$_user = findUserByID($_SESSION['userid']);
+
+						loadThemePart("preview");
 
 						addToBody('<form action="./?action=newtopic" method="POST" >
 							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
 							Original post:<br />
 							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
 							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
 						</form>');
 						break;
@@ -182,8 +230,8 @@
 						}
 						else
 						{
-							$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-							header("Location: ./?topic=${threadID}");
+							$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
+							header("Location: ./?topic=${topicID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 							$_SESSION['lastpostingtime'] = time();
 						}
@@ -195,8 +243,8 @@
 					}
 					else
 					{
-						$threadID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-						header("Location: ./?topic=${threadID}");
+						$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
+						header("Location: ./?topic=${topicID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 						$_SESSION['lastpostingtime'] = time();
 					}
@@ -208,7 +256,7 @@
 							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" tabIndex="1" required><br />
 							Original post:<br />
 							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2"></textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create thread" tabIndex="4">
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
 							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
 						</form>');
 				}
@@ -227,7 +275,12 @@
 				}
 				else
 				{
-					displayPostEdits(intVal($_GET['post']));
+					global $_post;
+					$_post = intval($_GET['post']);
+
+					loadThemePart("edits");
+
+					// displayPostEdits(intval($_GET['post']));
 				}
 				break;
 
@@ -239,13 +292,31 @@
 				}
 
 				if(isSet($_GET['id']))
-					displayMessage($_GET['id']);
+				{
+					global $_id;
+					$_id = intval($_GET['id']);
+
+					loadThemePart("message");
+					// displayMessage($_GET['id']);
+				}
 				else if(isSet($_GET['page']))
 				{
-					displayRecentMessages($_GET['page'], false);
+					global $_page, $_sent;
+					$_page = intval($_GET['page']);
+					$_sent = false;
+
+					loadThemePart("messages");
+					// displayRecentMessages($_GET['page'], false);
 				}
 				else
-					displayRecentMessages(0, false);
+				{
+					global $_page, $_sent;
+					$_page = 0;
+					$_sent = false;
+
+					loadThemePart("messages");
+					// displayRecentMessages(0, false);
+				}
 
 				break;
 
@@ -260,10 +331,22 @@
 					displayMessage($_GET['id']);
 				else if(isSet($_GET['page']))
 				{
-					displayRecentMessages($_GET['page'], true);
+					global $_page, $_sent;
+					$_page = intval($_GET['page']);
+					$_sent = true;
+
+					loadThemePart("messages");
+					// displayRecentMessages($_GET['page'], true);
 				}
 				else
-					displayRecentMessages(0, true);
+				{
+					global $_page, $_sent;
+					$_page = 0;
+					$_sent = true;
+
+					loadThemePart("messages");
+					// displayRecentMessages(0, true);
+				}
 
 				break;
 
@@ -281,10 +364,13 @@
 						// Create preview
 						$postStuff = $_POST['postcontent'];
 						$preview = bb_parse($postStuff);
-						
-						addToBody('Here is a preview of your message.<br /><table class="forumTable"><tr><td class="postcontent">');
-						addToBody($preview);
-						addToBody('</td></tr></table><br />');
+
+						global $_title, $_preview, $_user;
+						$_title = htmlentities($_POST['subject']) . ' (Preview)';
+						$_preview = $preview;
+						$_user = findUserByID($_SESSION['userid']);
+
+						loadThemePart("preview");
 					}
 					else if($_SESSION['lastpostingtime'] > time() - 20)
 					{
@@ -297,13 +383,13 @@
 						if($success)
 						{
 							$_SESSION['lastpostingtime'] = time();
-							addToBody("Message sent successfully!");
+							info("Message sent successfully!", "Send message");
 							header('location: ./?action=outbox');
 						}
 						break;
 					}
 
-					addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+					addToBody('<span>&nbsp;&rarr;&nbsp;</span><h3>Composing message</h3><br /><form action="./?action=composemessage" method="POST">
 					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1" required>
 					<br />
 					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2" required>
@@ -316,7 +402,7 @@
 					break;
 				}
 
-				addToBody('<div class="threadHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
+				addToBody('<div class="topicHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
 					To: <input type="text" name="toName" value="" tabIndex="1" required>
 					<br />
 					Subject: <input type="text" name="subject" value="" tabIndex="2" required>
@@ -343,7 +429,7 @@
 					if($result)
 					{
 						header('location: ./?action=messaging');
-						addToBody("Successfully deleted message.");
+						info("Successfully deleted message.", "Delete message");
 					}
 					else
 						error("Could not delete message.");
@@ -360,7 +446,7 @@
 					break;
 				}
 
-				displayUserProfile(intVal($_GET['user']));
+				displayUserProfile(intval($_GET['user']));
 				break;
 
 			case "updateprofile":
@@ -376,7 +462,8 @@
 				}
 
 				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText'], $_POST['tagline'], $_POST['website']);
-				header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+				displayUserProfile($_SESSION['userid']);
+				// header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
 				break;
 
 			case "avatarchange":
@@ -405,10 +492,14 @@
 						$success = updateAvatarByID($_SESSION['userid'], $location);
 
 						if($success)
-							header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+						{
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							//header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+							info("Avatar updated successfully.", "Avatar change");
+						}
 						else
 						{
-							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=avatarchange'\" />");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=avatarchange'\" />");
 							error("Couldn't update avatar.");
 						}
 					}
@@ -417,12 +508,12 @@
 				{
 					$form = <<<EOT
 					<form enctype="multipart/form-data" method="POST">
-						Avatar upload: <input type="file" accept=".jpg,.png,.gif,.bmp" name="avatar" />
+						Avatar upload: <input type="file" accept=".jpg,.jpeg,.png,.gif,.bmp,.webp" name="avatar" />
 						<input class="postButtons" type="submit" value="Upload" />
 					</form><br />
-					png, jpg, bmp, and gif files supported<br />
-					Non-PNG images will be converted to PNG.<br />
-					For best results, make your avatar a PNG of 100x100px or smaller.
+					png, jpg, bmp, webp, and gif files are supported<br />
+					Non-png/gif images will be converted to png.<br />
+					For best results, make your avatar a png of 100x100px or smaller.
 EOT;
 					addToBody($form);
 				}
@@ -442,7 +533,7 @@ EOT;
 						if($_POST['newpassword'] == $_POST['confirmnewpassword'])
 						{
 							updatePasswordByID($_SESSION['userid'], password_hash($_POST['newpassword'], PASSWORD_BCRYPT));
-							addToBody("Your password has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>");
+							info("Your password has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change password");
 							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 						}
 						else
@@ -472,8 +563,8 @@ EOT;
 				{
 					if(verifyEmailChange($_GET['id'], $_GET['code']))
 					{
-						addToBody("Your new email was successfully verified!");
-						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
+						info("Your new email address was successfully verified!", "Change email");
+						addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./'\" />");
 						break;
 					}
 					else
@@ -493,17 +584,17 @@ EOT;
 					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
 					{
 						if($require_email_verification)
-							addToBody("A confirmation email has been sent to the new email address. Please click the link in the email to confirm this change.");
+							info("A confirmation email has been sent to the new email address. Please click the link in the email to confirm this change.", "Change email");
 						else
 						{
-							addToBody("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>");
-							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							info("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change email");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 						}
 					}
 					else
 					{
 						error("That is not a valid email address.<br /><a href=\"./?action=emailchange\">Try again</a>");
-						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=emailchange'\" />");
+						addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=emailchange'\" />");
 					}
 				}
 				else
@@ -527,8 +618,8 @@ EOT;
 					break;
 				}
 
-				addToBody("Account verified!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
+				info('Your account has been verified!<br /><a href="./?action=login">Log in</a>', "Account verification");
+				addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./'\" />");
 				break;
 
 			case "resetpassword":
@@ -545,7 +636,7 @@ EOT;
 						<h1>Complete Password Reset</h1>
 						<table border=1 style="align: center; padding: 3px;">
 							<form method="POST">
-								New password: <input type="password" class="" minLength="${min_password_length}" maxLength="72" name="password" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
+								New password: <input type="password" class="" minLength="${min_password_length}" maxLength="72" name="newpassword" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
 								Confirm password: <input type="password" name="confirmpassword" tabIndex="2" /><br />
 								<input class="postButtons" type="submit" value="Change password" tabIndex="3" />
 							</form>
@@ -561,7 +652,7 @@ EOD;
 						// This same expression is used in the form html to let the client self-validate.
 						if(!preg_match('(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\'",./<>?~]$)', $_POST['newpassword']))
 						{
-							error('Password is not valid. Passwords can contain alphanumeric characters, spaces, and common special characters. Unicode characters are not allowed and the password cannot begin or end with a space.  <br /><button onclick="goBack()">Try again</button>');
+							error('Password is not valid. Passwords can contain alphanumeric characters, spaces, and common special characters. Unicode characters are not allowed and the password cannot begin or end with a space.');
 							break;
 						}
 						else if($_POST['newpassword'] !== $_POST['confirmpassword'])
@@ -571,12 +662,12 @@ EOD;
 						}
 						else if(strlen($_POST['newpassword']) < $min_password_length)
 						{
-							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'. <br /><button onclick=\"goBack()\">Try again</button>");
+							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
 							break;
 						}
 						else if(stripos($_POST['newpassword'], "password") !== false && strlen($_POST['password']) < 16)
 						{
-							error("You've got to be kidding me. <br /><button onclick=\"goBack()\">Try again</button>");
+							error("You've got to be kidding me.");
 							break;
 						}
 
@@ -584,7 +675,7 @@ EOD;
 						updatePasswordByID($_GET['id'], $newPassword);
 						clearVerificationByID($_GET['id']);
 
-						addToBody("Password reset completed successfully!");
+						info('Password reset successful!<br /><a href="./?action=login">Log in</a>', "Reset password");
 						break;
 					}
 				}
@@ -611,49 +702,49 @@ EOT;
 				}
 
 				if($error == 1)
-					addToBody("Reset email sent! Please follow the link in the email to reset your password.");
+					info("Reset email sent! Please follow the link in the email to reset your password.", "Reset password");
 				break;
 
-			case "lockthread":
+			case "locktopic":
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
 					break;
 				}
 
-				if(!isSet($_GET['thread']))
+				if(!isSet($_GET['topic']))
 				{
 					error("No topic specified.");
 					break;
 				}
 
-				$result = lockThread($_GET['thread']);
+				$result = lockTopic($_GET['topic']);
 				if($result === -1)
 					break;
 
-				addToBody(($result ? "Locked" : "Unlocked") . " thread!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['thread']}'\" />");
+				info(($result ? "Locked" : "Unlocked") . " topic!", "Topic controls");
+				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
-			case "stickythread":
+			case "stickytopic":
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
 					break;
 				}
 
-				if(!isSet($_GET['thread']))
+				if(!isSet($_GET['topic']))
 				{
 					error("No topic specified.");
 					break;
 				}
 
-				$result = stickyThread($_GET['thread']);
+				$result = stickyTopic($_GET['topic']);
 				if($result === -1)
 					break;
 
-				addToBody(($result ? "Sticky'd" : "Unsticky'd") . " thread!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['thread']}'\" />");
+				info(($result ? "Sticky'd" : "Unsticky'd") . " topic!", "Topic controls");
+				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
 			case "deletepost":
@@ -683,7 +774,7 @@ EOT;
 					break;
 				}
 
-				error("Post deleted successfully.");
+				warn("Post deleted successfully.");
 				break;
 
 			case "ban":
@@ -705,7 +796,7 @@ EOT;
 				}
 
 				$result = toggleBanUserByID($_GET['id']);
-				addToBody(($result ? "Banned" : "Unbanned") . " user!");
+				warn(($result ? "Banned" : "Unbanned") . " user!");
 				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user=${_GET['id']}'\" />");
 				break;
 
@@ -728,7 +819,7 @@ EOT;
 				}
 
 				$result = togglePromoteUserByID($_GET['id']);
-				addToBody(($result ? "Promoted" : "Demoted") . " user!");
+				warn(($result ? "Promoted" : "Demoted") . " user!");
 				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user=${_GET['id']}'\" />");
 				break;
 
@@ -741,25 +832,28 @@ EOT;
 				break;
 		}
 	}
+	
 	if(isSet($_GET['topic']))
 	{
 		if(!isSet($_GET['page']))
 		{
-			$page = 0;
+			$_page = 0;
 		}
 		else
-		$page = intVal($_GET['page']);
+			$_page = intval($_GET['page']);
 
-		displayThread(intVal($_GET['topic']), $page);
+		$_topicID = intval($_GET['topic']);
+
+		loadThemePart("topic");
 	}
 	else if(!isSet($_GET['action']))
 	{
 		if(!isSet($_GET['page']))
-			$page = 0;
+			$_page = 0;
 		else
-			$page = intVal($_GET['page']);
+			$_page = intval($_GET['page']);
 
-		displayRecentThreads($page);
+		loadThemePart("board");
 
 		if(isSet($_SESSION['loggedin']))
 			addToBody("<br /><br /><a href=\"./?action=newtopic\">Post a new topic</a>\n");

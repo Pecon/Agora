@@ -24,28 +24,26 @@ if(isSet($force_ssl))
 			$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
 			$uri =  $_SERVER['REQUEST_URI'];
-			$uripos = strrchr($uri, '/');
+			$uripos = strrpos($uri, '/');
 			if($uripos === false)
 				$uri = "/";
-			else
-				$uri = substr($uri, 0, $uripos + 1);
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri;
 			header('Location: ' . $url);
+			exit();
 		}
 		else if(strlen($_SERVER['HTTPS']) < 1 || $_SERVER['HTTPS'] == "off")
 		{
 			$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
 			$uri =  $_SERVER['REQUEST_URI'];
-			$uripos = strrchr($uri, '/');
+			$uripos = strrpos($uri, '/');
 			if($uripos === false)
 				$uri = "/";
-			else
-				$uri = substr($uri, 0, $uripos + 1);
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri;
 			header('Location: ' . $url);
+			exit();
 		}
 	}
 
@@ -55,7 +53,8 @@ ini_set("log_errors", true);
 ini_set("error_log", "./php-error.log");
 ini_set("session.gc_maxlifetime", 18000);
 ini_set("session.cookie_lifetime", 18000);
-ob_start();
+header('cache-control: private');
+header('expires: 0');
 session_start();
 
 $_title = "";
@@ -64,7 +63,49 @@ $_tags = Array();
 $_headText = "";
 $_addToBody = "";
 $_navBarEnabled = true;
+$_errors = Array();
+$_warns = Array();
+$_infos = Array();
 
+function loadThemePart($part)
+{
+	global $site_theme;
+
+	if(is_file("./themes/$site_theme/$part.php"))
+	{
+		ob_start();
+		require_once "./themes/$site_theme/$part.php";
+		addToBody(ob_get_clean());
+	}
+	else
+		error("Theme part '$part' could not be found in the theme directory.");
+}
+
+function directLoadThemePart($part)
+{
+	global $site_theme;
+
+	if(is_file("./themes/$site_theme/$part.php"))
+		require_once "./themes/$site_theme/$part.php";
+	else
+		error("Theme part '$part' could not be found in the theme directory.");
+}
+
+function getThemePart($part)
+{
+	global $site_theme;
+
+	if(is_file("./themes/$site_theme/$part.php"))
+	{
+		ob_start();
+		require_once "./themes/$site_theme/$part.php";
+		return ob_get_clean();
+	}
+	else
+		error("Theme part '$part' could not be found in the theme directory.");
+
+	return false;
+}
 
 function setPageTitle($title)
 {
@@ -103,6 +144,23 @@ function setNavBarEnabled($bool)
 	$_navBarEnabled = $bool;
 }
 
+function info()
+{
+	$numArgs = func_num_args();
+
+	if($numArgs < 2)
+		return;
+
+	$text = '<div class="infoBox infoBoxClass"><div class="infoBoxHeader infoBoxHeaderClass">' . func_get_arg(1) . '</div>' . func_get_arg(0) . '</div>';
+
+	if($numArgs > 2)
+		if(func_get_arg(2))
+			return $text;
+
+	global $_infos;
+	array_push($_infos, $text);
+}
+
 function error()
 {
 	$numArgs = func_num_args();
@@ -110,13 +168,14 @@ function error()
 	if($numArgs < 1)
 		return;
 
-	$text = func_get_arg(0);
+	$text = '<div class="errorBox infoBoxClass"><div class="errorBoxHeader infoBoxHeaderClass"></div>' . func_get_arg(0) . '</div>';
 
 	if($numArgs > 1)
 		if(func_get_arg(1))
-			return '<div class="errorText">' . $text . "</div>";
+			return $text;
 
-	addToBody('<div class="errorText">' . $text . "</div>");
+	global $_errors;
+	array_push($_errors, $text);
 }
 
 function warn()
@@ -126,13 +185,14 @@ function warn()
 	if($numArgs < 1)
 		return;
 
-	$text = func_get_arg(0);
+	$text = '<div class="warnBox infoBoxClass"><div class="warnBoxHeader infoBoxHeaderClass"></div>' . func_get_arg(0) . '</div>';
 
 	if($numArgs > 1)
 		if(func_get_arg(1))
-			return '<div class="warningText">' . $text . "</div>";
+			return $text;
 
-	addToBody('<div class="warningText">' . $text . "</div>");
+	global $_warns;
+	array_push($_warns, $text);
 }
 
 function finishPage()
@@ -142,74 +202,37 @@ function finishPage()
 	if($numArgs > 0)
 		addToBody(func_get_arg(0));
 
-	global $_headText, $_bodyText, $_title, $_tags, $_description, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone;
+	global $_bodyText, $_script_start, $_mysqli_numQueries, $_navBarEnabled, $site_timezone, $_errors, $_warns, $_infos;
 
 	date_default_timezone_set($site_timezone);
 
 	$_mysqli_numQueries = intval($_mysqli_numQueries);
-	$keywords = implode(",", $_tags);
 
-	$header = <<<EOT
-<!DOCTYPE html>
-<head>
-	<title>
-			$_title
-	</title>
-	<link rel="stylesheet" type="text/css" href="./style/default.css"/>
-	<link async href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i&amp;subset=latin-ext,cyrillic,cyrillic-ext,vietnamese" rel="stylesheet">
-	<link rel="icon" type="image/png" href="./style/favicon.png"/>
-
-	<meta HTTP-EQUIV="Pragma" content="no-cache"/>
-	<meta HTTP-EQUIV="Expires" content="-1"/>
-	<meta name="viewport" content="width=1025">
-
-	<meta name="description" content="$_description">
-	<meta name="keywords" content="$keywords">
-
-	<noscript>
-		<style>
-			.javascriptButton
-			{
-				display: none;
-			}
-		</style>
-	</noscript>
-
-	<script type="text/javascript">
-	function goBack()
-	{
-	    window.history.back();
-	}
-	</script>
-
-	$_headText
-</head>
-<body>
-<center>
-EOT;
-	print($header);
+	directLoadThemePart("head");
 
 	if($_navBarEnabled)
-		require_once 'navmenu.php';
+		directLoadThemePart("menu");
+
+	// Display infoboxes and errors between the menu and the page content
+	foreach($_errors as $error)
+		print($error . "\n");
+
+	foreach($_warns as $warn)
+		print($warn . "\n");
+
+	foreach($_infos as $info)
+		print($info . "\n");
 
 	print($_bodyText);
 
-	$time = round((microtime(true) - $_script_start) * 1000, 3);
-	$queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
-	$year = date('Y');
-	$footer = <<<EOT
-<br />
-<br />
-<div class="finetext">
-Powered by Agora &#169; $year pecon.us <a href="./about.html">About</a>
-<br />
-Page created in $time milliseconds with $queries.
-</div>
-</center>
-</body>
-</html>
-EOT;
-	print($footer);
+	global $_version, $_time, $_queries, $_year;
+	$_version = "2.0.0-beta2";
+	$_time = round((microtime(true) - $_script_start) * 1000, 3);
+	$_queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
+	$_year = date('Y');
+	
+	directLoadThemePart("foot");
+
 	exit();
 }
 

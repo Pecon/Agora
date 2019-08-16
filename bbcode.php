@@ -449,7 +449,11 @@
 				return '<div class="blockquoteHead finetext">' . $author . '<blockquote>';
 
 			case "table":
-				return '<table class="bbcodeTable">';
+				$border = "";
+				if(trim($argument) == "border")
+					$border = ' border="1"';
+
+				return '<table class="bbcodeTable"' . $border . '>';
 
 			case "tr":
 				return '<tr class="bbcodeTable">';

@@ -1,0 +1,1341 @@
+/* Google fonts madness */
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  src: local('Montserrat Italic'), local('Montserrat-Italic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUQjIg1_i6t8kCHKm459WxRxC7mw9c.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  src: local('Montserrat Italic'), local('Montserrat-Italic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUQjIg1_i6t8kCHKm459WxRzS7mw9c.woff2) format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  src: local('Montserrat Italic'), local('Montserrat-Italic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUQjIg1_i6t8kCHKm459WxRxi7mw9c.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  src: local('Montserrat Italic'), local('Montserrat-Italic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUQjIg1_i6t8kCHKm459WxRxy7mw9c.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  src: local('Montserrat Italic'), local('Montserrat-Italic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUQjIg1_i6t8kCHKm459WxRyS7m.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 700;
+  src: local('Montserrat Bold Italic'), local('Montserrat-BoldItalic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUPjIg1_i6t8kCHKm459WxZcgvz8fZwnCo.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 700;
+  src: local('Montserrat Bold Italic'), local('Montserrat-BoldItalic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUPjIg1_i6t8kCHKm459WxZcgvz-PZwnCo.woff2) format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 700;
+  src: local('Montserrat Bold Italic'), local('Montserrat-BoldItalic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUPjIg1_i6t8kCHKm459WxZcgvz8_ZwnCo.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 700;
+  src: local('Montserrat Bold Italic'), local('Montserrat-BoldItalic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUPjIg1_i6t8kCHKm459WxZcgvz8vZwnCo.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: italic;
+  font-weight: 700;
+  src: local('Montserrat Bold Italic'), local('Montserrat-BoldItalic'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUPjIg1_i6t8kCHKm459WxZcgvz_PZw.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Montserrat Regular'), local('Montserrat-Regular'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUSjIg1_i6t8kCHKm459WRhyzbi.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Montserrat Regular'), local('Montserrat-Regular'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUSjIg1_i6t8kCHKm459W1hyzbi.woff2) format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Montserrat Regular'), local('Montserrat-Regular'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUSjIg1_i6t8kCHKm459WZhyzbi.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Montserrat Regular'), local('Montserrat-Regular'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUSjIg1_i6t8kCHKm459Wdhyzbi.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Montserrat Regular'), local('Montserrat-Regular'), url(https://fonts.gstatic.com/s/montserrat/v12/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  src: local('Montserrat Bold'), local('Montserrat-Bold'), url(https://fonts.gstatic.com/s/montserrat/v12/JTURjIg1_i6t8kCHKm45_dJE3gTD_u50.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  src: local('Montserrat Bold'), local('Montserrat-Bold'), url(https://fonts.gstatic.com/s/montserrat/v12/JTURjIg1_i6t8kCHKm45_dJE3g3D_u50.woff2) format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  src: local('Montserrat Bold'), local('Montserrat-Bold'), url(https://fonts.gstatic.com/s/montserrat/v12/JTURjIg1_i6t8kCHKm45_dJE3gbD_u50.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  src: local('Montserrat Bold'), local('Montserrat-Bold'), url(https://fonts.gstatic.com/s/montserrat/v12/JTURjIg1_i6t8kCHKm45_dJE3gfD_u50.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Montserrat';
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  src: local('Montserrat Bold'), local('Montserrat-Bold'), url(https://fonts.gstatic.com/s/montserrat/v12/JTURjIg1_i6t8kCHKm45_dJE3gnD_g.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Base components */
+body
+{
+	background-color: #111117;
+	/*background-image: url('./style/background.png');*/
+	color: #eeeeff;
+	font-family: Montserrat, sans-serif;
+	font-size: 17px;
+
+	margin: 0px;
+	padding: 0px;
+}
+
+h1
+{
+	font-size: 20pt;
+	font-weight: bold;
+	color: #709ee3;
+	text-shadow: 0px 0px 16px #000;
+	text-align: center;
+}
+
+h2
+{
+	font-size: 15pt;
+	font-weight: bold;
+	color: #709ee3;
+	text-shadow: 0px 0px 16px #000;
+	line-height: 2px;
+	padding-left: 1px;
+}
+
+h3
+{
+	font-size: 15pt;
+	font-weight: bold;
+	color: #709ee3;
+	display: inline;
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+p
+{
+	margin: 5px;
+}
+
+a
+{
+	color: #88F;
+	text-decoration: none;
+}
+
+a:hover
+{
+	color: #BBF;
+}
+
+a:visited
+{
+	color: #88F;
+}
+
+a:visited:hover
+{
+	color: #BBF;
+}
+
+textarea.license
+{
+	font-family: "Courier New", Courier, monospace;
+	width: 750px;
+	height: 400px;
+	background-color: #a0a0a0;
+}
+
+/* Container */
+.contentContainer
+{
+	width: 90%;
+
+	background-color: #414141;
+
+	padding-bottom: 10px;
+	margin-top: 10px;
+	border-width: 2px;
+	border-style: solid;
+	border-color: #DDD;
+	border-radius: 5px;
+}
+
+@media (max-width: 1299px)
+{
+	.contentContainer
+	{
+		width: calc(98% - 4px);
+	}
+}
+
+@media (max-width: 999px)
+{
+	.contentContainer
+	{
+		width: calc(100% - 4px); /* Have to remove the 4px from the border or else the page overflows slightly */
+
+		margin-top: 5px;
+	}
+}
+
+
+
+/* Navigation menu */
+.topMenu
+{
+	position: relative;
+	width: calc(100% - 20px);
+	height: 65px;
+
+	background-color: #505050;
+
+	padding: 0px;
+	margin: 10px;
+	margin-bottom: 30px;
+	text-align: left;
+
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.siteImage
+{
+	display: inline-block;
+	width: 500px;
+	overflow: hidden;
+}
+
+.siteImage img
+{
+	/*max-width: 100%;*/
+	vertical-align: bottom;
+}
+
+.topMenuContent
+{
+	display: inline-block;
+	max-width: calc(100% - 535px);
+
+	height: inherit;
+	padding-top: 10px;
+	padding-left: 20px;
+	padding-right: 10px;
+
+	vertical-align: top;
+
+	text-align: left;
+}
+
+.topMenuContent p
+{
+	margin-top: 6px;
+	margin-bottom: 5px;
+}
+
+.topMenuContent a
+{
+	margin-right: 7px;
+}
+
+.topMenuContent a.userLink
+{
+	margin-right: unset;
+}
+
+@media (min-width: 1600px)
+{
+	.siteImage
+	{
+		width: 800px;
+	}
+
+	.topMenuContent
+	{
+		max-width: calc(100% - 840px);
+	}
+}
+
+@media (max-width: 1099px)
+{
+	.topMenu
+	{
+		width: calc(100% - 10px);
+		height: unset;
+
+		margin: 5px;
+		margin-bottom: 15px;
+		text-align: center;
+	}
+
+	.siteImage
+	{
+		display: block;
+		width: 100%;
+		text-align: center;
+	}
+
+	.topMenuContent
+	{
+		display: block;
+
+		overflow: unset;
+		max-width: unset;
+		width: calc(100% - 10px);
+
+		padding: 5px;
+
+		text-align: center;
+	}
+}
+
+
+
+/* Board view */
+.boardContainer
+{
+	width: 100%;
+}
+
+.boardHeader
+{
+	width: calc(100% - 15px);
+	text-align: left;
+	padding-left: 15px;
+	padding-bottom: 10px;
+	overflow-wrap: break-word;
+}
+
+.topicEntry
+{
+	width: calc(100% - 30px);
+
+	padding: 5px;
+	margin: 5px;
+	margin-right: 10px;
+	margin-left: 10px;
+
+	background-color: #505050;
+
+	overflow: hidden;
+	overflow-wrap: break-word;
+	text-align: left;
+}
+
+.firstTopicEntry
+{
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.lastTopicEntry
+{
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.topicTitle
+{
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-right: 5px;
+
+	width: 50%;
+}
+
+.topicReplies
+{
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-right: 5px;
+
+	width: calc(10% - 10px);
+}
+
+.topicDate
+{
+	display: inline-block;
+	vertical-align: middle;
+
+	width: calc(40% - 0px);
+}
+
+.boardFooter
+{
+	padding-left: 15px;
+	padding-top: 10px;
+	text-align: left;
+}
+
+@media (max-width: 1099px)
+{
+	.boardHeader
+	{
+		text-align: center;
+		padding-left: 0px;
+		padding-bottom: 5px;
+	}
+
+	.topicEntry
+	{
+		width: calc(100% - 20px);
+
+		margin-right: unset;
+		margin-left: unset;
+	}
+
+	.topicTitle
+	{
+		display: block;
+		width: 100%;
+
+		margin-right: 0px;
+	}
+
+	.topicReplies
+	{
+		display: block;
+		width: 100%;
+
+		font-size: 11px;
+	}
+
+	.topicDate
+	{
+		display: block;
+		width: 100%;
+
+		font-size: 11px;
+	}
+
+	.boardFooter
+	{
+		text-align: center;
+	}
+}
+
+
+
+/* Topic view */
+.topicContainer
+{
+	width: 100%;
+}
+
+.topicHeader
+{
+	width: calc(100% - 15px);
+	text-align: left;
+	padding-left: 15px;
+	padding-bottom: 10px;
+
+	overflow-wrap: break-word;
+}
+
+.topicFooter
+{
+	padding-left: 15px;
+	padding-top: 10px;
+	text-align: left;
+	margin-bottom: 20px;
+}
+
+.post
+{
+	width: 100%;
+
+	vertical-align: top;
+	text-align: left;
+
+	border-width: 0px;
+	border-style: solid;
+	border-color: #888;
+	border-bottom-width: 1px;
+
+	overflow: hidden;
+}
+
+.postBackgroundA
+{
+	background-color: #393939;
+}
+
+.postBackgroundB
+{
+	background-color: #414141;
+}
+
+.originalPost
+{
+	background-color: #535044;
+}
+
+.topPost
+{
+	border-top-width: 1px;
+}
+
+.postUser
+{
+	display: inline-block;
+
+	width: 160px;
+
+	padding: 5px;
+	padding-left: 10px;
+}
+
+.postUser .userLink
+{
+	display: block;
+	overflow-wrap: break-word;
+}
+
+.postUser .userTagline
+{
+	display: block;
+	overflow-wrap: break-word;
+}
+
+.postUser .postDate
+{
+	display: block;
+	overflow-wrap: break-word;
+}
+
+.postUser .userPostSeperator
+{
+	display: none;
+}
+
+.postBody
+{
+	display: inline-block;
+	width: calc(100% - 205px);
+	height: 100%;
+	min-height: 170px;
+	padding: 10px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+
+	vertical-align: top;
+
+	/*position: relative;
+	top: -20%;
+	margin-bottom: -20%;*/
+}
+
+.postText
+{
+	height: 100%;
+	min-height: 140px;
+
+	padding-top: 5px;
+
+	overflow: hidden;
+	overflow-wrap: break-word;
+}
+
+.postFooter
+{
+	height: 20px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+
+	text-align: right;
+	font-size: 13px;
+}
+
+.postFooter a
+{
+	margin-left: 5px;
+}
+
+textarea.postbox
+{
+	width: 90%;
+	max-width: 1200px;
+	height: 100px;
+}
+
+@media (max-width: 700px)
+{
+	.topicContainer
+	{
+	}
+
+	.topicHeader
+	{
+		text-align: center;
+		padding-left: 0px;
+		padding-bottom: 5px;
+	}
+
+	.topicFooter
+	{
+		text-align: center;
+	}
+
+	.post
+	{
+		padding-bottom: 5px;
+	}
+
+	.postUser
+	{
+		display: block;
+		position: relative;
+
+		width: calc(100% - 15px);
+		min-height: 40px;
+	}
+
+	.postUser .userLink
+	{
+		position: absolute;
+		top: 5px;
+		left: 105px;
+	}
+
+	.postUser .userTagline
+	{
+		width: calc(100% - 105px);
+		position: absolute;
+		top: 25px;
+		left: 105px;
+	}
+
+	.postUser .postDate
+	{
+		width: calc(100% - 105px);
+		position: absolute;
+		top: 35px;
+		left: 105px;
+	}
+
+	.postUser img.avatar
+	{
+		max-height: 65px;
+		max-width: 80px;
+		width: auto;
+		height: auto;
+	}
+
+	.postUser .userPostSeperator
+	{
+		display: block;
+		width: 98%;
+		height: 0px;
+		margin-left: 1%;
+		margin-right: 1%;
+
+		border-style: solid;
+		border-color: #555;
+		border-width: 0px;
+		border-top-width: 1px;
+	}
+
+	.postBody
+	{
+		display: block;
+
+		width: calc(100% - 20px);
+		min-height: unset;
+	}
+
+	.postText
+	{
+		min-height: unset;
+	}
+
+	.postFooter
+	{
+		height: unset;
+	}
+
+	textarea.postbox
+	{
+		width: calc(100% - 12px);
+	}
+}
+
+@media (max-height: 200px)
+{
+	textarea.postbox:focus
+	{
+		height: calc(100vh - 34px);
+		min-height: 40px;
+	}
+}
+
+
+
+/* Profile view */
+
+.profileContainer
+{
+	width: calc(100% - 40px);
+	background-color: #505050;
+
+	text-align: left;
+	
+	padding: 10px;
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-bottom: 20px;
+	border-radius: 5px;
+}
+
+.profileContents
+{
+	vertical-align: top;
+
+	border-width: 0px;
+	border-style: solid;
+	border-color: #888;
+	border-bottom-width: 1px;
+
+	overflow: hidden;
+}
+
+.profileStats
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: 300px;
+}
+
+.profileEntry
+{
+	padding: 2px;
+
+	text-align: left;
+	overflow-wrap: break-word;
+}
+
+.profileText
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: calc(100% - 310px);
+
+	padding: 2px;
+	padding-top: 12px;
+	padding-bottom: 20px; 
+
+	overflow-wrap: break-word;
+	overflow: hidden;
+}
+
+.profileControls
+{
+	vertical-align: top;
+
+	padding-top: 30px;
+}
+
+.profileUserSettings
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: 300px;
+}
+
+.profileSettings
+{
+	display: inline-block;
+	vertical-align: top;
+
+	width: calc(100% - 310px);
+}
+
+.userTagline
+{
+
+}
+
+.tagline
+{
+
+}
+
+.taglineAdmin
+{
+	color: yellow;
+	text-shadow: 0px 0px 1px #FFA;
+}
+
+.taglineBanned
+{
+	color: red;
+}
+
+@media (max-width: 1099px)
+{
+	.profileContainer
+	{
+		width: calc(100% - 20px);
+
+		padding: 5px;
+
+		margin-bottom: 10px;
+	}
+
+	.profileContents
+	{
+		border-width: 0px;
+	}
+
+	.profileStats
+	{
+		display: block;
+
+		width: 100%;
+
+		padding-bottom: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+	}
+
+	.profileEntry
+	{
+	}
+
+	.profileText
+	{
+		display: block;
+
+		width: calc(100% - 10px);
+
+		padding: 2px;
+		padding-top: 8px;
+		padding-bottom: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+
+		overflow-wrap: break-word;
+		overflow: hidden;
+	}
+
+	.profileControls
+	{
+		padding-top: 10px;
+
+		border-width: 0px;
+	}
+
+	.profileUserSettings
+	{
+		display: block;
+
+		padding-bottom: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+
+		width: 100%;
+	}
+
+	.profileSettings
+	{
+		display: block;
+
+		width: 100%;
+
+		padding-top: 10px;
+		border-width: 0px;
+		border-style: solid;
+		border-color: #888;
+		border-bottom-width: 1px;
+	}
+}
+
+
+
+/* Generic smaller text */
+.finetext
+{
+	font-size: 11px;
+}
+
+
+
+/* Error boxes */
+.infoBoxClass
+{
+	width: calc(100% - 30px);
+
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	padding: 0px;
+	padding-bottom: 10px;
+
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 5px;
+
+	background-color: #505050;
+
+	overflow: hidden;
+}
+
+@media (max-width: 1099px)
+{
+	.infoBoxClass
+	{
+		width: calc(100% - 20px);
+
+		margin-left: 5px;
+		margin-right: 5px;
+		margin-bottom: 5px;
+	}
+}
+
+.infoBoxHeaderClass
+{
+	width: 100%;
+
+	margin: 0px;
+	margin-bottom: 10px;
+
+	padding: 3px;
+	padding-left: 0px;
+	padding-right: 0px;
+
+	font-weight: bold;
+}
+
+
+.infoBox
+{
+	border-color: #DDD;
+}
+
+.infoBoxHeader
+{
+	background-color: #DDD;
+	color: black;
+}
+
+.errorBox
+{
+	border-color: #900;
+}
+
+.errorBoxHeader
+{
+	background-color: #900;
+}
+
+.errorBoxHeader::before
+{
+	content: "Error";
+}
+
+.warnBox
+{
+	border-color: yellow;
+}
+
+.warnBoxHeader
+{
+	background-color: yellow;
+	color: black;
+}
+
+.warnBoxHeader::before
+{
+	content: "Warning";
+}
+
+.fatalErrorBox
+{
+	border-style: solid;
+	border-width: 1px;
+	border-color: #F00;
+	padding: 20px;
+
+	background-color: #000;
+	color: #F00;
+
+	font-size: 20px;
+	text-align: center;
+
+	width: 90%;
+}
+
+
+
+/* Topic text */
+.topicText
+{
+	min-height: 155px;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+
+
+
+/* Registration page styles */
+p.requirements
+{
+	position: absolute;
+	left: calc(50vw - 190px);
+
+	background-color: rgba(143, 0, 0, 0.7);
+	width: 350px;
+	max-width: calc(100vw - 4px);
+	padding: 2px;
+	font-size: small;
+	text-align: center;
+	border-radius: 5px;
+	/*margin: 5px 0px 5px 0px;*/
+	display: none;
+}
+
+@media (max-width: 1099px)
+{
+	p.requirements
+	{
+		top: 180px;
+	}
+}
+
+@media (min-width: 1100px)
+{
+	p.requirements
+	{
+		top: 150px;
+	}
+}
+
+input.registerUsername:invalid:focus + .usernameRequirements
+{
+	display: block;
+}
+
+input.registerUsername:valid
+{
+	background-color: darkgreen;
+}
+
+input.registerPassword:invalid:focus + .passwordRequirements
+{
+	display: block;
+}
+
+input.registerPassword:valid
+{
+	background-color: darkgreen;
+}
+
+input.registerConfirmPassword:invalid:focus + .passwordConfirm
+{
+	display: block;
+}
+
+input.registerConfirmPassword:valid
+{
+	background-color: darkgreen;
+}
+
+input.registerEmail:invalid:focus + .emailRequirements
+{
+	display: block;
+}
+
+input.registerEmail:valid
+{
+	background-color: darkgreen;
+}
+
+
+/* Input classes */
+input
+{
+	color: #FFF;
+	background-color: #232729;
+	height: 32px;
+}
+
+input[type=text], input[type=password], input[type=email]
+{
+	padding: 1px;
+	border-width: 2px;
+	border-style: inset;
+	border-color: #232729;
+
+	height: 20px;
+}
+
+input[type=button], input[type=submit], input[type=reset]
+{
+	height: 32px;
+	padding: 0px;
+	padding-left: 8px;
+	padding-right: 8px;
+	border-width: 5px;
+	border-right-width: 17px;
+	border-left-width: 17px;
+	border-style: solid;
+	border-color: #232729;
+
+	margin: 0px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	margin-right: 5px;
+}
+
+textarea
+{
+	color: #FFF;
+	background-color: #232729;
+
+	margin: 0px;
+	padding: 1px;
+	border-width: 2px;
+	border-style: inset;
+	border-color: #232729;
+}
+
+
+/* BBcode formatting styles */
+.rightAlign
+{
+	text-align: right;
+	width: 100%;
+}
+
+blockquote
+{
+	background-color: #414141;
+	border: 2px dashed gray;
+	margin: 3px;
+	padding: 4px;
+	font-size: 13px;
+	max-width: 1000px;
+}
+
+.blockquoteHead
+{
+	color: #EEEEFF;
+	text-decoration: none;
+	text-align: left;
+	display: block;
+	width: 100%;
+}
+
+blockquote.codeTag
+{
+	font-family: monospace;
+	overflow-x: scroll;
+	white-space: pre;
+}
+
+img.postImage, video.postMedia
+{
+	max-width: 100%;
+	max-height: 100vh;
+	height: auto;
+	width: auto;
+}
+
+/* Youtube and vimeo video frames should not spill out of posts */
+iframe
+{
+	max-width: 100%;
+	max-height: 100vh;
+}
+
+/* Media inside of quotes get shrunk down */
+blockquote img.postImage, blockquote video.postMedia
+{
+	max-width: 30%;
+	max-height: 300px;
+}
+
+img.avatar
+{
+	margin-top: 5px;
+
+	max-height: 100px;
+	max-width: 100px;
+
+	border-radius: 10px;
+}
+
+
+
+/* Icons */
+span.icon
+{
+	width: 24px;
+	height: 18px;
+
+	margin-top: 0px;
+	margin-bottom: -3px;
+	margin-right: 0px;
+	margin-left: 0px;
+	padding: 0px;
+
+	text-align: center;
+
+
+	display: inline-block;
+}
+
+.icon.stickyTopic
+{
+	background-image: url("./images/ThreadSticky.png");
+}
+
+.icon.lockedTopic
+{
+	background-image: url("./images/ThreadLocked.png");
+}
+
+.icon.messageUnread
+{
+	background-image: url("./images/MessageUnread.png");
+}
+
+.icon.messageRead
+{
+	background-image: url("./images/MessageRead.png");
+}
+
+.icon.messageReplied
+{
+	background-image: url("./images/MessageReplied.png");
+}
+
+.icon.Just
+{
+	background-image: url("./images/Just.png");
+}
+
+.icon.Sterling
+{
+	background-image: url("./images/Sterling.png");
+}

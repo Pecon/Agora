@@ -56,6 +56,8 @@
 	{
 		require_once 'page.php';
 		error("Missing server config: site_timezone");
+
+		date_default_timezone_set($site_timezone);
 	}
 
 	if(isSet($settings['require_email_verification']))
@@ -89,6 +91,15 @@
 		require_once 'page.php';
 		error("Missing server config: items_per_page");
 	}
+
+	if(isSet($settings['theme']))
+		$site_theme = $settings['theme'];
+	else
+	{
+		require_once 'page.php';
+		error("Missing server config: theme");
+	}
+
 
 	if(isSet($settings['show_eastereggs']))
 		$show_eastereggs = $settings['show_eastereggs'];

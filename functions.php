@@ -8,13 +8,112 @@
 	{
 		if(!isSet($_SESSION['userid']))
 		{
-			return;
+			// Attempt to find persistent session cookie
+
+			if(isSet($_COOKIE['agoraSession']))
+			{
+				$findSession = json_decode($_COOKIE['agoraSession']);
+
+				if($findSession === false)
+					return;
+
+				$idCheck = intval($findSession -> id);
+				$tokenCheck = sanitizeSQL($findSession -> token);
+
+				$sql = "SELECT * FROM sessions WHERE userID=$idCheck AND token='$tokenCheck';";
+				$result = querySQL($sql);
+
+				if($result -> num_rows > 0)
+				{
+					$session = $result -> fetch_assoc();
+
+					if($findSession -> token == $session['token'])
+					{
+						if($session['lastSeenTime'] + 60*60*24*30*12 < time())
+						{
+							setcookie("agoraSession", "");
+							warn("Your session has expired.");
+							return;
+						}
+
+						$userData = findUserbyID($idCheck);
+
+						$_SESSION['loggedin'] = true;
+						$_SESSION['name'] = $userData['username'];
+						$_SESSION['banned'] = $userData['banned'];
+						$_SESSION['userid'] = $userData['id'];
+						$_SESSION['lastpostdata'] = "";
+						$_SESSION['lastpostingtime'] = time();
+						$_SESSION['actionSecret'] = mt_rand(10000, 99999);
+						$_SESSION['token'] = $session['token'];
+
+						// Refresh client's cookie
+						$newSession = new StdClass();
+						$newSession -> token = $session['token'];
+						$newSession -> id = $userData['id'];
+
+						setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12);
+
+						// Update the last seen time and IP in session table
+						$time = time();
+						$sql = "UPDATE sessions SET lastSeenIP='${_SERVER['REMOTE_ADDR']}', lastSeenTime=${time} WHERE id=${session['id']};";
+						querySQL($sql);
+
+						// info("Your session has been restored.", "Session restored");
+					}
+
+					if(!isSet($_SESSION['loggedin']))
+						return;
+					else if($_SESSION['loggedin'] == false)
+						return;
+
+					// User is now logged in if those checks passed. The rest of the function will handle group stuff and check if they're banned, etc.
+				}
+				else
+					return;
+			}
+			else
+				return;
 		}
 
 		$userData = findUserByID($_SESSION['userid']);
 		$_SESSION['loggedin'] = true;
 		$_SESSION['name'] = $userData['username'];
-		$_SESSION['admin'] = $userData['administrator'];
+
+		switch($userData['usergroup'])
+		{
+			case "superuser":
+				$_SESSION['superuser'] = true;
+				$_SESSION['admin'] = true;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "admin":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = true;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "moderator":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = true;
+				$_SESSION['member'] = true;
+				break;
+			case "member":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = false;
+				$_SESSION['member'] = true;
+				break;
+			case "unverified":
+				$_SESSION['superuser'] = false;
+				$_SESSION['admin'] = false;
+				$_SESSION['moderator'] = false;
+				$_SESSION['member'] = false;
+				break;
+
+		}
 		$_SESSION['banned'] = $userData['banned'];
 
 		$sql = "SELECT COUNT(*) FROM privateMessages WHERE `recipientID` = ${_SESSION['userid']} AND `read` = 0;";
@@ -24,7 +123,8 @@
 
 		if($_SESSION['banned'] == true)
 		{
-			error("Oh no. You're banned.");
+			error("You have been banned.");
+			setcookie("agoraSession", "");
 			session_destroy();
 			finishPage();
 		}
@@ -116,13 +216,13 @@
 		$verification = bin2hex(openssl_random_pseudo_bytes(32));
 		$domain = $_SERVER['SERVER_NAME']; // Just hope their webserver is configured correctly...
 
-		if(!isSet($_SERVER['REQUST_URI']))
+		if(!isSet($_SERVER['REQUEST_URI']))
 			$uri = "/";
 		else
 		{
-			$uri = $_SERVER['REQUST_URI'];
+			$uri = $_SERVER['REQUEST_URI'];
 
-			$uri = substr($uri, 0, strrchr($uri, '/') + 1);
+			$uri = substr($uri, 0, strrpos($uri, '/') + 1);
 			if(strlen($uri) == 0)
 				$uri = "/";
 		}
@@ -154,11 +254,22 @@ EOF;
 		return true;
 	}
 
-	function findTopicbyID($ID)
+	function findTopicbyID()
 	{
-		static $topic = array();
+		$numArgs = func_num_args();
 
-		if(isSet($topic[$ID]))
+		if($numArgs < 1 || $numArgs > 2)
+			return;
+
+		$ID = func_get_arg(0);
+		$nocache = false;
+
+		if($numArgs > 1)
+			$nocache = boolval(func_get_arg(1));
+
+		static $topic = Array();
+
+		if(isSet($topic[$ID]) && !$nocache)
 			return $topic[$ID];
 
 		$ID = intval($ID);
@@ -226,7 +337,7 @@ EOF;
 	function promoteUserByID($id)
 	{
 		$id = intval($id);
-		$sql = "UPDATE users SET administrator=1, tagline='Administrator' WHERE id={$id}";
+		$sql = "UPDATE users SET usergroup='admin', tagline='Administrator' WHERE id={$id}";
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
@@ -244,13 +355,13 @@ EOF;
 			error("You cannot demote the superuser.");
 			return false;
 		}
-		else if($user['administrator'] == false)
+		else if($user['usergroup'] != 'admin')
 		{
 			error("That user isn't an administrator.");
 			return false;
 		}
 
-		$sql = "UPDATE users SET administrator=0, tagline='' WHERE id='${id}'";
+		$sql = "UPDATE users SET usergroup='member', tagline='' WHERE id='${id}'";
 		$result = querySQL($sql);
 
 		
@@ -268,7 +379,7 @@ EOF;
 			return;
 		}
 
-		if($user['administrator'])
+		if($user['usergroup'] == 'admin')
 		{
 			demoteUserByID($id);
 			return false;
@@ -316,6 +427,25 @@ EOF;
 		if(isSet($user[$ID]))
 			return $user[$ID];
 
+		$ID = intval($ID);
+		$sql = "SELECT * FROM users WHERE id = {$ID}";
+		$result = querySQL($sql);
+
+		if($numResults = $result -> num_rows > 0)
+		{
+			while($row = $result -> fetch_assoc())
+			{
+				$user[$ID] = $row;
+				return $row;
+			}
+			return false;
+		}
+		else
+			return false;
+	}
+
+	function findUserbyID_nocache($ID)
+	{
 		$ID = intval($ID);
 		$sql = "SELECT * FROM users WHERE id = {$ID}";
 		$result = querySQL($sql);
@@ -414,7 +544,7 @@ EOF;
 			else
 			{
 				unlink($imagePath);
-				error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, or gif type image.");
+				error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, bmp, webp, or gif type image.");
 				return false;
 			}
 
@@ -453,7 +583,7 @@ EOF;
 				if($error === false)
 				{
 					error("Unable to scale image.");
-					return;
+					return false;
 				}
 
 				imagedestroy($image);
@@ -484,7 +614,8 @@ EOF;
 			$id = intval($id);
 			$inputData = sanitizeSQL(fread(fopen($imagePath, "rb"), filesize($imagePath)));
 			unlink($imagePath);
-			$sql = "UPDATE users SET avatar='${inputData}' WHERE id=${id};";
+			$time = time();
+			$sql = "UPDATE users SET avatar='${inputData}', avatarUpdated='${time}' WHERE id=${id};";
 
 			querySQL($sql);
 		}
@@ -626,110 +757,24 @@ EOF;
 
 	function displayUserProfile($id)
 	{
-		$userData = findUserByID($id);
+		global $_userData, $_id;
+		$_userData = findUserByID_nocache($id);
+		$_id = $id;
 
-		if($userData == false)
+		if($_userData == false)
 		{
 			error("No user by this user id exists.");
 			return;
 		}
 
-		global $site_name;
-		setPageTitle("Profile of " . $userData['username']);
-		setPageDescription("View the profile of ${userData['username']} on $site_name!");
-
-		if(!isSet($_SESSION['loggedin']))
-			$adminControl = "";
-		else
-		{
-			if($_SESSION['admin'])
-				$adminControl = "<a href=\"./?action=ban&amp;id=${id}\">" . ($userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${id}\">" . ($userData['administrator'] ? "Demote" : "Promote") . " this user</a><br >\n";
-			else
-				$adminControl = "";
-		}
-
-
-		$username = $userData['username'];
-		$lastActive = $userData['lastActive'];
-		$reg_date = date('Y-m-d g:i:s', $userData['reg_date']);
-		$postCount = $userData['postCount'];
-		$tagLine = $userData['tagline'];
-		$blid = $userData['blid'];
-		$website = $userData['website'];
-		$profileText = $userData['profiletext'];
-		$profileDisplayText = $userData['profiletextPreparsed'];
-
-		$taglineColor = "#FFFFFF";
-		if($userData['administrator'])
-			$taglineColor = "#FFFF00; text-shadow: 0px 0px 1px #FFFFAA"; // subtle xss ((just kidding))
-		if($userData['banned'])
-			$taglineColor = "#FF0000";
-
-		$websiteComps = parse_url($website);
-		if(isSet($websiteComps['host']))
-			$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
-
-
-		addToBody("\n${adminControl}<table class=\"forumTable\">\n<tr>\n<td class=\"padding\" style=\"background-color: #414141;\">\n${username}\n</td>\n</tr>\n<tr>\n<td class=padding style=\"background-color: #414141;\">\n" .
-				(strLen($tagLine) > 0 ? "<span style=\"color:${taglineColor}\">${tagLine}</span><br />\n" : "<br />") .
-				"BL_ID: $blid<br />
-				<img class=avatar src=\"./avatar.php?user=${id}\" /><br />
-				Posts: {$postCount}<br />
-				Date registered: {$reg_date}<br />
-				Last activity: {$lastActive}<br />" .
-				(strLen($website) > 0 ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a><br />\n" : "Website: None") .
-				"</td>
-				</tr>
-				<tr>
-				<td class=padding>
-				<br />
-				${profileDisplayText}
-				<br \><br \>
-				</td>
-				</tr>
-				</table><br />\n");
-
-		if(strlen($website) == 0)
-			$website = "http://";
-
-		if(isSet($_SESSION['userid']))
-			if($_SESSION['userid'] == $id)
-			{
-				$updateProfileText = $profileText;
-				$table = <<<EOT
-					<table class="forumTable">
-					<tr>
-						<td class="padding" style="width: 190px; vertical-align: top;">
-							User&nbsp;settings<br />
-							<hr />
-							<a href="./?action=avatarchange">Change&nbsp;avatar</a><br />
-							<a href="./?action=emailchange">Change&nbsp;email</a><br />
-							<a href="./?action=passwordchange">Change&nbsp;password</a><br />
-						</td>
-						<td class="padding">
-							Profile info<br />
-							<hr />
-							<form action="./?action=updateprofile" method=POST>
-								Tagline: <input type="text" name="tagline" maxLength="40" value="${tagLine}"/><br />
-								Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
-								<br />
-								Update profile text (you may use bbcode here):<br />
-								<textarea class="postbox" maxLength="1000" name="updateProfileText">${updateProfileText}</textarea><br />
-								<input class="postButtons" type="submit" value="Update profile">
-							</form>
-						</td>
-					</tr>
-				</table>
-EOT;
-				addToBody($table);
-			}
+		loadThemePart("profile");
 	}
 
 	function updateUserProfileText($id, $text, $tagLine, $website)
 	{
-		if(strlen($text) > 1000)
+		if(strlen($text) > 1001)
 		{
-			error("Your profile info text cannot exceed 1000 characters.");
+			error("Your profile info text cannot exceed 1000 characters. (" . strlen($text) . ")");
 			return false;
 		}
 
@@ -744,7 +789,7 @@ EOT;
 				$website = "";
 		}
 
-		if(strlen($tagLine) > 40)
+		if(strlen($tagLine) > 30)
 		{
 			error("Your tagline is too long.");
 
@@ -752,10 +797,16 @@ EOT;
 		}
 
 		$id = intval($id);
-		$rawText = sanitizeSQL(htmlentities(html_entity_decode($rawText), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$rawText = sanitizeSQL(htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 		$text = sanitizeSQL(bb_parse($text));
 		$website = sanitizeSQL(trim($website));
 		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+
+		if(strlen($text) > 2000)
+		{
+			error("Your bbcode formatting exceeded storage parameters. Use fewer tags that expand into lots of html.");
+			return false;
+		}
 
 		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
 		$result = querySQL($sql);
@@ -763,87 +814,14 @@ EOT;
 		return true;
 	}
 
-	function displayRecentThreads($page)
+	function displayRecentTopics($page)
 	{
-		global $items_per_page;
-		$page = intval($page);
-		$start = ceil($page * $items_per_page);
-		$num = $items_per_page;
-
-		$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
-		$result = querySQL($sql);
-
-		global $site_name;
-		$description = "Welcome to $site_name!";
-
-		if($result -> num_rows > 0)
-		{
-			$description = $description . "\nRecent topics:";
-			addToBody("<table class=\"forumTable\" >");
-			addToBody("<tr><td>Topic name</td><td class=\"startedby\">Author</td><td>Last post by</td></tr>");
-			while($row = $result -> fetch_assoc())
-			{
-				$topicID = $row['topicID'];
-				$topicName = $row['topicName'];
-
-				$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()['COUNT(*)'];
-				$numPosts = intval($numPosts);
-				$creator = findUserByID($row['creatorUserID']);
-				$creatorName = $creator['username'];
-				$description = $description . "\n$topicName, by $creatorName";
-
-				if(!boolval($row['locked']) && !boolval($row['sticky']))
-					$threadStatus = "";
-				else
-					$threadStatus = (boolval($row['sticky']) ? '<span class="icon stickyThread" title="This thread is sticky and will always stay at the top of the board."></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedThread" title="This thread is locked and cannot be posted in."></span>' : "");
-
-
-				$lastPost = fetchSinglePost($row['lastpostid']);
-				$lastPostTime = date("F d, Y H:i:s", $lastPost['postDate']);
-				$postUserName = findUserByID($lastPost['userID'])['username'];
-
-				addToBody("<tr><td>${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>");
-
-				global $items_per_page;
-				if($numPosts > $items_per_page) // Don't show page nav buttons if there is only one page
-					displayPageNavigationButtons(0, $numPosts, "topic=${topicID}");
-
-				addToBody("</span></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></td><td class=lastpostrow><a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</td></tr>\n");
-			}
-			addToBody("</table>");
-		}
-		else
-			addToBody("There are no threads to display!");
-
-		$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
-		displayPageNavigationButtons($page, $totalTopics, null);
-		setPageDescription($description);
+		
 	}
 
 	function displayRecentPosts($start, $num)
 	{
-		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
-		$result = querySQL($sql);
-
-		if($result -> num_rows > 0)
-		{
-			addToBody("<table class=forumTable border=1>\n");
-			while($row = $result -> fetch_assoc())
-			{
-				$topic = findTopicbyID($row['threadID']);
-				$user = findUserByID($row['userID']);
-				$username = $user['username'];
-				$date = date("F d, Y H:i:s", $row['postDate']);
-				$topicPage = floor($row['threadIndex'] / 10);
-
-				addToBody("<tr><td colspan=2><a href=\"./?topic=${topic['topicID']}&amp;page=${topicPage}#${row['postID']}\">${topic['topicName']}</a></td></tr><tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$row['userID']}\">{$username}</a><br><div class=finetext>${user['tagline']}<br /><img class=avatar src=\"./avatar.php?user=${row['userID']}\" /><br />${date}</div></td><td class=postdatarow>{$row['postPreparsed']}</td></tr>\n");
-			}
-			addToBody("</table>\n");
-		}
-		else
-		{
-			addToBody("There are no posts to display!");
-		}
+		
 	}
 
 	function fetchSinglePost($postID)
@@ -868,202 +846,13 @@ EOT;
 
 	function displayPostEdits($postID)
 	{
-		$post = fetchSinglePost(intval($postID));
-
-		if($post['changeID'] == false)
-		{
-			error("There are no changes to view on this post.");
-			return;
-		}
-
-		$postID = intval($postID);
-		$username = getUserNameByID($post['userID']);
-
-		$changeID = $post['changeID'];
-
-		$sql = "SELECT * FROM changes WHERE id=${changeID}";
-		$result = querySQL($sql);
-
-		if($result === false)
-		{
-			error("There are no edits to display.");
-			return;
-		}
-
-		$change = $result -> fetch_assoc();
-		$changeID = $change['lastChange'];
-		$date = date("F d, Y H:i:s", $change['changeTime']);
-
-		addToBody("Viewing post edits<br>\n<table class=\"forumTable\"><tr><td class=\"usernamerow\"><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Current version)</span></td><td class=\"postdatarow\">{$post['postPreparsed']}</td></tr>\n");
-
-		while($changeID > 0)
-		{
-			addToBody("<tr><td class=\"usernamerow\"><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=\"finetext\">${date}</span></td><td class=\"postdatarow\">${change['postData']}</td></tr>\n");
-
-			$sql = "SELECT * FROM changes WHERE id=${changeID}";
-			$result = querySQL($sql);
-
-			if($result == false)
-			{
-				error("Could not get edit.");
-				break;
-			}
-
-			$change = $result -> fetch_assoc();
-			$changeID = $change['lastChange'];
-			$date = date("F d, Y H:i:s", $change['changeTime']);
-		}
-
-		$date = date("F d, Y H:i:s", $post['postDate']);
-		addToBody("<tr><td class=usernamerow><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br><span class=finetext>${date}<br>(Original)</span></td><td class=postdatarow>${change['postData']}</td></tr>\n</table>");
+		
 	}
 
 	function displayThread($topicID, $page)
 	{
 		global $items_per_page;
-		$start = $page * $items_per_page;
-		$end = $start + $items_per_page;
-		$topicID = intval($topicID);
-
-		$row = findTopicbyID($topicID);
-		$creator = findUserbyID($row['creatorUserID']);
-		if($row === false)
-		{
-			error("Failed to load thread.");
-			return;
-		}
-		setPageTitle($row['topicName']);
-		setPageDescription("Topic ${row['topicName']} by ${creator['username']}.");
-		$threadControls = "";
-
-		$sql = "SELECT * FROM posts WHERE threadID='${topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
-		$posts = querySQL($sql);
-
-		if(isSet($_SESSION['userid']))
-		{
-			$quotesEnabled = true;
-			$quoteString = Array();
-			addToBody("<script src=\"./js/quote.js\" type=\"text/javascript\"></script>\n");
-
-			if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
-				$threadControls = "<a href=\"./?action=lockthread&amp;thread=${topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " thread</a> &nbsp;&nbsp;";
-
-			if($_SESSION['admin'])
-			{
-				$sql = "SELECT postID FROM posts WHERE threadID='${topicID}' AND threadIndex='0';";
-				$result = querySQL($sql);
-				$result = $result -> fetch_assoc();
-
-				$threadControls = $threadControls . "<a href=\"./?action=stickythread&amp;thread=${topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " thread</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}\">Delete thread</a> &nbsp;&nbsp; ";
-			}
-		}
-		else
-			$quotesEnabled = false;
-
-		if(!boolval($row['locked']) && !boolval($row['sticky']))
-			$threadStatus = "&rarr;";
-		else
-			$threadStatus = (boolval($row['sticky']) ? '<span class="icon stickyThread"></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedThread"></span>' : "");
-
-		addToBody("<div class=\"threadHeader\"> ${threadStatus} Viewing thread: <a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a> &nbsp;&nbsp;${threadControls}</div>\n<table class=\"forumTable\">");
-		while($post = $posts -> fetch_assoc())
-		{
-			$user = findUserByID($post['userID']);
-			$username = $user['username'];
-
-			// Highlight the post if applicable
-			if($post['threadIndex'])
-				addToBody('<tr class="originalPost">');
-			else
-				addToBody('<tr>');
-
-			// Display username of poster
-			addToBody("<td class=\"usernamerow\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a><br>");
-
-
-			// Display the user's tagline
-			if($user['banned'])
-				addToBody("<div class=\"taglineBanned finetext\">${user['tagline']}</div>");
-			else if($user['administrator'])
-				addToBody("<div class=\"taglineAdmin finetext\">${user['tagline']}</div>");
-			else
-				addToBody("<div class=\"tagline finetext\">${user['tagline']}</div>");
-
-
-			// Display the user's BLID
-			addToBody('<div class="taglineBLID finetext">BL_ID: ' . $user['blid'] . '</div>');
-
-
-			// Display the user's avatar and the post date
-			$date = date("F d, Y H:i:s", $post['postDate']);
-			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
-
-
-			// Display the post body
-			addToBody("<td class=\"postdatarow\"><div class=\"threadText\">{$post['postPreparsed']}</div>");
-
-
-			// Moving on to the post controls
-			addToBody("<div class=\"bottomstuff\">");
-
-
-			// If admin, show the delete button
-			if(isSet($_SESSION['loggedin']))
-			{
-				if($_SESSION['admin'])
-					addToBody("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a>");
-			}
-
-
-			// If logged in, show the quote button
-			if($quotesEnabled)
-			{
-				addToBody("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a>");
-
-				if(isSet($_GET['quote']))
-				{
-					if(intval($_GET['quote']) == $post['postID'])
-					{
-						$quoteString['data'] = $post['postData'];
-						$quoteString['author'] = $user['username'];
-					}
-				}
-
-
-				// If the post owner, show the edit button
-				if($post['userID'] == $_SESSION['userid'])
-					addToBody("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit post</a>");
-			}
-
-
-			// If logged in and there are edits, display the view edits button
-			if($post['changeID'] > 0 && isSet($_SESSION['userid']))
-				addToBody("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View edits</a>");
-
-			// Display the permalink button and wrap up.
-			addToBody("<a class=\"inPostButtons\" href=\"./?topic=${topicID}&amp;page=${page}#${post['postID']}\">Permalink</a></div></td></tr>\n");
-		}
-		addToBody("</table>\n");
-
-		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()["COUNT(*)"];
-		displayPageNavigationButtons($page, $numPosts, "topic=${topicID}");
-
-		addToBody("<br><br>\n");
-
-		if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
-		{
-			addToBody("<form action=\"./?action=post&amp;topic=${topicID}&amp;page=${page}\" method=\"POST\">");
-			addToBody('<input type="hidden" name="action" value="newpost">
-			<textarea id="replytext" class="postbox" name="postcontent" tabindex="1">');
-
-			if(isSet($quoteString['data']))
-				addToBody("[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]");
-			addToBody('</textarea>
-			<br>
-			<input class="postButtons" type="submit" name="post" value="Post" tabindex="3">
-			<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2">
-		</form>');
-		}
+		
 	}
 
 	function createThread($userID, $topic, $postData)
@@ -1080,14 +869,14 @@ EOT;
 		return $topicID;
    }
 
-   function lockThread($topicID)
+   function lockTopic($topicID)
    {
 		$topicID = intval($topicID);
 		$topic = findTopicbyID($topicID);
 
 		if($topic === false)
 		{
-			error("That thread does not exist.");
+			error("That topic does not exist.");
 			return -1;
 		}
 
@@ -1103,18 +892,18 @@ EOT;
 
 		querySQL($sql);
 
-		adminLog("set thread (${topicID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
+		adminLog("set topic (${topicID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
 		return $newValue;
    }
 
-	function stickyThread($topicID)
+	function stickyTopic($topicID)
 	{
 		$topicID = intval($topicID);
 		$topic = findTopicbyID($topicID);
 
 		if($topic === false)
 		{
-			error("That thread does not exist.");
+			error("That topic does not exist.");
 			return -1;
 		}
 
@@ -1130,7 +919,7 @@ EOT;
 
 		querySQL($sql);
 
-		adminLog("set thread (${topicID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
+		adminLog("set topic (${topicID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
 		return $newValue;
 	}
 
@@ -1272,9 +1061,12 @@ EOT;
 			$sql = "DELETE FROM posts WHERE postID='${id}';";
 			querySQL($sql);
 
+			// Fix thread indexes
+			$sql = "UPDATE posts SET threadIndex=threadIndex-1 WHERE threadID='${post['threadID']}' AND threadIndex>'${post['threadIndex']}';";
+			querySQL($sql);
+
 			// De-increment user post count
-			$postCount = findUserByID($post['userID'])['postCount'] - 1;
-			$sql = "UPDATE users SET postCount='${postCount}' WHERE id='${post['userID']}';";
+			$sql = "UPDATE users SET postCount=postCount-1 WHERE id='${post['userID']}';";
 			querySQL($sql);
 
 			$sql = "DELETE FROM changes WHERE postID='${id}';";
@@ -1292,131 +1084,12 @@ EOT;
 
 	function displayRecentMessages($page, $sent)
 	{
-		global $items_per_page;
-		$page = intval($page);
-		$start = ($page * $items_per_page);
-		$num = $items_per_page;
-
-		$sql = "SELECT * FROM privateMessages WHERE " . ($sent ? "senderID=" : "recipientID=") . $_SESSION['userid'] . ($sent ? "" : " AND deleted=0") . " ORDER BY messageDate DESC LIMIT {$start},{$num}";
-		$result = querySQL($sql);
-
-		global $site_name;
-		$description = "Welcome to $site_name!";
-
-		$threadStatus = "";
-
-		if($result -> num_rows > 0)
-		{
-			$description = $description . ($sent ? "\nRecently sent messages:" : "\nRecent messages:");
-			addToBody("<div class=\"threadHeader\">&rarr; Viewing " . ($sent ? "outbox" : "inbox") . "</div>");
-			addToBody('<table class="forumTable" >');
-			addToBody('<tr><td>Subject</td><td class="startedby">' . ($sent ? "To" : "From") . '</td><td>Date</td></tr>');
-			while($row = $result -> fetch_assoc())
-			{
-				$messageID = $row['messageID'];
-				$subject = $row['subject'];
-
-				$creator = findUserByID($sent ? $row['recipientID'] : $row['senderID']);
-				$creatorName = $creator['username'];
-				$description = $description . "\n$subject, " . ($sent ? "to" : "from") . " $creatorName";
-
-				switch(intval($row['read']))
-				{
-					case 0:
-						$threadStatus = '<span class="icon messageUnread" title="Unread message"></span>';
-						break;
-
-					case 1:
-						$threadStatus = '<span class="icon messageRead" title="Message has been read"></span>';
-						break;
-
-					case 2:
-						$threadStatus = '<span class="icon messageReplied" title="Message has been replied to"></span>';
-						break;
-
-					default:
-						$threadStatus = '<span class="icon messageRead"></span>';
-						break;
-
-
-				}
-
-				$sentTime = date("F d, Y H:i:s", $row['messageDate']);
-
-				addToBody("<tr><td>$threadStatus <a href=\"./?action=messaging&amp;id=$messageID \">$subject</a></td><td class=startedbyrow><a href=\"./?action=viewProfile&amp;user=${creator['id']}\">$creatorName</a></td><td class=lastpostrow>$sentTime</td>" . (!$sent ? '<td class="buttonRow"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="submit" value="Delete" /></form></td>' : '') . "</tr>\n");
-			}
-			addToBody("</table>");
-			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = $messageID ;") -> fetch_assoc()['COUNT(*)'];
-			displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"));
-		}
-		else
-			addToBody("No messages.<br /><br />");
-
-		//addToBody("<a href=\"./?action=" . ($sent ? 'outbox' : 'messaging') . "\">Refresh messages</a><br /><br />");
-		addToBody("<br /><br /><a href=\"./?action=" . ($sent ? 'messaging' : 'outbox') . "\">View " . ($sent ? 'inbox' : 'outbox') . "</a><br /><br />");
-		addToBody("<a href=\"./?action=composemessage\">Compose message</a><br /><br />");
-
-		setPageDescription($description);
+		
 	}
 
 	function displayMessage($ID)
 	{
-		$message = fetchSingleMessage($ID);
-
-		if($message === false)
-		{
-			error("Could not find that message.");
-			return false;
-		}
-
-		$sender = findUserbyID($message['senderID']);
-		$recipient = $message['recipientID'];
-
-		if($_SESSION['userid'] != $sender['id'] && $_SESSION['userid'] != $recipient && !$_SESSION['admin'])
-		{
-			error("You do not have permission to view this message.");
-			return false;
-		}
-
-		addToBody("<div class=\"threadHeader\">&rarr; Viewing private message: ${message['subject']}</div>");
-		addToBody('<table class="forumTable">
-			<tr><td class="usernamerow"><a class="userLink" name=" ' . $sender['id'] . '"></a><a class="userLink" href="./?action=viewProfile&amp;user=' . $sender['id'] . '">' . $sender['username'] . '</a><br>');
-
-		if($sender['banned'])
-				addToBody("<div class=\"taglineBanned finetext\">${sender['tagline']}</div>");
-			else if($sender['administrator'])
-				addToBody("<div class=\"taglineAdmin finetext\">${sender['tagline']}</div>");
-			else
-				addToBody("<div class=\"tagline finetext\">${sender['tagline']}</div>");
-
-
-			// Display the user's avatar and the post date
-			$date = date("F d, Y H:i:s", $message['messageDate']);
-			addToBody("<br /><img class=\"avatar\" src=\"./avatar.php?user=${sender['id']}\" /><br /><div class=\"postDate finetext\">${date}</div></td>");
-
-			addToBody('<td class="postdatarow">' . $message['messagePreparsed'] . '</td></tr></table>');
-
-			if($_SESSION['userid'] == $recipient)
-			{
-				if(!$message['read'])
-				{
-					// Mark as read
-					$sql = "UPDATE privateMessages SET `read` = '1' WHERE `messageID` = '${message['messageID']}';";
-					$result = querySQL($sql);
-
-					if($result === false)
-						error("Failed to set message as read.");
-					else
-						$_SESSION['unreadMessages'] -= 1;
-				}
-
-				addToBody('<form method="POST" action="./?action=composemessage"><input type="hidden" name="toName" value="' . $sender['username'] . '" /><input type="hidden" name="subject" value="RE: ' . $message['subject'] . '" /><input type="hidden" name="replyID" value="' . $message['messageID'] . '" />');
-				addToBody('<textarea class="postbox" name="postcontent" tabindex="1">[quote ' . $sender['username'] . ']' . $message['messageData'] . "[/quote]\n</textarea><br />");
-				addToBody('<input class="postButtons" type="submit" name="send" value="Reply" tabindex="3">
-				<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2"></form>');
-			}
-			
-		return true;
+		
 	}
 
 	function fetchSingleMessage($ID)
@@ -1489,7 +1162,7 @@ EOT;
 		}
 	}
 
-	function displayPageNavigationButtons($currentPage, $totalItems, $pageAction)
+	function displayPageNavigationButtons($currentPage, $totalItems, $pageAction, $print)
 	{
 		// This value can be modified from your .settings.json file (under the /data directory)
 		global $items_per_page;
@@ -1511,37 +1184,40 @@ EOT;
 
 		if($currentPage - 1 >= 0)
 		{
-			$quickPages = '<a href="' . $pageAction . ($currentPage - 1) . '">' . $currentPage . '</a> ' . $quickPages;
+			$quickPages = '<a href="' . $pageAction . ($currentPage - 1) . '">' . $currentPage . '</a>&nbsp;' . $quickPages;
 
 			if($currentPage - 2 >= 0)
 			{
-				$quickPages = '<a href="' . $pageAction . ($currentPage - 2) . '">' . ($currentPage - 1) . '</a> ' . $quickPages;
+				$quickPages = '<a href="' . $pageAction . ($currentPage - 2) . '">' . ($currentPage - 1) . '</a>&nbsp;' . $quickPages;
 
 				if($currentPage - 3 >= 0)
-					$quickPages = '<a href="' . $pageAction . '0' . '">' . '1' . '</a> ... ' . $quickPages;
+					$quickPages = '<a href="' . $pageAction . '0' . '">' . '1' . '</a>&nbsp;...&nbsp;' . $quickPages;
 			}
 		}
 
 		if($currentPage + 1 < $totalPages)
 		{
-			$quickPages = $quickPages . ' <a href="' . $pageAction . ($currentPage + 1) . '">' . ($currentPage + 2) . '</a>';
+			$quickPages = $quickPages . '&nbsp;<a href="' . $pageAction . ($currentPage + 1) . '">' . ($currentPage + 2) . '</a>';
 
 			if($currentPage + 2 < $totalPages)
 			{
-				$quickPages = $quickPages . ' <a href="' . $pageAction . ($currentPage + 2) . '">' . ($currentPage + 3) . '</a>';
+				$quickPages = $quickPages . '&nbsp;<a href="' . $pageAction . ($currentPage + 2) . '">' . ($currentPage + 3) . '</a>';
 
 				if($currentPage + 3 < $totalPages)
 				{
-					$quickPages = $quickPages . ' ... <a href="' . $pageAction . ($totalPages - 1) . '">' . $totalPages . '</a>';
+					$quickPages = $quickPages . '&nbsp;...&nbsp;<a href="' . $pageAction . ($totalPages - 1) . '">' . $totalPages . '</a>';
 				}
 			}
 		}
 
-		$quickPages = '&laquo; ' . $quickPages . ' &raquo;';
+		$quickPages = '&laquo;&nbsp;' . $quickPages . '&nbsp;&raquo;';
 
 		//addToBody('<br />');
 		// addToBody('<div class="finetext">Navigation</div>');
-		addToBody($quickPages);
+		if($print)
+			print($quickPages);
+		else
+			addToBody($quickPages);
 	}
 
 	// Other functions

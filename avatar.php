@@ -7,9 +7,14 @@
 		
 		if($avatar === false)
 		{
-			$defaultAvatar = "./style/defaultavatar.png";
+			$defaultAvatar = "./themes/$site_theme/images/defaultavatar.png";
+
+			if(!is_file($defaultAvatar))
+			{
+				exit();
+			}
 			
-			header("Cache-control: max-age=1800");
+			header("Cache-control: max-age=10080");
 			header("Content-type: " . mime_content_type($defaultAvatar));
 			readfile($defaultAvatar);
 		}
@@ -22,7 +27,7 @@
 			$mime = "application/octet-stream";
 		
 		header("Content-type: ${mime}");
-		header("Cache-control: max-age=1800");
+		header("Cache-control: max-age=10080");
 		
 		print($avatar);
 	}

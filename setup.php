@@ -1,5 +1,6 @@
 <?php
 	$site_timezone = "UTC";
+	$site_theme = "twilight";
 	require_once 'page.php';
 
 	setNavBarEnabled(false);
@@ -281,14 +282,15 @@ EOT;
 				addToBody("Selected database...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `changes` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `lastChange` int(10) unsigned DEFAULT NULL,
-  `postData` mediumtext NOT NULL,
-  `changeTime` int(10) unsigned DEFAULT '0',
-  `postID` int(10) unsigned NOT NULL,
-  `threadID` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+	`id` int unsigned NOT NULL AUTO_INCREMENT,
+	`lastChange` int unsigned DEFAULT NULL,
+	`postData` mediumtext NOT NULL,
+	`changeTime` int unsigned DEFAULT '0',
+	`postID` int unsigned NOT NULL,
+	`threadID` int unsigned NOT NULL,
+	KEY(`postID`),
+	PRIMARY KEY (`id`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				finishPage(error("Failed to create changes table. " . $mysqli -> error, true));
@@ -296,17 +298,20 @@ EOT;
 				addToBody("Created changes table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `posts` (
-  `postID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `userID` int(10) unsigned DEFAULT NULL,
-  `threadID` int(10) unsigned DEFAULT NULL,
-  `postDate` int(10) unsigned DEFAULT '0',
-  `postData` mediumtext,
-  `postPreparsed` mediumtext NOT NULL,
-  `threadIndex` int(10) unsigned DEFAULT '0',
-  `changeID` int(10) unsigned DEFAULT NULL,
-  FULLTEXT(`postData`),
-  PRIMARY KEY (`postID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+	`postID` int unsigned NOT NULL AUTO_INCREMENT,
+	`userID` int unsigned DEFAULT NULL,
+	`threadID` int unsigned DEFAULT NULL,
+	`postDate` bigint unsigned DEFAULT '0',
+	`postData` mediumtext,
+	`postPreparsed` mediumtext NOT NULL,
+	`threadIndex` int unsigned DEFAULT '0',
+	`changeID` int unsigned DEFAULT NULL,
+	FULLTEXT(`postData`),
+	KEY(`threadID`),
+	KEY(`postDate`),
+	KEY(`threadIndex`),
+	PRIMARY KEY (`postID`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				finishPage(error("Failed to create posts table. " . $mysqli -> error, true));
@@ -314,17 +319,18 @@ EOT;
 				addToBody("Created posts table...<br />\n");
 
 			$sql = "CREATE TABLE IF NOT EXISTS `topics` (
-  `topicID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `creatorUserID` int(10) unsigned DEFAULT NULL,
-  `topicName` varchar(130) DEFAULT 'No Subject',
-  `lastposttime` bigint(20) unsigned DEFAULT '0',
-  `lastpostid` int(10) unsigned DEFAULT '0',
-  `numposts` int(10) unsigned DEFAULT '0',
-  `sticky` tinyint(1) NOT NULL DEFAULT '0',
-  `locked` tinyint(1) NOT NULL DEFAULT '0',
-  FULLTEXT(`topicName`),
-  PRIMARY KEY (`topicID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+	`topicID` int unsigned NOT NULL AUTO_INCREMENT,
+	`creatorUserID` int unsigned DEFAULT NULL,
+	`topicName` varchar(130) DEFAULT 'No Subject',
+	`lastposttime` bigint unsigned DEFAULT '0',
+	`lastpostid` int unsigned DEFAULT '0',
+	`numposts` int unsigned DEFAULT '0',
+	`sticky` tinyint NOT NULL DEFAULT '0',
+	`locked` tinyint NOT NULL DEFAULT '0',
+	FULLTEXT(`topicName`),
+	KEY(`lastposttime`),
+	PRIMARY KEY (`topicID`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 			{
@@ -333,28 +339,46 @@ EOT;
 			else
 				addToBody("Created topics table...<br />\n");
 
+			$sql = "CREATE TABLE IF NOT EXISTS `boards` (
+	`id` int unsigned NOT NULL AUTO_INCREMENT,
+	`boardtitle` varchar(256) NOT NULL,
+	`boardcategory` varchar(256) NOT NULL,
+	`usergroup` enum('unverified','member','moderator','admin','superuser') DEFAULT NULL,
+	PRIMARY KEY (`id`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+			$result = $mysqli -> query($sql);
+			
+			if($result === false)
+				finishPage(error("Failed to create boards table. " . $mysqli -> error, true));
+			else
+				addToBody("Created boards table...<br />\n");
+
 			$sql = "CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(20) NOT NULL,
-  `passkey` varchar(255) NOT NULL,
-  `reg_date` bigint(20) unsigned NOT NULL DEFAULT '0',
-  `lastActive` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `email` varchar(200) NOT NULL DEFAULT '',
-  `blid` int(7) NOT NULL,
-  `verification` varchar(64) NOT NULL DEFAULT '0',
-  `verified` tinyint(1) NOT NULL DEFAULT '1',
-  `newEmail` varchar(200) DEFAULT NULL,
-  `emailVerification` varchar(64) NOT NULL DEFAULT '0',
-  `banned` tinyint(1) DEFAULT '0',
-  `administrator` tinyint(1) DEFAULT '0',
-  `postCount` int(10) unsigned DEFAULT '0',
-  `profiletext` varchar(1000) DEFAULT '',
-  `profiletextPreparsed` varchar(3000) DEFAULT '',
-  `tagline` varchar(40) NOT NULL DEFAULT '',
-  `website` varchar(200) NOT NULL DEFAULT '',
-  `avatar` blob DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+	`id` int unsigned NOT NULL AUTO_INCREMENT,
+	`username` varchar(20) NOT NULL,
+	`passkey` varchar(256) NOT NULL,
+	`reg_date` bigint unsigned NOT NULL DEFAULT '0',
+	`lastActive` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`email` varchar(256) NOT NULL DEFAULT '',
+	`blid` int(7) NOT NULL,
+	`verification` varchar(64) NOT NULL DEFAULT '0',
+	`verified` tinyint NOT NULL DEFAULT '1',
+	`newEmail` varchar(256) DEFAULT NULL,
+	`emailVerification` varchar(64) NOT NULL DEFAULT '0',
+	`banned` tinyint DEFAULT '0',
+	`usergroup` enum('unverified','member','moderator','admin','superuser') DEFAULT NULL,
+	`postCount` int unsigned DEFAULT '0',
+	`profiletext` varchar(1000) DEFAULT '',
+	`profiletextPreparsed` varchar(3000) DEFAULT '',
+	`tagline` varchar(40) NOT NULL DEFAULT '',
+	`website` varchar(256) NOT NULL DEFAULT '',
+	`avatar` blob DEFAULT NULL,
+	`avatarUpdated` bigint unsigned NOT NULL DEFAULT '0',
+	KEY(`username`),
+	KEY(`email`),
+	KEY(`verification`),
+	PRIMARY KEY (`id`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			
 			if($result === false)
@@ -362,20 +386,41 @@ EOT;
 			else
 				addToBody("Created users table...<br />\n");
 
+			$sql = "CREATE TABLE IF NOT EXISTS `sessions` ( 
+	`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`userID` INT UNSIGNED NOT NULL,
+	`loginTime` BIGINT UNSIGNED NOT NULL,
+	`lastSeenTime` BIGINT UNSIGNED NOT NULL,
+	`token` TINYTEXT NOT NULL,
+	`creationIP` TINYTEXT NOT NULL,
+	`lastSeenIP` TINYTEXT NOT NULL,
+	PRIMARY KEY (`id`),
+	INDEX (`userID`)) 
+	ENGINE = InnoDB;";
+			$result = $mysqli -> query($sql);
+			
+			if($result === false)
+				finishPage(error("Failed to create sessions table. " . $mysqli -> error, true));
+			else
+				addToBody("Created sessions table...<br />\n");
+
 			$sql = "CREATE TABLE IF NOT EXISTS `privateMessages` (
-  `messageID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `senderID` int(10) unsigned DEFAULT NULL,
-  `recipientID` int(10) unsigned DEFAULT NULL,
-  `messageDate` int(10) unsigned DEFAULT '0',
-  `messageData` mediumtext NOT NULL,
-  `messagePreparsed` mediumtext NOT NULL,
-  `subject` varchar(130) DEFAULT 'No Subject',
-  `read` tinyint(1) DEFAULT '0',
-  `deleted` tinyint(1) DEFAULT '0',
-  FULLTEXT(`messageData`),
-  FULLTEXT(`subject`),
-  PRIMARY KEY (`messageID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+	`messageID` int unsigned NOT NULL AUTO_INCREMENT,
+	`senderID` int unsigned DEFAULT NULL,
+	`recipientID` int unsigned DEFAULT NULL,
+	`messageDate` bigint unsigned DEFAULT '0',
+	`messageData` mediumtext NOT NULL,
+	`messagePreparsed` mediumtext NOT NULL,
+	`subject` varchar(130) DEFAULT 'No Subject',
+	`read` tinyint DEFAULT '0',
+	`deleted` tinyint DEFAULT '0',
+	FULLTEXT(`messageData`),
+	FULLTEXT(`subject`),
+	KEY(`senderID`),
+	KEY(`recipientID`),
+	KEY(`messageDate`),
+	PRIMARY KEY (`messageID`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				finishPage(error("Failed to create privateMessage table. " . $mysqli -> error, true));
@@ -394,6 +439,7 @@ EOT;
 			$json['site_name'] = $site_name;
 			$json['site_timezone'] = $site_timezone;
 			$json['items_per_page'] = 15;
+			$json['theme'] = "twilight";
 			$json['show_eastereggs'] = false;
 
 			$jsonText = json_encode($json, JSON_PRETTY_PRINT);
@@ -402,11 +448,23 @@ EOT;
 				finishPage(error("Fatal error: Unable to encode json file."));
 
 			if(!file_exists("./data"))
+			{
 				if(mkdir("./data") === false)
-					finishPage(error("Fatal error: Unable to create data directory. Make sure the directory Agora is installed in is writable."));
+				{
+					chmod(".", 0775);
+
+					if(mkdir("./data") === false)
+						finishPage(error("Fatal error: Unable to create data directory. Make sure the directory Agora is installed in is writable."));
+				}
+
+				chmod("./data", 0775);
+			}
+
 
 			if(file_put_contents("./data/.settings.json", $jsonText) === false)
 				finishPage(error("Fatal error: Unable to save settings file. Make sure the ./data directory is writable."));
+
+			chmod("./data/.settings.json", 0775);
 
 			$form = <<<EOT
 			<br /><br />
@@ -450,8 +508,8 @@ EOT;
 			<h2>Create first administrator account</h2><br />
 			<form method="POST">
 				<input type="hidden" name="setup" value="3"/>
-				Username: <input type="text" name="username" /><br />
-				Password: <input type="password" name="password"/><br />
+				Username: <input type="text" name="username" maxlength="19" /><br />
+				Password: <input type="password" name="password" maxlength="72" /><br />
 				Confirm Password: <input type="password" name="confirmpassword" /></span><br />
 				Email: <input type="email" name="email" /><br />
 				<input type="submit" value="Create" />
@@ -505,12 +563,12 @@ EOT;
 		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
 		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, administrator, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', true, 'Administrator')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, usergroup, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'admin', 'Administrator')";
 
 		if($mysqli -> query($sql) === TRUE)
 		{
 			addToBody("<h1>Installation complete</h1><br>");
-			addToBody("Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a><br /><br /><br />For security reasons, setup.php has been deleted.");
+			addToBody("Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a><br /><br /><br />For security reasons, setup.php has been deleted.");
 			unlink("./setup.php"); // Delete the setup file afterwards for security reasons.
 		}
 		else

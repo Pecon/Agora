@@ -1,6 +1,7 @@
 <?php
 	global $site_name, $min_password_length, $force_ssl, $settings;
 	setPageTitle("$site_name - Register");
+	setPageDescription("Register for $site_name to participate in this community!");
 
 	function BlocklandAuthenticate($username)
 	{
@@ -33,35 +34,66 @@
 
 	function showRegisterForm($fillUsername, $fillPassword, $fillEmail)
 	{
+		global $site_name, $min_password_length, $force_ssl, $settings;
 		$fillUsername = htmlentities($fillUsername);
 		$fillPassword = htmlentities($fillPassword);
 		$fillEmail = htmlentities($fillEmail);
 
-		global $min_password_length;
 		?>
 <h1>Forum Registration</h1>
+<br>
+<br>
 <br>
 <form method="POST">
 <table class="loginTable">
 	<tr>
 		<td>
 			Username:
-			</td>
-			<td class="loginTable">
-				<input type="text" minLength="2" maxLength="20" name="username" tabIndex="1" class="" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,18}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillUsername); ?>" />
-			</td>
+		</td>
+		<td class="loginTable">
+				<input type="text" class="registerUsername" minLength="2" maxLength="20" name="username" tabIndex="1" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,18}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillUsername); ?>" />
+				<p class="usernameRequirements requirements">
+					Usernames can be 2 to 20 characters long. Usernames can use most normal ASCII characters, but cannot start or end with spaces.
+				</p>
+		</td>
 	</tr>
 	<tr>
-		<td>Password:</td><td class="loginTable"><input type="password" class="" minLength="<?php print($min_password_length); ?>" maxLength="72" name="password" tabIndex="2" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillPassword); ?>"/></td>
+		<td>Password:</td>
+		<td class="loginTable">
+			<input type="password" class="registerPassword" minLength="<?php print($min_password_length); ?>" maxLength="72" name="password" tabIndex="2" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" value="<?php print($fillPassword); ?>"/>
+			<p class="passwordRequirements requirements">
+				Passwords must be at least <?php print($min_password_length); ?> characters and no more than 72 characters long. Only letters, numbers, and most common ASCII special characters are allowed. Your password cannot begin or end with spaces.
+			</p>
+		</td>
 	</tr>
 	<tr>
-		<td>Confirm:</td><td class="loginTable"><input type="password" name="confirmpassword" tabIndex="3" required /></td>
+		<td>Confirm:</td>
+		<td class="loginTable">
+			<input type="password" class="registerConfirmPassword" name="confirmpassword" tabIndex="3" required />
+			<p class="passwordConfirm requirements">
+				Re-enter your chosen password to confirm that you know it well enough to log in again with it.
+			</p>
+		</td>
 	</tr>
 	<tr>
-		<td>BL in-game name:</td><td class="loginTable"><input type="text" name="ingamename" tabIndex="4" maxLength="30" required /></td>
+		<td>BL in-game name:</td>
+		<td class="loginTable">
+			<input type="text" name="ingamename" tabIndex="4" maxLength="30" required />
+		</td>
 	</tr>
 	<tr>
-		<td>Email:</td><td class="loginTable"><input class="" type="email" name="email" tabIndex="5" required value="<?php print($fillEmail); ?>" /></td>
+		<td>Email:</td>
+		<td class="loginTable">
+			<input class="registerEmail" type="email" name="email" tabIndex="5" required value="<?php print($fillEmail); ?>" />
+			<p class="emailRequirements requirements">
+				You must enter a valid email address which can be used for password recovery. 
+				<?php if($settings['require_email_verification']) { ?>
+				You will have to confirm this email before you can log in.
+				<?php } else { ?>
+				Email confirmation is not required.
+				<?php } ?>
+			</p>
+		</td>
 	</tr>
 	<tr>
 		<td class="loginTable">
@@ -188,7 +220,7 @@
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=verify&code=" . $verification;
 
 			$message = <<<EOF
-Thank you for registering on $site_name! Please verify your email by visiting the following url:<br />
+Thank you for registering on $site_name! Your username is ${username}. Please verify your email by visiting the following url:<br />
 <br />
 <a target="_BLANK" href="${url}">${url}</a><br />
 <br />
@@ -211,10 +243,10 @@ EOF;
 		$password = sanitizeSQL($password);
 		$email = sanitizeSQL($_POST['email']);
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, blid, profiletext, profiletextPreparsed, verification, usergroup) VALUES ('${username}', '${password}', ${regDate}, '${email}', '${auth}', 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, blid, profiletext, profiletextPreparsed, verification, usergroup) VALUES ('${username}', '${password}', ${regDate}, '${email}', ${auth}, 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
 
 		querySQL($sql);
-		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./login.php\">Log in</a>", "Register");
+		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a>", "Register");
 
 		disconnectSQL();
 	}
