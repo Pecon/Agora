@@ -61,7 +61,15 @@
 
 				else if($_SESSION['lastpostingtime'] > time() - 20)
 				{
-					error("Please wait a minute before posting.");
+					warn("Your session just started, wait about 20 seconds before posting.");
+					$postStuff = $_POST['postcontent'];
+
+					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
+						<br />
+						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
+						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
+						</form><br />');
 				}
 
 				else if(!isSet($_GET['topic']))
@@ -71,10 +79,28 @@
 				else if(strLen(trim($_POST['postcontent'])) < 3)
 				{
 					error("Please make your post longer.");
+
+					$postStuff = $_POST['postcontent'];
+
+					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
+						<br />
+						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
+						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
+						</form><br />');
 				}
 				else if(strLen(trim($_POST['postcontent'])) > 10000)
 				{
 					error("Your post is over the 10000 character limit.");
+
+					$postStuff = $_POST['postcontent'];
+
+					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
+						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
+						<br />
+						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
+						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
+						</form><br />');
 				}
 				else if($_SESSION['lastpostdata'] == $_POST['postcontent'])
 				{
@@ -173,27 +199,45 @@
 					break;
 				}
 
-				else if($_SESSION['lastpostingtime'] > time() - 20)
-				{
-					error("Please wait a minute before posting.");
-					break;
-				}
-
 				else if(isSet($_POST['newtopicsubject']) && isSet($_POST['newtopicpost']))
 				{
 					if(strLen(trim($_POST['newtopicsubject'])) < 3)
 					{
 						error("Please make your topic title longer.");
+
+						addToBody('<form action="./?action=newtopic" method="POST" >
+							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
+							Original post:<br />
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
+							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
+						</form>');
 						break;
 					}
 					else if(strLen(trim($_POST['newtopicsubject'])) > 130)
 					{
 						error("Topic title is longer than the 130 character maximum.");
+
+						addToBody('<form action="./?action=newtopic" method="POST" >
+							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
+							Original post:<br />
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
+							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
+						</form>');
 						break;
 					}
 					else if(strLen(trim($_POST['newtopicpost'])) < 3)
 					{
 						error("Please make your post longer.");
+
+						addToBody('<form action="./?action=newtopic" method="POST" >
+							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
+							Original post:<br />
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
+							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
+						</form>');
 						break;
 					}
 					else if(isSet($_POST['preview']))
@@ -235,6 +279,19 @@
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 							$_SESSION['lastpostingtime'] = time();
 						}
+					}
+					else if($_SESSION['lastpostingtime'] > time() - 20)
+					{
+						warn("Your session just started, wait about 20 seconds before posting.");
+
+						addToBody('<form action="./?action=newtopic" method="POST" >
+							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
+							Original post:<br />
+							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
+							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
+							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
+						</form>');
+						break;
 					}
 					else if($_SESSION['lastpostdata'] == $_POST['newtopicsubject'])
 					{
