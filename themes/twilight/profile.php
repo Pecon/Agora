@@ -15,6 +15,7 @@
 
 
 	$username = $_userData['username'];
+	$blid = $_userData['blid'];
 	$lastActive = $_userData['lastActive'];
 	$reg_date = date('Y-m-d g:i:s', $_userData['reg_date']);
 	$postCount = $_userData['postCount'];
@@ -37,9 +38,10 @@
 	print("\n<div class=\"profileContainer\">${adminControl}\n<div class=\"profileContents\"><div class=\"profileStats\"><div class=\"profileEntry\">\n${username}\n</div>\n<div class=\"profileEntry\">\n" .
 			(strLen($tagLine) > 0 ? "<span class=\"${taglineClass}\">${tagLine}</span></div>\n" : "</div>") .
 			"<div class=\"profileEntry\"><img class=avatar src=\"./avatar.php?user=${_id}&amp;${_userData['avatarUpdated']}\" /></div>
-			<div class=\"profileEntry\">Posts: {$postCount}</div>
-			<div class=\"profileEntry\">Registered: {$reg_date}</div>
-			<div class=\"profileEntry\">Last active: {$lastActive}</div>\n<div class=\"profileEntry\">" .
+			<div class=\"profileEntry\">BL_ID: ${blid}</div>
+			<div class=\"profileEntry\">Posts: ${postCount}</div>
+			<div class=\"profileEntry\">Registered: ${reg_date}</div>
+			<div class=\"profileEntry\">Last active: ${lastActive}</div>\n<div class=\"profileEntry\">" .
 			(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a>" : "Website: None") .
 			"</div>
 			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&user=${_userData['id']}\">View this user's posts</a></div>
