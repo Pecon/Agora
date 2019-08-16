@@ -4,7 +4,7 @@
 
 	print('<div class="topicContainer">');
 	print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>${_title}</h3></div>");
-	print('<div class="post originalPost postBackgroundA">');
+	print('<div class="post topPost postBackgroundA">');
 	print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"${user['id']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${user['id']}\">${user['username']}</a>");
 
 	// Display the user's tagline

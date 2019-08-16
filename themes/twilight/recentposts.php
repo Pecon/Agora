@@ -53,7 +53,7 @@
 			$topicPage = floor($post['threadIndex'] / $items_per_page);
 
 			if($index === 0)
-				print('<div class="post originalPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
+				print('<div class="post topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 			else
 				print('<div class="post' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 
