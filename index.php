@@ -1,4 +1,7 @@
 <?php
+	global $_script_start;
+	$_script_start = microtime(true);
+
 	require_once 'functions.php';
 	require_once 'database.php';
 	require_once 'page.php';
@@ -44,19 +47,16 @@
 					$postStuff = $_POST['postcontent'];
 					$preview = bb_parse($postStuff);
 
-					global $_title, $_preview, $_user;
+					global $_title, $_preview, $_postContentPrefill, $_user;
 					$_title = "Post Preview";
 					$_preview = $preview;
+					$_postContentPrefill = htmlentities($postStuff);
 					$_user = findUserByID($_SESSION['userid']);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
 
 					loadThemePart("preview");
-
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					loadThemePart("form-post");
 				}
 
 				else if($_SESSION['lastpostingtime'] > time() - 20)
@@ -64,12 +64,12 @@
 					warn("Your session just started, wait about 20 seconds before posting.");
 					$postStuff = $_POST['postcontent'];
 
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 
 				else if(!isSet($_GET['topic']))
@@ -82,12 +82,12 @@
 
 					$postStuff = $_POST['postcontent'];
 
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 				else if(strLen(trim($_POST['postcontent'])) > 10000)
 				{
@@ -95,12 +95,12 @@
 
 					$postStuff = $_POST['postcontent'];
 
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 				else if($_SESSION['lastpostdata'] == $_POST['postcontent'])
 				{

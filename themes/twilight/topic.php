@@ -147,7 +147,7 @@
 		// If logged in, show the quote button
 		if($quotesEnabled)
 		{
-			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a> ");
+			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#editor\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#editor\">Quote/Reply</a> ");
 
 			if(isSet($_GET['quote']))
 			{
@@ -180,16 +180,6 @@
 
 	if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 	{
-		print("<form action=\"./?action=post&amp;topic=${_topicID}&amp;page=${_page}\" method=\"POST\">");
-		print('<input type="hidden" name="action" value="newpost">
-		<textarea id="replytext" class="postbox" name="postcontent" tabindex="1">');
-
-		if(isSet($quoteString['data']))
-			print("[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]");
-		print('</textarea>
-		<br>
-		<input class="postButtons" type="submit" name="post" value="Post" tabindex="3">
-		<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2">
-	</form>');
+		directLoadThemePart("form-post");
 	}
 ?>
