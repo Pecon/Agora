@@ -52,6 +52,8 @@
 			$date = date("F d, Y H:i:s", $post['postDate']);
 			$topicPage = floor($post['threadIndex'] / $items_per_page);
 
+			$backgroundSwitch = !$backgroundSwitch;
+
 			if($index === 0)
 				print('<div class="post topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
 			else

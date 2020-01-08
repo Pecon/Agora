@@ -14,10 +14,10 @@
 	<tr class="loginTable">
 		<td class="loginTable">
 		Username:
-	</td>
-	<td class="loginTable">
-		<input style="margin: 0px; height: 100%;" type="text" name="username" tabIndex="1" value="<?php print($fillUsername); ?>" autofocus required />
-	</td>
+		</td>
+		<td class="loginTable">
+			<input style="margin: 0px; height: 100%;" type="text" name="username" tabIndex="1" value="<?php print($fillUsername); ?>" autofocus required />
+		</td>
 	</tr>
 	<tr class="loginTable">
 		<td class="loginTable">

@@ -665,9 +665,9 @@ textarea.license
 
 textarea.postbox
 {
-	width: 100%;
-	max-width: 100%;
-	min-width: 100%;
+	width: calc(100% - 12px);
+	max-width: calc(100% - 12px);
+	min-width: calc(100% - 12px);
 	height: 100px;
 	min-height: 100px;
 }
@@ -1270,6 +1270,13 @@ textarea
 {
 	width: 100%;
 	text-align: center;
+}
+
+input.editor-input
+{
+	width: calc(100% - 12px);
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
 
 
