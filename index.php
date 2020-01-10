@@ -1,6 +1,7 @@
 <?php
-	global $_script_start;
+	global $_script_start, $_startDirectory;
 	$_script_start = microtime(true);
+	$_startDirectory = __DIR__;
 
 	require_once 'functions.php';
 	require_once 'database.php';

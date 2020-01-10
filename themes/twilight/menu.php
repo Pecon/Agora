@@ -32,16 +32,18 @@
 
 	if($show_eastereggs == true && rand(0, 99) == 0)
 	{
-		if(is_file("./quotes"))
+		global $_startDirectory;
+
+		if(is_file($_startDirectory . "/data/quotes"))
 		{
-			$quotes = file_get_contents("./quotes");
+			$quotes = file_get_contents($_startDirectory . "/data/quotes");
 			$quotes = explode("\n", $quotes);
 
 			$quote = $quotes[rand(0, count($quotes) - 1)];
 			$quote = str_replace(Array("[Just]", "[Sterling]"), Array('<span class="icon Just"></span>', '<span class="icon Sterling"></span>'), $quote);
 			$quote = trim($quote);
 
-			print($quote . "<br />");
+			info($quote, "Important wisdom");
 		}
 	}
 ?>
