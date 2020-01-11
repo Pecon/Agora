@@ -160,7 +160,7 @@
 
 
 			// If the post owner, show the edit button
-			if($post['userID'] == $_SESSION['userid'])
+			if($post['userID'] == $_SESSION['userid'] && !$row['locked'])
 				print("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit&nbsp;post</a> ");
 		}
 

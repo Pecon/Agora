@@ -1005,6 +1005,41 @@ EOF;
 		querySQL($sql);
 	}
 
+	function editTopicTitle($topicID, $newTitle)
+	{
+		$topicID = intval($topicID);
+		$topic = findTopicbyID($topicID);
+
+		if(!$topic)
+		{
+			error("This topic does not exist.");
+			return;
+		}
+
+		if($_SESSION['userid'] !== $topic['creatorUserID'] && !$_SESSION['admin'])
+		{
+			error("You do not have permission to edit this topic's title.");
+			return;
+		}
+
+		if($topic['locked'])
+		{
+			error("The subject of a locked topic cannot be edited.");
+			return;
+		}
+
+		$newTitle = sanitizeSQL(htmlentities($newTitle, ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+
+		if(strlen($newTitle) > 130)
+		{
+			error("Your subject is over the 130 character limit!");
+			return;
+		}
+
+		$sql = "UPDATE topics SET topicName='${newTitle}' WHERE topicID=${topicID};";
+		querySQL($sql);
+	}
+
 	function deletePost($id)
 	{
 		$id = intval($id);

@@ -155,24 +155,42 @@
 				{
 					error("Please make your post longer.");
 				}
-				else if(strLen(trim($_POST['editpost'])) > 10000)
+				else if(strLen(trim($_POST['editpost'])) > 10000 && !$_SESSION['admin'])
 				{
 					error("Your post is over the 10000 character limit.");
+				}
+				else if(strLen(trim($_POST['editpost'])) > 30000)
+				{
+					error("Your post is over the 30000 character hard limit.");
 				}
 				else if(isSet($_POST['editpost']) && !isSet($_POST['preview']))
 				{
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
+
+					if(isSet($_POST['edittopicsubject']))
+						editTopicTitle($post['threadID'], $_POST['edittopicsubject']);
+
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${post['postID']}");
 					break;
 				}
 
+				global $_postContentPrefill, $_subjectPrefill, $_postID, $_topicID, $_page;
+
+				$_postID = $_GET['post'];
+				$_topicID = $_GET['topic'];
+				$_page = $_GET['page'];
+
+				if(isSet($_POST['edittopicsubject']))
+					$_subjectPrefill = htmlentities($_POST['edittopicsubject']);
+				else if($post['threadIndex'] == 0)
+					$_subjectPrefill = findTopicByID($post['threadID'])['topicName'];
+
 				if(isSet($_POST['editpost']))
-					$prefill = $_POST['editpost'];
+					$_postContentPrefill = htmlentities($_POST['editpost']);
 				else
-					$prefill = $post['postData'];
+					$_postContentPrefill = $post['postData'];
 
-				addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${prefill}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"> <input class=\"postButtons\" type=\"submit\" name=\"preview\" value=\"Preview\"></form>\n");
-
+				loadThemePart("form-edit");
 				break;
 
 			case "recentposts":
