@@ -1,5 +1,5 @@
 <?php
-	global $_topicID, $_page, $_postContentPrefill;
+	global $_topicID, $_page, $_postContentPrefill, $_script_nonce;
 
 	$_topicID = intval($_topicID);
 	$_page = intval($_page);
@@ -46,4 +46,4 @@
 		</div>
 	</form>
 </div>
-<script src="./themes/twilight/js/editor.js" async></script>
+<script src="./themes/twilight/js/editor.js" nonce="<?php print($_script_nonce); ?>" async></script>

@@ -1,5 +1,5 @@
 <?php
-	global $_postContentPrefill, $_subjectPrefill;
+	global $_postContentPrefill, $_subjectPrefill, $_script_nonce;
 
 	if(!isSet($_postContentPrefill))
 		$_postContentPrefill = "";
@@ -48,4 +48,4 @@
 		</div>
 	</form>
 </div>
-<script src="./themes/twilight/js/editor.js" async></script>
+<script src="./themes/twilight/js/editor.js" nonce="<?php print($_script_nonce); ?>" async></script>

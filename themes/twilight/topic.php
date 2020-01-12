@@ -1,5 +1,5 @@
 <?php
-	global $items_per_page, $_topicID, $_page;
+	global $items_per_page, $_topicID, $_page, $_script_nonce;
 
 	$start = $_page * $items_per_page;
 	$end = $items_per_page;
@@ -19,7 +19,7 @@
 	{
 		$quotesEnabled = true;
 		$quoteString = Array();
-		print("<script src=\"./js/quote.js\" type=\"text/javascript\"></script>\n");
+		print("<script src=\"./js/quote.js\" type=\"text/javascript\" nonce=\"${_script_nonce}\" async></script>\n");
 
 		if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
 			$topicControls = "<a href=\"./?action=locktopic&amp;topic=${_topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
@@ -147,7 +147,7 @@
 		// If logged in, show the quote button
 		if($quotesEnabled)
 		{
-			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#editor\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#editor\">Quote/Reply</a> ");
+			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#editor\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton quoteButtonClass\" quotepostid=\"${post['postID']}\" href=\"#editor\">Quote/Reply</a> ");
 
 			if(isSet($_GET['quote']))
 			{
@@ -180,6 +180,12 @@
 
 	if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 	{
+		if(isSet($quoteString['data']))
+		{
+			global $_postContentPrefill;
+			$_postContentPrefill = "[quote " . $quoteString['author'] . "]\n" . $quoteString['data'] . "[/quote]";
+		}
+
 		directLoadThemePart("form-post");
 	}
 ?>
