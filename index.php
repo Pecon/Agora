@@ -437,7 +437,7 @@
 					break;
 				}
 
-				if(isSet($_POST['toName']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
+				if(isSet($_POST['recipient']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
 				{
 					if(isSet($_POST['preview']))
 					{
@@ -456,42 +456,35 @@
 					{
 						error("Please wait a minute before doing that.");
 					}
+					else if(strLen($_POST['postcontent']) > 10000 && !$_SESSION['admin'])
+					{
+						error("Your message is over the 10000 character limit.");
+					}
 					else if(isSet($_POST['send']))
 					{
-						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['toName'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
+						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['recipient'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
 
 						if($success)
 						{
 							$_SESSION['lastpostingtime'] = time();
 							info("Message sent successfully!", "Send message");
 							header('location: ./?action=outbox');
+							break;
 						}
-						break;
+						else
+						{
+							info("Failed to send message.", "Send message");
+						}
 					}
 
-					addToBody('<span>&nbsp;&rarr;&nbsp;</span><h3>Composing message</h3><br /><form action="./?action=composemessage" method="POST">
-					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1" required>
-					<br />
-					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2" required>
-					<br />
-					<textarea name="postcontent" class="postbox" tabIndex="3">' . htmlentities($_POST['postcontent']) . '</textarea>
-					<br />
-					<input class="postButtons" type="submit" name="send" value="Send" tabIndex="5">
-					<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="4">
-					</form><br />');
-					break;
+					global $_postContentPrefill, $_recipientPrefill, $_subjectPrefill;
+
+					$_postContentPrefill = htmlentities($_POST['postcontent']);
+					$_recipientPrefill = htmlentities($_POST['recipient']);
+					$_subjectPrefill = htmlentities($_POST['subject']);
 				}
 
-				addToBody('<div class="topicHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
-					To: <input type="text" name="toName" value="" tabIndex="1" required>
-					<br />
-					Subject: <input type="text" name="subject" value="" tabIndex="2" required>
-					<br />
-					<textarea name="postcontent" class="postbox" tabIndex="3"></textarea>
-					<br />
-					<input class="postButtons" type="submit" name="send" value="Send" tabIndex="5">
-					<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="4">
-					</form><br />');
+				loadThemePart("form-composemessage");
 
 				break;
 

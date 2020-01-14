@@ -1170,7 +1170,7 @@ EOF;
 
 		if($recipient === false)
 		{
-			error("Could not find a user by that name.");
+			warn("Could not find a user by that name.");
 			return false;
 		}
 
