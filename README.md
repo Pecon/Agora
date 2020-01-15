@@ -5,9 +5,11 @@ A basic PHP/MySQL powered forum system with a minimal storage footprint.
 Test out or discuss Agora forum here: https://agora.evalyn.app/
 
 ## Features
+ - A cozy and mobile-responsive default theme.
  - Uncomplicated code (No unexplained regex, things are generally written in a pretty straightforward manner)
- - All features supported without Javascript (Javascript still enhances some features)
+ - All primary forum functions supported without Javascript (Javascript still enhances some features)
  - Powerful BBCode parser written specifically for Agora (No regex used. Very straightforward to edit.)
+ - A semi-interactive editor for composition that assists users with their BBCode markup.
  - Optional email address confirmation system
  - Private messaging system
  - Lack of feature bloat (or just an excuse as to this list being short)
@@ -15,7 +17,6 @@ Test out or discuss Agora forum here: https://agora.evalyn.app/
 ## To-do
  - Add boards  
  - Add more admin tools and improve existing ones  
- - Overhaul visual design
  - Search feature
 
 # BBCode reference

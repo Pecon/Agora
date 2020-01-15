@@ -56,7 +56,6 @@
 		<div class="editor-warnings" id="editor-warnings">
 			​
 		</div>
-		<input type="hidden" name="action" value="newpost">
 		<div class="editor-textarea">
 			<textarea id="replytext" class="postbox" maxLength="<?php print($_SESSION['admin'] ? 100000 : 30000); ?>" minLength="3" name="editpost" tabindex="2"><?php
 

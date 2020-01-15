@@ -1250,6 +1250,11 @@ textarea
 	margin: 1px;
 }
 
+.editor-button:hover
+{
+	cursor: pointer;
+}
+
 .editor-button img
 {
 	width: 100%;
@@ -1309,8 +1314,25 @@ blockquote
 blockquote.codeTag
 {
 	font-family: monospace;
+
 	overflow-x: scroll;
+	scrollbar-color: #232729 #808080;
+	scrollbar-width: thin;
+
 	white-space: pre;
+}
+
+blockquote.codeTag::-webkit-scrollbar
+{
+	height: 6px;
+	width: 3px;
+	background-color: #808080;
+}
+
+blockquote.codeTag::-webkit-scrollbar-thumb
+{
+	background-color: #232729;
+	border-radius: 3px;
 }
 
 img.postImage, video.postMedia

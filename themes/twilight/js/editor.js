@@ -16,6 +16,7 @@ function createEditorTrayItem(name, title, description, iconPath)
 	image.actionName = name;
 	image.actionDescription = description;
 	image.title = title;
+	image.alt = title;
 	image.src = iconPath;
 
 	button.appendChild(image);
