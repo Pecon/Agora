@@ -74,12 +74,12 @@ EOT;
 		}
 
 		addToBody("PHP version: " . PHP_VERSION . " ... ");
-		if(version_compare(PHP_VERSION, '5.5.0') >= 0)
+		if(version_compare(PHP_VERSION, '7.0.0') >= 0)
 			addToBody("good.<br /><br />\r\n");
 		else
 		{
 			$issue = true;
-			addToBody(error("bad. Minimum requirement is 5.5.0 <br /><br />", true));
+			addToBody(error("bad. Minimum required PHP version is 7.0.0 <br /><br />", true));
 		}
 
 		addToBody("Checking mysqli is installed: ... ");
@@ -425,6 +425,21 @@ EOT;
 				finishPage(error("Failed to create privateMessage table. " . $mysqli -> error, true));
 			else
 				addToBody("Created private messaging table...<br />\n");
+
+			$sql = "CREATE TABLE IF NOT EXISTS `rateLimiting` (
+	`IPAddress` varchar(50) NOT NULL,
+	`actionName` enum('general', 'register', 'login', 'post', 'edit', 'sendMessage', 'avatarChange', 'sendEmail', 'emailSecretAttempt'),
+	`useCount` tinyint unsigned NOT NULL DEFAULT '0',
+	`lastUseTime` bigint unsigned,
+	KEY(`IPAddress`),
+	KEY(`actionName`),
+	KEY(`lastUseTime`)
+)	ENGINE=MEMORY DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+			$result = $mysqli -> query($sql);
+			if($result === false)
+				finishPage(error("Failed to create ratelimiting table. " . $mysqli -> error, true));
+			else
+				addToBody("Created rate limiting table...<br />\n");
 
 			// Make configuration file
 			$json = array();

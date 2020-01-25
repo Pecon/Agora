@@ -139,6 +139,14 @@
 		}
 
 		$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+		// Check rate limiting status
+		if(!checkRateLimitAction("register", 300, 2))
+		{
+			error("You may only attempt two registrations per five minutes. Please try again later.");
+			showRegisterForm($_POST['username'], "", $_POST['email']);
+			return;
+		}
 		
 
 		if($settings['require_email_verification'])

@@ -4,6 +4,7 @@
 	$_startDirectory = __DIR__;
 
 	require_once 'functions.php';
+	require_once 'ratelimit.php';
 	require_once 'database.php';
 	require_once 'page.php';
 
@@ -59,20 +60,6 @@
 					loadThemePart("preview");
 					loadThemePart("form-post");
 				}
-
-				else if($_SESSION['lastpostingtime'] > time() - 20)
-				{
-					warn("Your session just started, wait about 20 seconds before posting.");
-					$postStuff = $_POST['postcontent'];
-
-					global $_postContentPrefill, $_page, $_topicID;
-					$_postContentPrefill = htmlentities($postStuff);
-					$_page = intval($_GET['page']);
-					$_topicID = intval($_GET['topic']);
-
-					loadThemePart("form-post");
-				}
-
 				else if(!isSet($_GET['topic']))
 				{
 					error("You need to be in a topic to post.");
@@ -106,6 +93,18 @@
 				else if($_SESSION['lastpostdata'] == $_POST['postcontent'])
 				{
 					error("Oops! Looks like you already tried to post that message.");
+				}
+				else if(!checkRateLimitAction("post", 20, 1))
+				{
+					warn("The last post created from your IP was less than 20 seconds ago, please wait a bit before posting.");
+					$postStuff = $_POST['postcontent'];
+
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 				else if(isSet($_POST['postcontent']))
 				{
@@ -162,6 +161,10 @@
 				else if(strLen(trim($_POST['editpost'])) > 30000)
 				{
 					error("Your post is over the 30000 character hard limit.");
+				}
+				else if(!checkRateLimitAction("edit", 20, 2))
+				{
+					error("You need to wait a moment before editing again.");
 				}
 				else if(isSet($_POST['editpost']) && !isSet($_POST['preview']))
 				{
@@ -310,9 +313,14 @@
 							$_SESSION['lastpostingtime'] = time();
 						}
 					}
-					else if($_SESSION['lastpostingtime'] > time() - 20)
+					else if($_SESSION['lastpostdata'] == $_POST['newtopicsubject'])
 					{
-						warn("Your session just started, wait about 20 seconds before posting.");
+						error("Oops! Looks like you already tried to post that topic.");
+						break;
+					}
+					else if(!checkRateLimitAction("post", 20, 1))
+					{
+						warn("The last post created from your IP was less than 20 seconds ago, please wait a bit before posting.");
 
 						global $_postContentPrefill, $_subjectPrefill;
 
@@ -320,11 +328,6 @@
 						$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
 
 						loadThemePart("form-newtopic");
-						break;
-					}
-					else if($_SESSION['lastpostdata'] == $_POST['newtopicsubject'])
-					{
-						error("Oops! Looks like you already tried to post that message.");
 						break;
 					}
 					else
@@ -452,13 +455,13 @@
 
 						loadThemePart("preview");
 					}
-					else if($_SESSION['lastpostingtime'] > time() - 20)
-					{
-						error("Please wait a minute before doing that.");
-					}
 					else if(strLen($_POST['postcontent']) > 10000 && !$_SESSION['admin'])
 					{
 						error("Your message is over the 10000 character limit.");
+					}
+					else if(!checkRateLimitAction("sendMessage", 20, 1))
+					{
+						error("Please wait a bit before sending another message.");
 					}
 					else if(isSet($_POST['send']))
 					{
@@ -543,6 +546,12 @@
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
+					break;
+				}
+
+				if(!checkRateLimitAction("avatarChange", 5, 60))
+				{
+					error("Too many avatar changes, please wait a minute before trying to upload another avatar.");
 					break;
 				}
 
@@ -634,6 +643,11 @@ EOT;
 			case "emailchange":
 				if(isSet($_GET['code']) && isSet($_GET['id']))
 				{
+					if(!checkRateLimitAction("emailSecretAttempt", 5, 600))
+					{
+						error("Maximum attempts exceeded. Wait 10 minutes before trying again.");
+						break;
+					}
 					if(verifyEmailChange($_GET['id'], $_GET['code']))
 					{
 						info("Your new email address was successfully verified!", "Change email");
@@ -654,6 +668,11 @@ EOT;
 
 				if(isSet($_POST['newemail']))
 				{
+					if(!checkRateLimitAction("sendEmail", 600, 2))
+					{
+						error("Maximum number of email actions reached. Please wait 10 minutes before trying again.");
+						break;
+					}
 					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
 					{
 						if($require_email_verification)
@@ -683,6 +702,12 @@ EOT;
 				break;
 
 			case "verify":
+				if(!checkRateLimitAction("emailSecretAttempt", 5, 600))
+				{
+					error("Maximum attempts exceeded. Wait 10 minutes before trying again.");
+					break;
+				}
+
 				$error = verifyAccount($_GET['code']);
 
 				if($error === false)
@@ -698,6 +723,11 @@ EOT;
 			case "resetpassword":
 				if(isSet($_GET['code']) && isSet($_GET['id']))
 				{
+					if(!checkRateLimitAction("emailSecretAttempt", 5, 600))
+					{
+						error("Maximum attempts exceeded. Wait 10 minutes before trying again.");
+						break;
+					}
 					if(getVerificationByID($_GET['id']) !== $_GET['code'])
 					{
 						error("This verifcation code is invalid.");
@@ -766,6 +796,12 @@ EOT;
 					addToBody($form);
 					break;
 				}
+				if(!checkRateLimitAction("sendEmail", 600, 2))
+				{
+					error("Maximum number of email actions reached. Please wait 10 minutes before trying again.");
+					break;
+				}
+				
 				$error = sendResetEmail($_POST['email']);
 
 				if($error === false)

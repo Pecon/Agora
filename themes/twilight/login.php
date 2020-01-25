@@ -54,12 +54,18 @@
 
 	if(isSet($_POST['loggingin']))
 	{
-		usleep(5000);
+		if(!checkRateLimitAction("login", 60, 5))
+		{
+			error("You have exceeded the maximum number of login attempts. Please wait a minute before trying again.");
+			showLoginForm("", "");
+			return;
+		}
 
 		if(!isSet($_POST['username']) || !isSet($_POST['password']))
 		{
 			error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.");
 			showLoginForm("", "");
+			return;
 		}
 		$username = $_POST['username'];
 
