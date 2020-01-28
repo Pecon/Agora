@@ -287,7 +287,7 @@ EOT;
 	`postData` mediumtext NOT NULL,
 	`changeTime` int unsigned DEFAULT '0',
 	`postID` int unsigned NOT NULL,
-	`threadID` int unsigned NOT NULL,
+	`topicID` int unsigned NOT NULL,
 	KEY(`postID`),
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
@@ -300,14 +300,14 @@ EOT;
 			$sql = "CREATE TABLE IF NOT EXISTS `posts` (
 	`postID` int unsigned NOT NULL AUTO_INCREMENT,
 	`userID` int unsigned DEFAULT NULL,
-	`threadID` int unsigned DEFAULT NULL,
+	`topicID` int unsigned DEFAULT NULL,
 	`postDate` bigint unsigned DEFAULT '0',
 	`postData` mediumtext,
 	`postPreparsed` mediumtext NOT NULL,
 	`threadIndex` int unsigned DEFAULT '0',
 	`changeID` int unsigned DEFAULT NULL,
 	FULLTEXT(`postData`),
-	KEY(`threadID`),
+	KEY(`topicID`),
 	KEY(`postDate`),
 	KEY(`threadIndex`),
 	PRIMARY KEY (`postID`)
@@ -437,7 +437,7 @@ EOT;
 )	ENGINE=MEMORY DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
 			$result = $mysqli -> query($sql);
 			if($result === false)
-				finishPage(error("Failed to create ratelimiting table. " . $mysqli -> error, true));
+				finishPage(error("Failed to create rateLimiting table. " . $mysqli -> error, true));
 			else
 				addToBody("Created rate limiting table...<br />\n");
 

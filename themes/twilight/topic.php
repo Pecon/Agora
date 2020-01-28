@@ -26,7 +26,7 @@
 
 		if($_SESSION['admin'])
 		{
-			$sql = "SELECT postID FROM posts WHERE threadID='${_topicID}' AND threadIndex='0';";
+			$sql = "SELECT postID FROM posts WHERE topicID='${_topicID}' AND threadIndex='0';";
 			$result = querySQL($sql);
 			$result = $result -> fetch_assoc();
 
@@ -44,12 +44,12 @@
 	print('<article class="topicContainer">');
 	print("<header class=\"topicHeader\"><span>${topicStatus}</span><h3><a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a></h3>\n<br />${topicControls}<br />\n");
 
-	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
+	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
 	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
 	print("</header>");
 
 	// Get all the posts into one array
-	$sql = "SELECT * FROM posts WHERE threadID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
+	$sql = "SELECT * FROM posts WHERE topicID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
 	$posts = querySQL($sql);
 
 	$allPosts = Array();

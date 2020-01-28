@@ -46,7 +46,7 @@
 		$backgroundSwitch = false;
 		foreach($posts as $index => $post)
 		{
-			$topic = findTopicbyID($post['threadID']);
+			$topic = findTopicbyID($post['topicID']);
 			$user = findUserByID($post['userID']);
 			$username = $user['username'];
 			$date = date("F d, Y H:i:s", $post['postDate']);
@@ -77,7 +77,7 @@
 
 
 			// Display the post body
-			print("\n<div class=\"postBody\"><div class=\"postText\">\n<a href=\"./?topic=${post['threadID']}&amp;page=${topicPage}#${post['postID']}\">\n${topic['topicName']}\n</a>\n<hr />\n${post['postPreparsed']}\n</div>");
+			print("\n<div class=\"postBody\"><div class=\"postText\">\n<a href=\"./?topic=${post['topicID']}&amp;page=${topicPage}#${post['postID']}\">\n${topic['topicName']}\n</a>\n<hr />\n${post['postPreparsed']}\n</div>");
 
 			// Moving on to the post controls
 			print("\n<div class=\"postFooter\">");
@@ -95,7 +95,7 @@
 				print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 			// Display the permalink button and wrap up.
-			print("<a class=\"inPostButtons\" href=\"./?topic=${post['threadID']}&amp;page=${topicPage}#${post['postID']}\">Permalink</a></div></div></div>\n");
+			print("<a class=\"inPostButtons\" href=\"./?topic=${post['topicID']}&amp;page=${topicPage}#${post['postID']}\">Permalink</a></div></div></div>\n");
 		}
 		
 		print("\n<div class=\"topicFooter\">");

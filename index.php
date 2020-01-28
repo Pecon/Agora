@@ -171,7 +171,7 @@
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
 
 					if(isSet($_POST['edittopicsubject']))
-						editTopicTitle($post['threadID'], $_POST['edittopicsubject']);
+						editTopicTitle($post['topicID'], $_POST['edittopicsubject']);
 
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${post['postID']}");
 					break;
@@ -186,7 +186,7 @@
 				if(isSet($_POST['edittopicsubject']))
 					$_subjectPrefill = htmlentities($_POST['edittopicsubject']);
 				else if($post['threadIndex'] == 0)
-					$_subjectPrefill = findTopicByID($post['threadID'])['topicName'];
+					$_subjectPrefill = findTopicByID($post['topicID'])['topicName'];
 
 				if(isSet($_POST['editpost']))
 					$_postContentPrefill = htmlentities($_POST['editpost']);

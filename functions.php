@@ -948,7 +948,7 @@ EOF;
 
 		// Make entry in posts table
 		$mysqli = getSQLConnection();
-		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${topicID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
+		$sql = "INSERT INTO posts (userID, topicID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${topicID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
 		querySQL($sql);
 
 		$postID = getLastInsertID();
@@ -983,7 +983,7 @@ EOF;
 			return;
 		}
 
-		if(boolval(findTopicbyID($post['threadID'])['locked']))
+		if(boolval(findTopicbyID($post['topicID'])['locked']))
 		{
 			error("You can't edit posts in a locked thread.");
 			return;
@@ -994,7 +994,7 @@ EOF;
 		$postID = intval($postID);
 		$oldPostData = sanitizeSQL($post['postPreparsed']);
 
-		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, threadID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['threadID']}');";
+		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['topicID']}');";
 		querySQL($sql);
 
 		$changeID = getLastInsertID();
@@ -1053,29 +1053,29 @@ EOF;
 		if($post['threadIndex'] == 0)
 		{
 			// Delete the thread entry as well
-			$thread = findTopicByID($post['threadID']);
+			$thread = findTopicByID($post['topicID']);
 			$threadCreator = findUserByID($thread['creatorUserID']);
 
-			$sql = "DELETE FROM topics WHERE topicID='${post['threadID']}';";
+			$sql = "DELETE FROM topics WHERE topicID='${post['topicID']}';";
 			querySQL($sql);
 
-			$sql = "DELETE FROM posts WHERE threadID='${post['threadID']}';";
+			$sql = "DELETE FROM posts WHERE topicID='${post['topicID']}';";
 			querySQL($sql);
 
-			$sql = "DELETE FROM changes WHERE threadID='${post['threadID']}';";
+			$sql = "DELETE FROM changes WHERE topicID='${post['topicID']}';";
 			querySQL($sql);
 
-			adminLog("Deleted thread by ${threadCreator['id']} ${threadCreator['username']}: ${post['threadID']} . ${thread['topicName']}");
+			adminLog("Deleted thread by ${threadCreator['id']} ${threadCreator['username']}: ${post['topicID']} . ${thread['topicName']}");
 		}
 		else
 		{
 			// Check if we need to update the latest post data
-			$topic = findTopicByID($post['threadID']);
+			$topic = findTopicByID($post['topicID']);
 
 			if($topic['lastpostid'] == $id)
 			{
 				// Find the last existing post in the thread.
-				$sql = "SELECT postID, threadIndex, postDate FROM posts WHERE threadID='${post['threadID']}' ORDER BY threadIndex DESC LIMIT 0,2";
+				$sql = "SELECT postID, threadIndex, postDate FROM posts WHERE topicID='${post['topicID']}' ORDER BY threadIndex DESC LIMIT 0,2";
 				$result = querySQL($sql);
 
 				// Skip the first result since it's going to be the post we're about to delete. We want the one after it.
@@ -1084,7 +1084,7 @@ EOF;
 				$newPostCount = $newLastPost['threadIndex'] + 1;
 
 				// Update the thread with the new values
-				$sql = "UPDATE topics SET lastpostid='${newLastPost['postID']}', lastposttime='${newLastPost['postDate']}', numposts='${newPostCount}' WHERE topicID='${post['threadID']}';";
+				$sql = "UPDATE topics SET lastpostid='${newLastPost['postID']}', lastposttime='${newLastPost['postDate']}', numposts='${newPostCount}' WHERE topicID='${post['topicID']}';";
 				querySQL($sql);
 			}
 
@@ -1097,7 +1097,7 @@ EOF;
 			querySQL($sql);
 
 			// Fix thread indexes
-			$sql = "UPDATE posts SET threadIndex=threadIndex-1 WHERE threadID='${post['threadID']}' AND threadIndex>'${post['threadIndex']}';";
+			$sql = "UPDATE posts SET threadIndex=threadIndex-1 WHERE topicID='${post['topicID']}' AND threadIndex>'${post['threadIndex']}';";
 			querySQL($sql);
 
 			// De-increment user post count
