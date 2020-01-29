@@ -441,6 +441,24 @@ EOT;
 			else
 				addToBody("Created rate limiting table...<br />\n");
 
+			$sql = "CREATE TABLE IF NOT EXISTS `logs` (
+	`logID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`logType` enum('info','warning','error','admin','security') NOT NULL DEFAULT 'info',
+	`logMessage` tinytext  NOT NULL,
+	`logTime` bigint(20) UNSIGNED DEFAULT NULL,
+	`logUserID` int(10) UNSIGNED DEFAULT NULL,
+	`logIPAddress` varchar(50) DEFAULT NULL,
+	PRIMARY KEY(`logID`),
+	KEY(`logType`),
+	KEY(`logTime`),
+	KEY(`logUserID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;";
+			$result = $mysqli -> query($sql);
+			if($result === false)
+				finishPage(error("Failed to create rateLimiting table. " . $mysqli -> error, true));
+			else
+				addToBody("Created rate limiting table...<br />\n");
+
 			// Make configuration file
 			$json = array();
 			$json['sql_server_address'] = $server;

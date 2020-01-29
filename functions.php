@@ -1,6 +1,7 @@
 <?php
 	require_once './data.php';
 	require_once './database.php';
+	require_once './logging.php';
 
 	date_default_timezone_set($site_timezone);
 
@@ -1278,15 +1279,6 @@ EOF;
 		}
 
 		return $text;
-	}
-
-
-	function adminLog($stuff)
-	{
-		$file = fopen("./admin.log", "a");
-		$file.fwrite($file, time() . " " . $_SESSION['userid'] . " " . $stuff . "\r\n");
-
-		fclose($file);
 	}
 
 	function adminLogParse($log)
