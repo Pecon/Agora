@@ -991,7 +991,6 @@ EOF;
 		}
 
 		$changeTime = time();
-		$userID = intval($userID);
 		$postID = intval($postID);
 		$oldPostData = sanitizeSQL($post['postPreparsed']);
 

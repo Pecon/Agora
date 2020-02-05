@@ -801,7 +801,7 @@ EOT;
 					error("Maximum number of email actions reached. Please wait 10 minutes before trying again.");
 					break;
 				}
-				
+
 				$error = sendResetEmail($_POST['email']);
 
 				if($error === false)
@@ -834,6 +834,15 @@ EOT;
 				info(($result ? "Locked" : "Unlocked") . " topic!", "Topic controls");
 				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
+
+			case "admin":
+				if(!$_SESSION['admin'])
+				{
+					error("You do not have permission to view this page.");
+					break;
+				}
+
+				loadThemePart("admin");
 
 			case "stickytopic":
 				if(!isSet($_SESSION['loggedin']))
