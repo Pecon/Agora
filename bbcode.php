@@ -421,7 +421,7 @@
 				return '<a href="' . filter_url($argument) . '">';
 
 			case "abbr":
-				return '<span title="' . filter_url($argument) . '">';
+				return '<span title="' . filter_uri($argument) . '">';
 
 			case "center":
 				return '<div style="display: inline-block; width: 100%; text-align: center; content-align: center;">';
@@ -487,11 +487,11 @@
 					$videoID = $videoUrl['path'];
 
 				
-				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . filter_url($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . filter_uri($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
 
 			case "vimeo":
 				$videoUrl = parse_url($argument);
-				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . filter_url($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . filter_uri($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
 
 
 
@@ -590,6 +590,16 @@
 	}
 
 	function filter_url($string)
+	{
+		// Search for "anyProtocol://anyURI"
+		// If not in that format, slap an http:// onto it.
+		if(!preg_match("/^(?:[A-Za-z])+:\/\/(?:[\w\W]+)$/", $string))
+			$string = "http://" . $string;
+
+		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
+	}
+
+	function filter_uri($string)
 	{
 		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
 	}
