@@ -134,7 +134,6 @@
 		$_SESSION['banned'] = $userData['banned'];
 		$_SESSION['userid'] = $userData['id'];
 		$_SESSION['lastpostdata'] = "";
-		$_SESSION['lastpostingtime'] = time();
 		$_SESSION['actionSecret'] = mt_rand(10000, 99999);
 
 		if($_SESSION['banned'] == true)

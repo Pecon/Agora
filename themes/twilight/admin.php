@@ -1,6 +1,12 @@
 <?php
 	setPageTitle("$site_name - Admin");
 
+	if(!$_SESSION['admin'])
+	{
+		error("You do not have permission to view this page.");
+		return;
+	}
+
 	if(isSet($_GET['viewLog']))
 	{
 

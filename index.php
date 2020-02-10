@@ -112,7 +112,6 @@
 					info("Post successful!", "Post topic");
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
-					$_SESSION['lastpostingtime'] = time();
 				}
 
 				break;
@@ -310,7 +309,6 @@
 							$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 							header("Location: ./?topic=${topicID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
-							$_SESSION['lastpostingtime'] = time();
 						}
 					}
 					else if($_SESSION['lastpostdata'] == $_POST['newtopicsubject'])
@@ -335,7 +333,6 @@
 						$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 						header("Location: ./?topic=${topicID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
-						$_SESSION['lastpostingtime'] = time();
 					}
 				}
 
@@ -469,7 +466,6 @@
 
 						if($success)
 						{
-							$_SESSION['lastpostingtime'] = time();
 							info("Message sent successfully!", "Send message");
 							header('location: ./?action=outbox');
 							break;
