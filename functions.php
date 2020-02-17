@@ -1278,30 +1278,4 @@ EOF;
 
 		return $text;
 	}
-
-	function adminLogParse($log)
-	{
-		$return = "";
-		$lines = explode("\n", $log);
-
-		foreach($lines as $line)
-		{
-			$words = explode(" ", $line);
-			$wordCount = count($words);
-
-			if($wordCount < 3)
-				continue;
-
-			$return = $return . date("r", intval($words[0]));
-			$user = findUserByID(intval($words[1]));
-			$return = $return . " ${user['username']} (${words[1]})";
-
-			for($i = 2; $i < $wordCount; $i++)
-			{
-				$return = $return . " " . $words[$i];
-			}
-		}
-
-		return $return;
-	}
 ?>
