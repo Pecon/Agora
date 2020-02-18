@@ -1212,6 +1212,13 @@ input[type=button], input[type=submit], input[type=reset]
 	margin-right: 5px;
 }
 
+label input[type=checkbox]
+{
+	position: relative;
+	vertical-align: middle;
+	bottom: 1px;
+}
+
 textarea
 {
 	color: #FFF;
@@ -1283,6 +1290,18 @@ input.editor-input
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
+
+@media (max-width: 700px)
+{
+	.editor
+	{
+		text-align: center;
+	}
+}
+
+
+/* Admin panel classes */
+
 
 
 /* BBcode formatting styles */

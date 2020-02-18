@@ -93,6 +93,7 @@
 			if(!$valid)
 				return false;
 
+			$types = sanitizeSQL($types);
 			$sql = "SELECT * FROM `logs` WHERE `logType` = '${types}' ORDER BY `logTime` DESC LIMIT ${start}, ${count};";
 		}
 		else if(is_array($types))
@@ -120,10 +121,12 @@
 
 			foreach($types as $type)
 			{
+				$type = sanitizeSQL($type);
+				
 				if(!isSet($whereClause))
 					$whereClause = "`logType` = '${type}'";
 				else
-					$whereClause .= " OR `logType` = '${type}'"
+					$whereClause .= " OR `logType` = '${type}'";
 			}
 
 			$sql = "SELECT * FROM `logs` WHERE ${whereClause} ORDER BY `logTime` DESC LIMIT ${start}, ${count}";
@@ -134,7 +137,7 @@
 		if($result === false)
 			return false;
 
-		$result = $result -> fetch_assoc();
+		$result = $result -> fetch_all(MYSQLI_BOTH);
 		return $result;
 	}
 ?>

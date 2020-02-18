@@ -19,7 +19,7 @@
 				if(!isSet($_SESSION['unreadMessages']))
 					$_SESSION['unreadMessages'] = 0;
 
-				print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>!  The&nbsp;forum&nbsp;time&nbsp;is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile&nbsp;&amp;&nbsp;Settings</a> <a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? "&nbsp;(${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? ' <a href="./admin.php">Admin</a> ' : '') . ' <a href="./?action=logout&amp;as=' . $_SESSION['actionSecret'] . '">Log out</a></div>');
+				print('Hello, <a class="userLink" href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">' . $_SESSION['name'] . '</a>!  The&nbsp;forum&nbsp;time&nbsp;is ' . $date . '. <div class="bottomstuff"><a href="./">Home</a> <a href="./?action=viewProfile&amp;user=' . $_SESSION['userid'] . '">Profile&nbsp;&amp;&nbsp;Settings</a> <a href="./?action=messaging">Messages' . ($_SESSION['unreadMessages'] > 0 ? "&nbsp;(${_SESSION['unreadMessages']})</a>" : "</a>") . ($_SESSION['admin'] == true ? ' <a href="./?action=admin">Admin</a> ' : '') . ' <a href="./?action=logout&amp;as=' . $_SESSION['actionSecret'] . '">Log out</a></div>');
 			}
 			
 			else
