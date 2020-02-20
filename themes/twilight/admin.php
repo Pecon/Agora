@@ -67,27 +67,27 @@
 			Logs to view: 
 			<form method="POST" action="./?action=admin&amp;viewLog=1">
 				<label for="logViewInfo">
-					<input type="checkbox" name="logViewInfo" <?php print($_POST['logViewInfo'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewInfo" id="logViewInfo" <?php print($_POST['logViewInfo'] == true ? "checked" : "") ?> >
 					Info
 				</label>
 
 				<label for="logViewWarning">
-					<input type="checkbox" name="logViewWarning" <?php print($_POST['logViewWarning'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewWarning" id="logViewWarning" <?php print($_POST['logViewWarning'] == true ? "checked" : "") ?> >
 					Warning
 				</label>
 
 				<label for="logViewError">
-					<input type="checkbox" name="logViewError" <?php print($_POST['logViewError'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewError" id="logViewError" <?php print($_POST['logViewError'] == true ? "checked" : "") ?> >
 					Error
 				</label>
 
 				<label for="logViewAdmin">
-					<input type="checkbox" name="logViewAdmin" <?php print($_POST['logViewAdmin'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewAdmin" id="logViewAdmin" <?php print($_POST['logViewAdmin'] == true ? "checked" : "") ?> >
 					Admin
 				</label>
 
 				<label for="logViewSecurity">
-					<input type="checkbox" name="logViewSecurity" <?php print($_POST['logViewSecurity'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewSecurity" id="logViewSecurity" <?php print($_POST['logViewSecurity'] == true ? "checked" : "") ?> >
 					Security
 				</label>
 
@@ -106,6 +106,7 @@
 		<table style="width: 100%;">
 			<tr>
 				<td>Date</td>
+				<td>Category</td>
 				<td>Message</td>
 				<td>User</td>
 				<td>IP Address</td>
@@ -118,6 +119,9 @@
 			<tr>
 				<td>
 					<?php print(date("M d, Y H:i:s", $log['logTime']));	?>
+				</td>
+				<td>
+					<?php print($log['logType']); ?>
 				</td>
 				<td>
 					<?php print($log['logMessage']); ?>

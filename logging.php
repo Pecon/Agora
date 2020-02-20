@@ -38,7 +38,7 @@
 			if(isSet($_SERVER['REMOTE_ADDR']))
 				$logIPAddress = $_SERVER['REMOTE_ADDR'];
 
-		$logMessage = sanitizeSQL($logMessage);
+		$logMessage = sanitizeSQL(htmlentities(html_entity_decode($logMessage), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
 		$query = "INSERT INTO `logs`";
 		$fields = "(`logType`, `logMessage`, `logTime`";
@@ -122,7 +122,7 @@
 			foreach($types as $type)
 			{
 				$type = sanitizeSQL($type);
-				
+
 				if(!isSet($whereClause))
 					$whereClause = "`logType` = '${type}'";
 				else

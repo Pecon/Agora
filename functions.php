@@ -184,6 +184,8 @@
 		$sql = "UPDATE users SET verified=1, verification=0 WHERE id='${ID}'";
 		$result = querySQL($sql);
 
+		addLogMessage("User verified their email.", 'info', $ID);
+
 		return true;
 	}
 
@@ -248,8 +250,11 @@ EOF;
 		if($error === false)
 		{
 			error("Failed to send verification email. Please try again later.");
+			addLogMessage("Failed to send password reset email.", 'error', $result['id']);
 			return false;
 		}
+
+		addLogMessage("Password reset email sent for user.", 'security', $result['id']);
 
 		return true;
 	}

@@ -74,6 +74,7 @@
 		{
 			error('No user exists by that name.');
 			showLoginForm("", "");
+			addLogMessage("Failed login attempt for non-user '$username'.", 'security');
 			return;
 		}
 
@@ -84,6 +85,7 @@
 		{
 			info('Incorrect password.', "Login");
 			showLoginForm($_POST['username'], "");
+			addLogMessage("Failed login for $username (Bad password).", 'security', $userData['id']);
 			return;
 		}
 
@@ -91,6 +93,7 @@
 		{
 			error("You must verify your email address before logging in.");
 			showLoginForm("", "");
+			addLogMessage("Failed login for $username (Account not verified).", 'security', $userData['id']);
 			return;
 		}
 
@@ -140,6 +143,7 @@
 		{
 			error("Your account is banned. Goodbye.");
 			session_destroy();
+			addLogMessage("Banned user login rejected.", 'info', $userData['id']);
 		}
 		else
 		{
@@ -149,6 +153,7 @@
 				info("Logged in!<br><a href=\"./\">Continue</a>", "Login");
 
 			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
+			addLogMessage("User logged in sucessfully.", 'info', $userData['id']);
 		}
 
 		// Generate persistent session
@@ -163,7 +168,7 @@
 		$newSession -> token = $token;
 		$newSession -> id = $userData['id'];
 
-		setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12);
+		setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12); // Roughly a year
 
 		$_SESSION['token'] = $token;
 	}

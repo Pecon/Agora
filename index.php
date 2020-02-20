@@ -574,6 +574,7 @@
 							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 							//header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
 							info("Avatar updated successfully.", "Avatar change");
+							addLogMessage("User changed their avatar.", 'info');
 						}
 						else
 						{
@@ -839,6 +840,7 @@ EOT;
 				}
 
 				loadThemePart("admin");
+				break;
 
 			case "stickytopic":
 				if(!isSet($_SESSION['loggedin']))
@@ -976,7 +978,7 @@ EOT;
 
 		if(isSet($_SESSION['admin']))
 			if($_SESSION['admin'])
-				addToBody("<br /><a href=\"./admin.php\">Admin</a>");
+				addToBody("<br /><a href=\"./?action=admin\">Admin</a>");
 	}
 
 	// End of possible actions, close mysql connection.

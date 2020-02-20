@@ -179,6 +179,7 @@ EOF;
 			if($error === false)
 			{
 				error("Failed to send verification email. Please try again later.");
+				addLogMessage("Failed to send new user verification email.", 'error');
 				finishPage();
 			}
 		}
@@ -195,6 +196,7 @@ EOF;
 
 		querySQL($sql);
 		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a>", "Register");
+		addLogMessage("User account created.", 'info');
 
 		disconnectSQL();
 	}
