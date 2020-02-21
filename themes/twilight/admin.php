@@ -129,7 +129,7 @@
 				<td>
 					<?php
 						$name = findUserByID($log['logUserID'])['username'];
-						print($log['logUserID'] === null ? "N/A" : '<a href="./action=viewProfile&amp;user=' . $log['logUserID'] . '">' . $name . '</a>');
+						print($log['logUserID'] === null ? "N/A" : '<a href="./?action=viewProfile&amp;user=' . $log['logUserID'] . '">' . $name . '</a>');
 					?>
 				</td>
 				<td>

@@ -555,7 +555,29 @@
 				{
 					if($_FILES['avatar']['error'] !== UPLOAD_ERR_OK)
 					{
-						error("An error occurred while uploading your avatar. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						$error = $_FILES['avatar']['error'];
+
+						if($error == UPLOAD_ERR_INI_SIZE)
+							error("The uploaded file exceeds the maximum filesize this server is configured to support.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_FORM_SIZE)
+							error("The uploaded file exceeds the maximum filesize.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_PARTIAL)
+							error("The uploaded file did not finish uploading completely. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_NO_FILE)
+							error("No file was uploaded.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_NO_TMP_DIR)
+						{
+							error("Your avatar could not be processed because the server is missing a temporary directory to handle the upload.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+							addLogMessage("User's uploaded avatar could not be processed due to the lack of a PHP upload temp directory. This is a configuration problem.", 'error');
+						}
+						else if($error == UPLOAD_ERR_CANT_WRITE)
+						{
+							error("Your avatar could not be processed due to an issue writing data on the server. Please try again later.");
+							addLogMessage("User's uploaded avatar could not be processed because of a disk write error. Is the system out of disk space? Permission issue?");
+						}
+						else
+							error("An error occurred while uploading your avatar. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+
 						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=avatarchange'\" />");
 					}
 					else if($_FILES['avatar']['size'] > 2024000)
