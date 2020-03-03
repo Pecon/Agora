@@ -180,12 +180,40 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* Default color selections */
+:root
+{
+	--background-color: #111117;
+	--body-color: #414141;
+	--subbody-color: #505050;
+
+	--border-color: #DDD;
+
+	--post-border-color: #888;
+	--post-backgroundA-color: #393939;
+	--post-backgroundB-color: #393939;
+	--post-backgroundOP-color: #535044;
+	--post-mobile-separator-color: #555;
+
+	--text-color: #eeeeff;
+	--text-header-color: #709ee3;
+
+	--link-color: #88F;
+	--link-visted-color: #88F;
+	--link-hover-color: #BBF;
+
+	--input-color: #FFF;
+	--input-background-color: #232729;
+
+	--shadow-color: #000;
+}
+
 /* Base components */
 body
 {
-	background-color: #111117;
+	background-color: var(--background-color);
 	/*background-image: url('./style/background.png');*/
-	color: #eeeeff;
+	color: var(--text-color);
 	font-family: Montserrat, sans-serif;
 	font-size: 17px;
 
@@ -197,8 +225,8 @@ h1
 {
 	font-size: 20pt;
 	font-weight: bold;
-	color: #709ee3;
-	text-shadow: 0px 0px 16px #000;
+	color: var(--text-header-color);
+	text-shadow: 0px 0px 16px var(--shadow-color);
 	text-align: center;
 }
 
@@ -206,8 +234,8 @@ h2
 {
 	font-size: 15pt;
 	font-weight: bold;
-	color: #709ee3;
-	text-shadow: 0px 0px 16px #000;
+	color: var(--text-header-color);
+	text-shadow: 0px 0px 16px var(--shadow-color);
 	line-height: 2px;
 	padding-left: 1px;
 }
@@ -216,7 +244,7 @@ h3
 {
 	font-size: 15pt;
 	font-weight: bold;
-	color: #709ee3;
+	color: var(--text-header-color);
 	display: inline;
 	margin-top: 0px;
 	margin-bottom: 10px;
@@ -229,23 +257,23 @@ p
 
 a
 {
-	color: #88F;
+	color: var(--link-color);
 	text-decoration: none;
 }
 
 a:hover
 {
-	color: #BBF;
+	color: var(--link-hover-color);
 }
 
 a:visited
 {
-	color: #88F;
+	color: var(--link-visted-color);
 }
 
 a:visited:hover
 {
-	color: #BBF;
+	color: var(--link-hover-color);
 }
 
 textarea.license
@@ -253,7 +281,6 @@ textarea.license
 	font-family: "Courier New", Courier, monospace;
 	width: 750px;
 	height: 400px;
-	background-color: #a0a0a0;
 }
 
 /* Container */
@@ -261,13 +288,13 @@ textarea.license
 {
 	width: 90%;
 
-	background-color: #414141;
+	background-color: var(--body-color);
 
 	padding-bottom: 10px;
 	margin-top: 10px;
 	border-width: 2px;
 	border-style: solid;
-	border-color: #DDD;
+	border-color: var(--border-color);
 	border-radius: 5px;
 }
 
@@ -298,7 +325,7 @@ textarea.license
 	width: calc(100% - 20px);
 	height: 65px;
 
-	background-color: #505050;
+	background-color: var(--subbody-color);
 
 	padding: 0px;
 	margin: 10px;
@@ -425,7 +452,7 @@ textarea.license
 	margin-right: 10px;
 	margin-left: 10px;
 
-	background-color: #505050;
+	background-color: var(--subbody-color);
 
 	overflow: hidden;
 	overflow-wrap: break-word;
@@ -561,7 +588,7 @@ textarea.license
 
 	border-width: 0px;
 	border-style: solid;
-	border-color: #888;
+	border-color: var(--post-border-color);
 	border-bottom-width: 1px;
 
 	overflow: hidden;
@@ -569,17 +596,17 @@ textarea.license
 
 .postBackgroundA
 {
-	background-color: #393939;
+	background-color: var(--post-backgroundA-color);
 }
 
 .postBackgroundB
 {
-	background-color: #414141;
+	background-color: var(--post-backgroundB-color);
 }
 
 .originalPost
 {
-	background-color: #535044;
+	background-color: var(--post-backgroundOP-color);
 }
 
 .topPost
@@ -744,7 +771,7 @@ textarea.postbox
 		margin-right: 1%;
 
 		border-style: solid;
-		border-color: #555;
+		border-color: var(--post-mobile-separator-color);
 		border-width: 0px;
 		border-top-width: 1px;
 	}
@@ -792,7 +819,7 @@ textarea.postbox
 .profileContainer
 {
 	width: calc(100% - 40px);
-	background-color: #505050;
+	background-color: var(--subbody-color);
 
 	text-align: left;
 	
@@ -809,7 +836,7 @@ textarea.postbox
 
 	border-width: 0px;
 	border-style: solid;
-	border-color: #888;
+	border-color: var(--post-border-color);
 	border-bottom-width: 1px;
 
 	overflow: hidden;
@@ -915,7 +942,7 @@ textarea.postbox
 		padding-bottom: 10px;
 		border-width: 0px;
 		border-style: solid;
-		border-color: #888;
+		border-color: var(--post-border-color);
 		border-bottom-width: 1px;
 	}
 
@@ -934,7 +961,7 @@ textarea.postbox
 		padding-bottom: 10px;
 		border-width: 0px;
 		border-style: solid;
-		border-color: #888;
+		border-color: var(--post-border-color);
 		border-bottom-width: 1px;
 
 		overflow-wrap: break-word;
@@ -955,7 +982,7 @@ textarea.postbox
 		padding-bottom: 10px;
 		border-width: 0px;
 		border-style: solid;
-		border-color: #888;
+		border-color: var(--post-border-color);
 		border-bottom-width: 1px;
 
 		width: 100%;
@@ -970,7 +997,7 @@ textarea.postbox
 		padding-top: 10px;
 		border-width: 0px;
 		border-style: solid;
-		border-color: #888;
+		border-color: var(--post-border-color);
 		border-bottom-width: 1px;
 	}
 }
@@ -1000,7 +1027,7 @@ textarea.postbox
 	border-style: solid;
 	border-radius: 5px;
 
-	background-color: #505050;
+	background-color: var(--subbody-color);
 
 	overflow: hidden;
 }
@@ -1034,12 +1061,12 @@ textarea.postbox
 
 .infoBox
 {
-	border-color: #DDD;
+	border-color: var(--border-color);
 }
 
 .infoBoxHeader
 {
-	background-color: #DDD;
+	background-color: var(--border-color);
 	color: black;
 }
 
@@ -1108,6 +1135,7 @@ p.requirements
 	position: absolute;
 	left: calc(50vw - 190px);
 
+	color: white;
 	background-color: rgba(143, 0, 0, 0.7);
 	width: 350px;
 	max-width: calc(100vw - 4px);
@@ -1179,8 +1207,8 @@ input.registerEmail:valid
 /* Input classes */
 input
 {
-	color: #FFF;
-	background-color: #232729;
+	color: var(--input-color);
+	background-color: var(--input-background-color);
 	height: 32px;
 }
 
@@ -1189,7 +1217,7 @@ input[type=text], input[type=password], input[type=email]
 	padding: 1px;
 	border-width: 2px;
 	border-style: inset;
-	border-color: #232729;
+	border-color: var(--input-background-color);
 
 	height: 20px;
 }
@@ -1204,7 +1232,7 @@ input[type=button], input[type=submit], input[type=reset]
 	border-right-width: 17px;
 	border-left-width: 17px;
 	border-style: solid;
-	border-color: #232729;
+	border-color: var(--input-background-color);
 
 	margin: 0px;
 	margin-top: 3px;
@@ -1221,14 +1249,14 @@ label input[type=checkbox]
 
 textarea
 {
-	color: #FFF;
-	background-color: #232729;
+	color: var(--input-color);
+	background-color: var(--input-background-color);
 
 	margin: 0px;
 	padding: 1px;
 	border-width: 2px;
 	border-style: inset;
-	border-color: #232729;
+	border-color: var(--input-background-color);
 }
 
 
@@ -1313,7 +1341,7 @@ input.editor-input
 
 blockquote
 {
-	background-color: #414141;
+	background-color: var(--body-color);
 	border: 2px dashed gray;
 	margin: 3px;
 	padding: 4px;
@@ -1323,7 +1351,7 @@ blockquote
 
 .blockquoteHead
 {
-	color: #EEEEFF;
+	color: var(--text-color);
 	text-decoration: none;
 	text-align: left;
 	display: block;
@@ -1335,7 +1363,7 @@ blockquote.codeTag
 	font-family: monospace;
 
 	overflow-x: scroll;
-	scrollbar-color: #232729 #808080;
+	scrollbar-color: var(--input-background-color) var(--post-border-color);
 	scrollbar-width: thin;
 
 	white-space: pre;
@@ -1345,12 +1373,12 @@ blockquote.codeTag::-webkit-scrollbar
 {
 	height: 6px;
 	width: 3px;
-	background-color: #808080;
+	background-color: var(--post-border-color);
 }
 
 blockquote.codeTag::-webkit-scrollbar-thumb
 {
-	background-color: #232729;
+	background-color: var(--input-background-color);
 	border-radius: 3px;
 }
 
