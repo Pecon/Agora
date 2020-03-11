@@ -301,7 +301,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Banned user (${id}) ${user['username']}.");
+		adminLog("Banned user \$USERID:${id}");
 		return true;
 	}
 
@@ -313,7 +313,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Unbanned user (${id}) ${user['username']}.");
+		adminLog("Unbanned user \$USERID:${id}");
 		return true;
 	}
 
@@ -346,7 +346,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Promoted user (${id}) ${user['username']} to admin.");
+		adminLog("Promoted user \$USERID:${id} to admin.");
 		return true;
 	}
 
@@ -370,7 +370,7 @@ EOF;
 		$result = querySQL($sql);
 
 		
-		adminLog("Demoted user (${id}) ${user['username']} from admin.");
+		adminLog("Demoted user \$USERID:${id} from admin.");
 		return true;
 	}
 
@@ -897,7 +897,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("set topic (${topicID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
+		adminLog("Set topic \$TOPICID:${topicID} locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
 		return $newValue;
    }
 
@@ -924,7 +924,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("set topic (${topicID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
+		adminLog("Set topic \$TOPICID:${topicID} sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
 		return $newValue;
 	}
 
@@ -970,6 +970,8 @@ EOF;
 
 		$sql = "UPDATE users SET postCount='${postCount}' WHERE id=${userID}";
 		querySQL($sql);
+
+		addLogMessage('User created a post $POSTID:' . $postID . ' in $TOPICID:' . $topicID, 'info', $userID);
 		
 		return $postID;
 	}
@@ -1004,6 +1006,8 @@ EOF;
 		$changeID = getLastInsertID();
 		$newPostParsed = sanitizeSQL(bb_parse($newPostData));
 		$newPostData = sanitizeSQL(htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+
+		addLogMessage('User edited their post $POSTID:' . $postID, 'info', $userID);
 
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
 		querySQL($sql);
@@ -1040,6 +1044,8 @@ EOF;
 			return;
 		}
 
+		addLogMessage('User changed their topic\'s title from ' . $topic['topicName'] . ' to $TOPICID:' . $topicID);
+
 		$sql = "UPDATE topics SET topicName='${newTitle}' WHERE topicID=${topicID};";
 		querySQL($sql);
 	}
@@ -1069,7 +1075,7 @@ EOF;
 			$sql = "DELETE FROM changes WHERE topicID='${post['topicID']}';";
 			querySQL($sql);
 
-			adminLog("Deleted thread by ${threadCreator['id']} ${threadCreator['username']}: ${post['topicID']} . ${thread['topicName']}");
+			adminLog("Deleted topic by \$USERID:${threadCreator['id']} ((${post['topicID']}) . ${thread['topicName']})");
 		}
 		else
 		{
@@ -1111,7 +1117,7 @@ EOF;
 			$sql = "DELETE FROM changes WHERE postID='${id}';";
 			querySQL($sql);
 
-			adminLog("Deleted post by ${user} (${post['userID']}): (${id}) ${postStuff}");
+			adminLog("Deleted post by \$USERID:${post['userID']} ((${id}) ${postStuff}");
 		}
 
 		return true;
