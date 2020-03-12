@@ -15,6 +15,26 @@
 	{
 		switch(strToLower($_GET['action']))
 		{
+			case "gotopost":
+				if(!isSet($_GET['post']))
+				{
+					error("No postID specified.");
+					break;
+				}
+
+				$link = getPostLink($_GET['post']);
+
+				if($link === false)
+				{
+					header('Status: 404 Not Found');
+					error("The post specified could not be found. The post may have been deleted or the link you followed may be malformed.");
+					break;
+				}
+
+				header("Location: $link");
+				info('Your browser has been informed of the location of this post and should have redirected you to it, but if you are reading this then that probably didn\'t happen. To view your requested post, please <a href="' . $link . '">click here</a> to complete your redirect manually.', "Redirect");
+
+				break;
 			case "login":
 				loadThemePart("login");
 				break;

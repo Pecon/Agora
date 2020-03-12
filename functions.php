@@ -849,6 +849,22 @@ EOF;
 		return $row;
 	}
 
+	function getPostLink($postID)
+	{
+		global $items_per_page;
+		$postID = intval($postID);
+
+		$post = fetchSinglePost($postID);
+
+		if($post === false)
+			return false;
+
+		$topicPage = floor($post['threadIndex'] / $items_per_page);
+
+		$link = "./?topic=${post['topicID']}&page=${topicPage}#${post['postID']}";
+		return $link;
+	}
+
 	function displayPostEdits($postID)
 	{
 		

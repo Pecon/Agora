@@ -77,7 +77,7 @@
 
 
 			// Display the post body
-			print("\n<div class=\"postBody\"><div class=\"postText\">\n<a href=\"./?topic=${post['topicID']}&amp;page=${topicPage}#${post['postID']}\">\n${topic['topicName']}\n</a>\n<hr />\n${post['postPreparsed']}\n</div>");
+			print("\n<div class=\"postBody\"><div class=\"postText\">\n<a href=\"./?action=gotopost&amp;post=${post['postID']}\">\n${topic['topicName']}\n</a>\n<hr />\n${post['postPreparsed']}\n</div>");
 
 			// Moving on to the post controls
 			print("\n<div class=\"postFooter\">");
@@ -95,7 +95,7 @@
 				print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 			// Display the permalink button and wrap up.
-			print("<a class=\"inPostButtons\" href=\"./?topic=${post['topicID']}&amp;page=${topicPage}#${post['postID']}\">Permalink</a></div></div></div>\n");
+			print("<a class=\"inPostButtons\" href=\"./?action=gotopost&amp;post=${post['postID']}\">Permalink</a></div></div></div>\n");
 		}
 		
 		print("\n<div class=\"topicFooter\">");

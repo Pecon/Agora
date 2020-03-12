@@ -170,7 +170,7 @@
 			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 		// Display the permalink button and wrap up.
-		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></div></section>\n");
+		print("<a class=\"inPostButtons\" href=\"./?action=gotopost&amp;post=${post['postID']}\">Permalink</a></div></div></section>\n");
 	}
 	print("\n<div class=\"topicFooter\">");
 
