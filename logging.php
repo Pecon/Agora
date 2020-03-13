@@ -140,4 +140,56 @@
 		$result = $result -> fetch_all(MYSQLI_BOTH);
 		return $result;
 	}
+
+	function findLogReplacers($log, $replacer)
+	{
+		while(true)
+		{
+			$found = preg_match('/\$' . $replacer . ':(\d+)/', $log, $matches);
+
+			if(!$found)
+				break;
+
+			yield $matches;
+			$log = str_replace($matches[0], "", $log);
+		}
+	}
+
+	function expandLogLinks($log)
+	{
+		// Replace POSTID with links to posts
+		$replacements = findLogReplacers($log, "POSTID");
+		foreach($replacements as $replacement)
+		{
+			$id = $replacement[1];
+			$post = fetchSinglePost($id);
+			$link = '<a href="?action=gotopost&amp;post=' . $id . '" target="_BLANK">' . $id . '</a>';
+
+			$log = str_replace($replacement[0], $link, $log);
+		}
+
+		//Replace TOPICID with links to topics
+		$replacements = findLogReplacers($log, "TOPICID");
+		foreach($replacements as $replacement)
+		{
+			$id = $replacement[1];
+			$topic = findTopicByID($id);
+			$link = '<a href="?topic=' . $id . '" target="_BLANK">' . $topic['topicName'] . '</a>';
+
+			$log = str_replace($replacement[0], $link, $log);
+		}
+
+		//Replace USERID with links to users
+		$replacements = findLogReplacers($log, "USERID");
+		foreach($replacements as $replacement)
+		{
+			$id = $replacement[1];
+			$user = findUserByID($id);
+			$link = '<a href="?action=viewProfile&amp;user=' . $id . '" target="_BLANK">' . $user['username'] . '</a>';
+
+			$log = str_replace($replacement[0], $link, $log);
+		}
+
+		return $log;
+	}
 ?>

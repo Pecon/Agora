@@ -887,6 +887,7 @@ EOF;
 		$topicID = getLastInsertID();
 
 		createPost($userID, $topicID, $postData);
+		addLogMessage('User started a new topic $TOPICID:' . $topicID);
 		return $topicID;
    }
 
@@ -913,7 +914,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("Set topic \$TOPICID:${topicID} locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
+		adminLog(($newValue ? "Locked" : "Unlocked") . " topic \$TOPICID:${topicID}");
 		return $newValue;
    }
 
@@ -940,7 +941,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("Set topic \$TOPICID:${topicID} sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
+		adminLog("Topic \$TOPICID:${topicID} is " . ($newValue ? "now sticky" : "no longer sticky") . ".");
 		return $newValue;
 	}
 

@@ -16,78 +16,80 @@
 	{
 		$logTypes = Array();
 
-		if(isSet($_POST['logViewInfo']))
+		if(isSet($_GET['logViewInfo']))
 		{
-			if($_POST['logViewInfo'] == true)
+			if($_GET['logViewInfo'] == true)
 				array_push($logTypes, "info");
 		}
 		else
-			$_POST['logViewInfo'] = false;
+			$_GET['logViewInfo'] = false;
 
-		if(isSet($_POST['logViewWarning']))
+		if(isSet($_GET['logViewWarning']))
 		{
-			if($_POST['logViewWarning'] == true)
+			if($_GET['logViewWarning'] == true)
 				array_push($logTypes, "warning");
 		}
 		else
-			$_POST['logViewWarning'] = false;
+			$_GET['logViewWarning'] = false;
 
-		if(isSet($_POST['logViewError']))
+		if(isSet($_GET['logViewError']))
 		{
-			if($_POST['logViewError'] == true)
+			if($_GET['logViewError'] == true)
 				array_push($logTypes, "error");
 		}
 		else
-			$_POST['logViewError'] = false;
+			$_GET['logViewError'] = false;
 
-		if(isSet($_POST['logViewSecurity']))
+		if(isSet($_GET['logViewSecurity']))
 		{
-			if($_POST['logViewSecurity'] == true)
+			if($_GET['logViewSecurity'] == true)
 				array_push($logTypes, "security");
 		}
 		else
-			$_POST['logViewSecurity'] = false;
+			$_GET['logViewSecurity'] = false;
 
-		if(isSet($_POST['logViewAdmin']))
+		if(isSet($_GET['logViewAdmin']))
 		{
-			if($_POST['logViewAdmin'] == true)
+			if($_GET['logViewAdmin'] == true)
 				array_push($logTypes, "admin");
 		}
 		else if(count($logTypes) < 1)
 		{
-			$_POST['logViewAdmin'] = true; // We should show just the admin log by default
+			$_GET['logViewAdmin'] = true; // We should show just the admin log by default
 			array_push($logTypes, "admin");
 		}
 		else
-			$_POST['logViewAdmin'] = false;
+			$_GET['logViewAdmin'] = false;
 
 		
 		?>
 		<p>
 			Logs to view: 
-			<form method="POST" action="./?action=admin&amp;viewLog=1">
+			<form method="GET" action="./?action=admin&amp;viewLog=1">
+				<input type="hidden" name="action" value="admin">
+				<input type="hidden" name="viewLog" value="1">
 				<label for="logViewInfo">
-					<input type="checkbox" name="logViewInfo" id="logViewInfo" <?php print($_POST['logViewInfo'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewInfo" id="logViewInfo" <?php print($_GET['logViewInfo'] == true ? "checked" : "") ?> >
 					Info
 				</label>
 
 				<label for="logViewWarning">
-					<input type="checkbox" name="logViewWarning" id="logViewWarning" <?php print($_POST['logViewWarning'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewWarning" id="logViewWarning" <?php print($_GET['logViewWarning'] == true ? "checked" : "") ?> >
 					Warning
 				</label>
 
 				<label for="logViewError">
-					<input type="checkbox" name="logViewError" id="logViewError" <?php print($_POST['logViewError'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewError" id="logViewError" <?php print($_GET['logViewError'] == true ? "checked" : "") ?> >
 					Error
 				</label>
 
 				<label for="logViewAdmin">
-					<input type="checkbox" name="logViewAdmin" id="logViewAdmin" <?php print($_POST['logViewAdmin'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewAdmin" id="logViewAdmin" <?php print($_GET['logViewAdmin'] == true ? "checked" : "") ?> >
 					Admin
 				</label>
 
 				<label for="logViewSecurity">
-					<input type="checkbox" name="logViewSecurity" id="logViewSecurity" <?php print($_POST['logViewSecurity'] == true ? "checked" : "") ?> >
+					<input type="checkbox" name="logViewSecurity" id="logViewSecurity" <?php print($_GET['logViewSecurity'] == true ? "checked" : "") ?> >
 					Security
 				</label>
 
@@ -107,8 +109,8 @@
 			<tr>
 				<td>Date</td>
 				<td>Category</td>
-				<td>Message</td>
 				<td>User</td>
+				<td>Message</td>
 				<td>IP Address</td>
 			</tr>
 		<?php
@@ -124,13 +126,13 @@
 					<?php print($log['logType']); ?>
 				</td>
 				<td>
-					<?php print($log['logMessage']); ?>
-				</td>
-				<td>
 					<?php
 						$name = findUserByID($log['logUserID'])['username'];
-						print($log['logUserID'] === null ? "N/A" : '<a href="./?action=viewProfile&amp;user=' . $log['logUserID'] . '">' . $name . '</a>');
+						print($log['logUserID'] === null ? "N/A" : '<a href="./?action=viewProfile&amp;user=' . $log['logUserID'] . '" target="_BLANK">' . $name . '</a>');
 					?>
+				</td>
+				<td>
+					<?php print(expandLogLinks($log['logMessage'])); ?>
 				</td>
 				<td>
 					<?php print($log['logIPAddress'] === null ? "N/A" : $log['logIPAddress']); ?>
