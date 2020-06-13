@@ -464,13 +464,15 @@
 
 
 			case "img":
-				return '<img class="postImage" src="' . filter_url(html_entity_decode($argument)) . '">';
+				return '<img class="postImage" src="' . filter_url(html_entity_decode($argument)) . '" loading="lazy">';
 
 			case "audio":
-				return '<audio class="postMedia" preload="metadata" volume=0.3 controls><source src="' . filter_url(html_entity_decode($argument)) . '" /></audio>';
+				$url = filter_url(html_entity_decode($argument));
+				return '<audio class="postMedia" preload="metadata" volume=0.3 controls><source src="' . $url . '" />Your browser does not support embedded audio content. <a href="' . $url . '" target="_BLANK">' . $url . '</a></audio>';
 
 			case "video":
-				return '<video class="postMedia" preload="metadata" muted controls><source src="' . filter_url(html_entity_decode($argument)) . '" /></video>';
+				$url = filter_url(html_entity_decode($argument));
+				return '<video class="postMedia" preload="metadata" muted controls><source src="' . $url . '" />Your browser does not support embeded video content. <a href="' . $url . '" target="_BLANK">' . $url . '</a></video>';
 
 			case "youtube":
 				$videoUrl = parse_url($argument);
@@ -487,11 +489,11 @@
 					$videoID = $videoUrl['path'];
 
 				
-				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . filter_uri($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/' . filter_uri($videoID) . '?rel=0" frameborder="0" allow="encrypted-media" allowfullscreen="true" loading="lazy"></iframe>';
 
 			case "vimeo":
 				$videoUrl = parse_url($argument);
-				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . filter_uri($videoUrl['path']) . '" frameborder="0" allowfullscreen></iframe>';
+				return '<iframe width="560" height="315" src="https://player.vimeo.com/video' . filter_uri($videoUrl['path']) . '" frameborder="0" allowfullscreen="true" loading="lazy"></iframe>';
 
 
 

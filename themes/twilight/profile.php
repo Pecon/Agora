@@ -42,7 +42,7 @@
 			<div class=\"profileEntry\">Last active: {$lastActive}</div>\n<div class=\"profileEntry\">" .
 			(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a>" : "Website: None") .
 			"</div>
-			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&user=${_userData['id']}\">View this user's posts</a></div>
+			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&amp;user=${_userData['id']}\">View this user's posts</a></div>
 			</div>
 			<div class=\"profileText\">
 			${profileDisplayText}
