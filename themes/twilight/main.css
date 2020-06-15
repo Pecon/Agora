@@ -1329,7 +1329,24 @@ input.editor-input
 
 
 /* Admin panel classes */
+table.adminLogTable
+{
+	max-width: 100%
+}
 
+table.adminLogTable td
+{
+	word-wrap: break-word;
+	max-width: 50vw; /* It is seemingly difficult to prevent this table from overflowing the page, this is a bodge fix */
+}
+
+tr.adminLogTableHead
+{
+	position: sticky;
+	top: 0px;
+
+	background-color: var(--subbody-color);
+}
 
 
 /* BBcode formatting styles */
@@ -1412,7 +1429,7 @@ iframe
 blockquote img.postImage, blockquote video.postMedia
 {
 	max-width: 30%;
-	max-height: 300px;
+	max-height: 50vh;
 }
 
 img.avatar

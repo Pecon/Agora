@@ -105,8 +105,8 @@
 			$logs = array();
 
 		?>
-		<table style="width: 100%;">
-			<tr>
+		<table class="adminLogTable" style="width: 100%;">
+			<tr class="adminLogTableHead">
 				<td>Date</td>
 				<td>Category</td>
 				<td>User</td>
