@@ -543,7 +543,7 @@ EOF;
 					$keepOriginal = true;
 			}
 			else if($imgType == "image/bmp")
-				$image = imagecreatefromwbmp($imagePath);
+				$image = imagecreatefrombmp($imagePath);
 			else if($imgType == "image/webp")
 				$image = imagecreatefromwebp($imagePath);
 			else

@@ -195,8 +195,16 @@ EOF;
 		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, usergroup) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
 
 		querySQL($sql);
+
+		if($sql === false)
+		{
+			error("There was an error processing your registration request.");
+			showRegisterForm($_POST['username'], "", $_POST['email']);
+			return;
+		}
+
 		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a>", "Register");
-		addLogMessage("User account created.", 'info');
+		addLogMessage("User account created.", 'info', getLastInsertID());
 
 		disconnectSQL();
 	}
