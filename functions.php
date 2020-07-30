@@ -1290,20 +1290,41 @@ EOF;
 		return $str;
 	}
 
+	function charAt($string, $index)
+	{
+		if($index >= strlen($string) || $index < 0)
+			return false;
+
+		return substr($string, $index, 1);
+	}
+
+	function filter_url($string)
+	{
+		// Search for "anyProtocol://anyURI"
+		// If not in that format, slap an http:// onto it.
+		if(!preg_match("/^(?:[A-Za-z])+:\/\/(?:[\w\W]+)$/", $string))
+			$string = "http://" . $string;
+
+		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
+	}
+
+	function filter_uri($string)
+	{
+		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
+	}
+
 	function bb_parse($text)
 	{
-		require_once 'bbcode.php';
-
 		try
 		{
-			$text = parseTag($text, 0, "root");
-		}
-		catch(Exception $e)
-		{
-			error("Error: " . $e -> getText());
-			$text = false;
-		}
+			$parser = new bbcodeParser($text);
 
-		return $text;
+			return $parser -> getParsed();
+		}
+		catch(Exception $error)
+		{
+			error("Error in BBCode parsing: " . $error -> getText());
+			return false;
+		}
 	}
 ?>

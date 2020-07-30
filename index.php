@@ -3,6 +3,17 @@
 	$_script_start = microtime(true);
 	$_startDirectory = __DIR__;
 
+	// Agora class autoloader
+	spl_autoload_register(function($className)
+	{
+		$classPath = "./classes/" . $className . ".php";
+
+		if(!is_file($classPath))
+			throw new Exception("Cannot load class '$className': '$classPath' file not found.");
+
+		require $classPath;
+	});
+
 	require_once 'functions.php';
 	require_once 'ratelimit.php';
 	require_once 'database.php';
