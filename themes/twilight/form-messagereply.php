@@ -9,6 +9,11 @@
 
 	if(!isSet($_subjectPrefill))
 		$_subjectPrefill = "";
+
+	if(isSet($_GET['id']))
+		$actionUri = "&id=" . intval($_GET['id']);
+	else
+		$actionUri = "";
 ?>
 
 <noscript>
@@ -25,12 +30,12 @@
 </noscript>
 
 <div class="editor" id="editor">
-	<span>&nbsp;&rarr;&nbsp;</span><h3>Compose Message</h3><hr />
-	<form action="./?action=composemessage" method="POST">
+	<span>&nbsp;&rarr;&nbsp;</span><h3>Reply</h3><hr />
+	<form action="./?action=messaging<?php print($actionUri); ?>" method="POST">
 		<div>
 			To
 		</div>
-		<input class="editor-input" type="text" maxLength="40" minLength="2" name="recipient" value="<?php print($_recipientPrefill); ?>" tabIndex="1" required>
+		<input class="editor-input" type="text" maxLength="40" minLength="2" name="recipient" value="<?php print($_recipientPrefill); ?>" tabIndex="1" readonly required>
 		<div>
 			Subject
 		</div>
@@ -49,7 +54,7 @@
 			?></textarea>
 		</div>
 		<div class="editor-formbuttons">
-			<input class="postButtons" type="submit" name="send" value="Send" tabindex="5">
+			<input class="postButtons" type="submit" name="send" value="Reply" tabindex="5">
 			<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="4">
 		</div>
 	</form>

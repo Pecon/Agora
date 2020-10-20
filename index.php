@@ -402,13 +402,63 @@
 					break;
 				}
 
+				if(isSet($_POST['recipient']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
+				{
+					if(isSet($_POST['preview']))
+					{
+						// Create preview
+						$postStuff = $_POST['postcontent'];
+						$preview = bb_parse($postStuff);
+
+						global $_title, $_preview, $_user;
+						$_title = htmlentities($_POST['subject']) . ' (Preview)';
+						$_preview = $preview;
+						$_user = findUserByID($_SESSION['userid']);
+
+						loadThemePart("preview");
+					}
+					else if(strLen($_POST['postcontent']) > 10000 && !$_SESSION['admin'])
+					{
+						error("Your message is over the 10000 character limit.");
+					}
+					else if(!checkRateLimitAction("sendMessage", 20, 1))
+					{
+						error("Please wait a bit before sending another message.");
+					}
+					else if(isSet($_POST['send']))
+					{
+						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['recipient'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
+
+						if($success)
+						{
+							info("Message sent successfully!", "Send message");
+							header('location: ./?action=outbox');
+							break;
+						}
+						else
+						{
+							info("Failed to send message.", "Send message");
+						}
+					}
+
+					global $_postContentPrefill, $_recipientPrefill, $_subjectPrefill;
+
+					$_postContentPrefill = htmlentities($_POST['postcontent']);
+					$_recipientPrefill = htmlentities($_POST['recipient']);
+					$_subjectPrefill = htmlentities($_POST['subject']);
+
+					loadThemePart("form-messagereply");
+				}
+
+				
+
 				if(isSet($_GET['id']))
 				{
 					global $_id;
 					$_id = intval($_GET['id']);
 
 					loadThemePart("message");
-					// displayMessage($_GET['id']);
+					loadThemePart("form-messagereply");
 				}
 				else if(isSet($_GET['page']))
 				{
@@ -417,7 +467,6 @@
 					$_sent = false;
 
 					loadThemePart("messages");
-					// displayRecentMessages($_GET['page'], false);
 				}
 				else
 				{
@@ -426,7 +475,6 @@
 					$_sent = false;
 
 					loadThemePart("messages");
-					// displayRecentMessages(0, false);
 				}
 
 				break;
