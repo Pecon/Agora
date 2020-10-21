@@ -422,6 +422,9 @@
 				case "img":
 					return 0;
 
+				case "image":
+					return 0;
+
 				case "audio":
 					return 0;
 
@@ -535,6 +538,9 @@
 
 
 				case "img":
+					return '<img class="postImage" src="' . filter_url(html_entity_decode($argument)) . '" loading="lazy">';
+
+				case "image":
 					return '<img class="postImage" src="' . filter_url(html_entity_decode($argument)) . '" loading="lazy">';
 
 				case "audio":

@@ -346,8 +346,8 @@ function editorButtonPress(event)
 			break;
 
 		case "image":
-			openTag = "[image]http://example.com/image.png";
-			closeTag = "[/image]";
+			openTag = "[img]http://example.com/image.png";
+			closeTag = "[/img]";
 
 			newText = originalText.substring(0, cursorStart);
 
