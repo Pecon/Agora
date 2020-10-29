@@ -8,7 +8,7 @@
 	else
 	{
 		if($_SESSION['admin'])
-			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
+			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}&amp;as=${_SESSION['actionSecret']}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}&amp;as=${_SESSION['actionSecret']}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
 		else
 			$adminControl = "";
 	}

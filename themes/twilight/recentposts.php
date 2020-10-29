@@ -87,7 +87,7 @@
 			if(isSet($_SESSION['loggedin']))
 			{
 				if($_SESSION['admin'])
-					print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a> ");
+					print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete</a> ");
 			}
 
 			// If logged in and there are edits, display the view edits button

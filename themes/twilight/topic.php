@@ -22,7 +22,7 @@
 		print("<script src=\"./js/quote.js\" type=\"text/javascript\" nonce=\"${_script_nonce}\" async></script>\n");
 
 		if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
-			$topicControls = "<a href=\"./?action=locktopic&amp;topic=${_topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
+			$topicControls = "<a href=\"./?action=locktopic&amp;topic=${_topicID}&amp;as=${_SESSION['actionSecret']}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
 
 		if($_SESSION['admin'])
 		{
@@ -30,7 +30,7 @@
 			$result = querySQL($sql);
 			$result = $result -> fetch_assoc();
 
-			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic=${_topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}\">Delete topic</a> &nbsp;&nbsp; ";
+			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic=${_topicID}&amp;as=${_SESSION['actionSecret']}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete topic</a> &nbsp;&nbsp; ";
 		}
 	}
 	else
@@ -140,7 +140,7 @@
 		if(isSet($_SESSION['loggedin']))
 		{
 			if($_SESSION['admin'])
-				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a> ");
+				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete</a> ");
 		}
 
 

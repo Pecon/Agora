@@ -913,6 +913,18 @@ EOT;
 				break;
 
 			case "locktopic":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+				
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
@@ -944,6 +956,18 @@ EOT;
 				break;
 
 			case "stickytopic":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
@@ -965,6 +989,18 @@ EOT;
 				break;
 
 			case "deletepost":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in.");
@@ -995,6 +1031,18 @@ EOT;
 				break;
 
 			case "ban":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in.");
@@ -1018,6 +1066,18 @@ EOT;
 				break;
 
 			case "promote":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in.");
