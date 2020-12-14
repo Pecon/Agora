@@ -989,30 +989,6 @@ EOT;
 				break;
 
 			case "deletepost":
-				if(!isSet($_GET['as']))
-				{
-					error("Action secret not provided.");
-					break;
-				}
-
-				if($_GET['as'] != $_SESSION['actionSecret'])
-				{
-					error("Incorrect action secret.");
-					break;
-				}
-
-				if(!isSet($_SESSION['loggedin']))
-				{
-					error("You must be logged in.");
-					break;
-				}
-
-				if(!$_SESSION['admin'])
-				{
-					error("You do not have permission to do this action.");
-					break;
-				}
-
 				if(!isSet($_GET['post']))
 				{
 					error("No post specified.");

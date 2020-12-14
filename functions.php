@@ -1067,80 +1067,18 @@ EOF;
 		querySQL($sql);
 	}
 
-	function deletePost($id)
+	function deletePost(int $id)
 	{
-		$id = intval($id);
-
-		if(!$post = fetchSinglePost($id))
+		try
 		{
-			error("This post does not exist.");
-			return false;
+			$admin = new admin();
+			return $admin -> deletePost($id);
 		}
-
-		if($post['threadIndex'] == 0)
+		catch(Exception $error)
 		{
-			// Delete the thread entry as well
-			$thread = findTopicByID($post['topicID']);
-			$threadCreator = findUserByID($thread['creatorUserID']);
-
-			$sql = "DELETE FROM topics WHERE topicID='${post['topicID']}';";
-			querySQL($sql);
-
-			$sql = "DELETE FROM posts WHERE topicID='${post['topicID']}';";
-			querySQL($sql);
-
-			$sql = "DELETE FROM changes WHERE topicID='${post['topicID']}';";
-			querySQL($sql);
-
-			adminLog("Deleted topic by \$USERID:${threadCreator['id']} ((${post['topicID']}) . ${thread['topicName']})");
+			error($error -> getMessage());
 		}
-		else
-		{
-			// Check if we need to update the latest post data
-			$topic = findTopicByID($post['topicID']);
-
-			if($topic['lastpostid'] == $id)
-			{
-				// Find the last existing post in the thread.
-				$sql = "SELECT postID, threadIndex, postDate FROM posts WHERE topicID='${post['topicID']}' ORDER BY threadIndex DESC LIMIT 0,2";
-				$result = querySQL($sql);
-
-				// Skip the first result since it's going to be the post we're about to delete. We want the one after it.
-				$result -> fetch_assoc();
-				$newLastPost = $result -> fetch_assoc();
-				$newPostCount = $newLastPost['threadIndex'] + 1;
-
-				// Update the thread with the new values
-				$sql = "UPDATE topics SET lastpostid='${newLastPost['postID']}', lastposttime='${newLastPost['postDate']}', numposts='${newPostCount}' WHERE topicID='${post['topicID']}';";
-				querySQL($sql);
-			}
-
-			// Delete just this post out of the thread
-			$post = fetchSinglePost($id);
-			$postStuff = str_replace(array("\r", "\n"), " ", $post['postData']);
-			$user = findUserByID($post['userID'])['username'];
-
-			$sql = "DELETE FROM posts WHERE postID='${id}';";
-			querySQL($sql);
-
-			// Fix thread indexes
-			$sql = "UPDATE posts SET threadIndex=threadIndex-1 WHERE topicID='${post['topicID']}' AND threadIndex>'${post['threadIndex']}';";
-			querySQL($sql);
-
-			// De-increment user post count
-			$sql = "UPDATE users SET postCount=postCount-1 WHERE id='${post['userID']}';";
-			querySQL($sql);
-
-			$sql = "DELETE FROM changes WHERE postID='${id}';";
-			querySQL($sql);
-
-			adminLog("Deleted post by \$USERID:${post['userID']} ((${id}) ${postStuff}");
-		}
-
-		return true;
 	}
-
-
 
 	// Private messaging functions
 
@@ -1323,7 +1261,7 @@ EOF;
 		}
 		catch(Exception $error)
 		{
-			error("Error in BBCode parsing: " . $error -> getText());
+			error("Error in BBCode parsing: " . $error -> getMessage());
 			return false;
 		}
 	}
