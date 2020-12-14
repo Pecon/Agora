@@ -47,6 +47,34 @@ function disconnectSQL()
 	return true;
 }
 
+function prepareStatement($statement)
+{
+	$mysqli = getSQLConnection();
+	$statement = $mysqli -> prepare($statement);
+
+	return $statement;
+}
+
+function executeStatement($statement)
+{
+	//$mysqli = getSQLConnection();
+	$result = $statement -> execute();
+
+	if($result === false)
+	{
+		fatalError("Agora encountered an SQL query error. This is most likely a bug in Agora, please report this occurence; but make sure that the data below doesn't contain any sensitive information (like your password hash). If it does, censor it before reporting.<br><br>Technical details:<br>\nError: " . $statement -> error . " \n<br>\nSource function: " . debug_backtrace()[1]['function'] . "\n<br>\nFull query: " . $statement -> sqlstate);
+		return false;
+	}
+
+	$result = $statement -> get_result();
+
+	global $_mysqli_numQueries, $_mysqli_insert_id;
+	$_mysqli_insert_id = $statement -> insert_id;
+	$_mysqli_numQueries++;
+
+	return $result;
+}
+
 function querySQL($query)
 {
 	$mysqli = getSQLConnection();
