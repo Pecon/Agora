@@ -63,10 +63,10 @@ class admin
 			executeStatement($statement);
 
 			$statement = prepareStatement("DELETE FROM changes WHERE topicID=?");
-			$statement -> bind_param(i, $post['topicID']);
+			$statement -> bind_param('i', $post['topicID']);
 			executeStatement($statement);
 
-			adminLog("Deleted topic by \$USERID:${threadCreator['postID']} ((${post['topicID']}) . ${thread['topicName']})");
+			adminLog("Deleted topic by \$USERID:${threadCreator['id']} ((${post['topicID']}) . ${thread['topicName']})");
 		}
 		else
 		{
@@ -94,7 +94,7 @@ class admin
 			// Delete just this post out of the thread
 			$post = fetchSinglePost($postID);
 			$postStuff = str_replace(array("\r", "\n"), " ", $post['postData']);
-			$user = findUserByID($post['userID'])['username'];
+			// $user = findUserByID($post['userID'])['username'];
 
 			$statement = prepareStatement("DELETE FROM posts WHERE postID=?");
 			$statement -> bind_param('i', $postID);
