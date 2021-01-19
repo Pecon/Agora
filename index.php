@@ -390,8 +390,6 @@
 					$_post = intval($_GET['post']);
 
 					loadThemePart("edits");
-
-					// displayPostEdits(intval($_GET['post']));
 				}
 				break;
 
@@ -486,16 +484,13 @@
 					break;
 				}
 
-				if(isSet($_GET['id']))
-					displayMessage($_GET['id']);
-				else if(isSet($_GET['page']))
+				if(isSet($_GET['page']))
 				{
 					global $_page, $_sent;
 					$_page = intval($_GET['page']);
 					$_sent = true;
 
 					loadThemePart("messages");
-					// displayRecentMessages($_GET['page'], true);
 				}
 				else
 				{
@@ -504,7 +499,6 @@
 					$_sent = true;
 
 					loadThemePart("messages");
-					// displayRecentMessages(0, true);
 				}
 
 				break;

@@ -819,16 +819,6 @@ EOF;
 		return true;
 	}
 
-	function displayRecentTopics($page)
-	{
-		
-	}
-
-	function displayRecentPosts($start, $num)
-	{
-		
-	}
-
 	function fetchSinglePost($postID)
 	{
 		static $post = array();
@@ -863,17 +853,6 @@ EOF;
 
 		$link = "./?topic=${post['topicID']}&page=${topicPage}#${post['postID']}";
 		return $link;
-	}
-
-	function displayPostEdits($postID)
-	{
-		
-	}
-
-	function displayThread($topicID, $page)
-	{
-		global $items_per_page;
-		
 	}
 
 	function createThread($userID, $topic, $postData)
@@ -1081,11 +1060,6 @@ EOF;
 	}
 
 	// Private messaging functions
-
-	function displayRecentMessages($page, $sent)
-	{
-		
-	}
 
 	function displayMessage($ID)
 	{
