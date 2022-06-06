@@ -787,7 +787,10 @@ EOF;
 		if(!filter_var($website, FILTER_VALIDATE_URL) || strlen($website) > 200)
 		{
 			if(strToLower($website) != "http://" && strlen($website) > 1)
+			{
+				$website = findUserByID($id)['website'];
 				error("Your website url is invalid or too long.");
+			}
 			else if(strToLower($website) == "http://")
 				$website = findUserByID($id)['website'];
 			else
@@ -1127,11 +1130,13 @@ EOF;
 				querySQL($sql);
 			}
 
+			addLogMessage('User sent a private message to $USERID:' . $reply['recipientID'] . '.');
 			return true;
 		}
 		else
 		{
 			error("Message could not be sent for an unknown reason. This is probably a bug.");
+			addLogMessage("User was unable to send a private message to $USERID:${recipient['id']}", 'error');
 			return false;
 		}
 	}

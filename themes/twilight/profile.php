@@ -31,7 +31,8 @@
 
 	$websiteComps = parse_url($website);
 	if(isSet($websiteComps['host']))
-		$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
+		$websitePretty = htmlentities($websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : ""));
+	$website = htmlentities($website);
 
 
 	print("\n<div class=\"profileContainer\">${adminControl}\n<div class=\"profileContents\"><div class=\"profileStats\"><div class=\"profileEntry\">\n${username}\n</div>\n<div class=\"profileEntry\">\n" .
