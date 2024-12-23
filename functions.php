@@ -997,9 +997,10 @@ EOF;
 
 		$changeTime = time();
 		$postID = intval($postID);
+		$changeID = (int) $post['changeID'];
 		$oldPostData = sanitizeSQL($post['postPreparsed']);
 
-		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['topicID']}');";
+		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('$changeID', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['topicID']}');";
 		querySQL($sql);
 
 		$changeID = getLastInsertID();
