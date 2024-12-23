@@ -77,7 +77,7 @@ if(count($threads) > 0)
 		$topicID = $row['topicID'];
 		$topicName = $row['topicName'];
 
-		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${topicID};") -> fetch_assoc()['COUNT(*)'];
+		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID=${topicID};") -> fetch_assoc()['COUNT(*)'];
 		$numPosts = intval($numPosts);
 		$creator = $allUserID[$row['creatorUserID']];
 		$creatorName = $creator['username'];

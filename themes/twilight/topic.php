@@ -1,5 +1,5 @@
 <?php
-	global $items_per_page, $_topicID, $_page;
+	global $items_per_page, $_topicID, $_page, $_script_nonce;
 
 	$start = $_page * $items_per_page;
 	$end = $items_per_page;
@@ -19,18 +19,18 @@
 	{
 		$quotesEnabled = true;
 		$quoteString = Array();
-		print("<script src=\"./js/quote.js\" type=\"text/javascript\"></script>\n");
+		print("<script src=\"./js/quote.js\" type=\"text/javascript\" nonce=\"${_script_nonce}\" async></script>\n");
 
 		if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
-			$topicControls = "<a href=\"./?action=locktopic&amp;topic=${_topicID}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
+			$topicControls = "<a href=\"./?action=locktopic&amp;topic=${_topicID}&amp;as=${_SESSION['actionSecret']}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
 
 		if($_SESSION['admin'])
 		{
-			$sql = "SELECT postID FROM posts WHERE threadID='${_topicID}' AND threadIndex='0';";
+			$sql = "SELECT postID FROM posts WHERE topicID='${_topicID}' AND threadIndex='0';";
 			$result = querySQL($sql);
 			$result = $result -> fetch_assoc();
 
-			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic=${_topicID}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}\">Delete topic</a> &nbsp;&nbsp; ";
+			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic=${_topicID}&amp;as=${_SESSION['actionSecret']}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete topic</a> &nbsp;&nbsp; ";
 		}
 	}
 	else
@@ -44,12 +44,12 @@
 	print('<article class="topicContainer">');
 	print("<header class=\"topicHeader\"><span>${topicStatus}</span><h3><a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a></h3>\n<br />${topicControls}<br />\n");
 
-	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE threadID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
+	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
 	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
 	print("</header>");
 
 	// Get all the posts into one array
-	$sql = "SELECT * FROM posts WHERE threadID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
+	$sql = "SELECT * FROM posts WHERE topicID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
 	$posts = querySQL($sql);
 
 	$allPosts = Array();
@@ -140,14 +140,14 @@
 		if(isSet($_SESSION['loggedin']))
 		{
 			if($_SESSION['admin'])
-				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a> ");
+				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete</a> ");
 		}
 
 
 		// If logged in, show the quote button
 		if($quotesEnabled)
 		{
-			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#replytext\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton\" onclick=\"quotePost('${post['postID']}', '${username}');\" href=\"#replytext\">Quote/Reply</a> ");
+			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#editor\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton quoteButtonClass\" quotepostid=\"${post['postID']}\" href=\"#editor\">Quote/Reply</a> ");
 
 			if(isSet($_GET['quote']))
 			{
@@ -160,7 +160,7 @@
 
 
 			// If the post owner, show the edit button
-			if($post['userID'] == $_SESSION['userid'])
+			if($post['userID'] == $_SESSION['userid'] && !$row['locked'])
 				print("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit&nbsp;post</a> ");
 		}
 
@@ -170,7 +170,7 @@
 			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 		// Display the permalink button and wrap up.
-		print("<a class=\"inPostButtons\" href=\"./?topic=${_topicID}&amp;page=${_page}#${post['postID']}\">Permalink</a></div></div></section>\n");
+		print("<a class=\"inPostButtons\" href=\"./?action=gotopost&amp;post=${post['postID']}\">Permalink</a></div></div></section>\n");
 	}
 	print("\n<div class=\"topicFooter\">");
 
@@ -180,16 +180,12 @@
 
 	if(isSet($_SESSION['loggedin']) && !boolval($row['locked']))
 	{
-		print("<form action=\"./?action=post&amp;topic=${_topicID}&amp;page=${_page}\" method=\"POST\">");
-		print('<input type="hidden" name="action" value="newpost">
-		<textarea id="replytext" class="postbox" name="postcontent" tabindex="1">');
-
 		if(isSet($quoteString['data']))
-			print("[quote " . $quoteString['author'] . "]" . $quoteString['data'] . "[/quote]");
-		print('</textarea>
-		<br>
-		<input class="postButtons" type="submit" name="post" value="Post" tabindex="3">
-		<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2">
-	</form>');
+		{
+			global $_postContentPrefill;
+			$_postContentPrefill = "[quote " . $quoteString['author'] . "]\n" . $quoteString['data'] . "[/quote]";
+		}
+
+		directLoadThemePart("form-post");
 	}
 ?>

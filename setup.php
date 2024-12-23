@@ -74,12 +74,12 @@ EOT;
 		}
 
 		addToBody("PHP version: " . PHP_VERSION . " ... ");
-		if(version_compare(PHP_VERSION, '5.5.0') >= 0)
+		if(version_compare(PHP_VERSION, '7.0.0') >= 0)
 			addToBody("good.<br /><br />\r\n");
 		else
 		{
 			$issue = true;
-			addToBody(error("bad. Minimum requirement is 5.5.0 <br /><br />", true));
+			addToBody(error("bad. Minimum required PHP version is 7.0.0 <br /><br />", true));
 		}
 
 		addToBody("Checking mysqli is installed: ... ");
@@ -287,7 +287,7 @@ EOT;
 	`postData` mediumtext NOT NULL,
 	`changeTime` int unsigned DEFAULT '0',
 	`postID` int unsigned NOT NULL,
-	`threadID` int unsigned NOT NULL,
+	`topicID` int unsigned NOT NULL,
 	KEY(`postID`),
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
@@ -300,14 +300,14 @@ EOT;
 			$sql = "CREATE TABLE IF NOT EXISTS `posts` (
 	`postID` int unsigned NOT NULL AUTO_INCREMENT,
 	`userID` int unsigned DEFAULT NULL,
-	`threadID` int unsigned DEFAULT NULL,
+	`topicID` int unsigned DEFAULT NULL,
 	`postDate` bigint unsigned DEFAULT '0',
 	`postData` mediumtext,
 	`postPreparsed` mediumtext NOT NULL,
 	`threadIndex` int unsigned DEFAULT '0',
 	`changeID` int unsigned DEFAULT NULL,
 	FULLTEXT(`postData`),
-	KEY(`threadID`),
+	KEY(`topicID`),
 	KEY(`postDate`),
 	KEY(`threadIndex`),
 	PRIMARY KEY (`postID`)
@@ -426,6 +426,39 @@ EOT;
 				finishPage(error("Failed to create privateMessage table. " . $mysqli -> error, true));
 			else
 				addToBody("Created private messaging table...<br />\n");
+
+			$sql = "CREATE TABLE IF NOT EXISTS `rateLimiting` (
+	`IPAddress` varchar(50) NOT NULL,
+	`actionName` enum('general', 'register', 'login', 'post', 'edit', 'sendMessage', 'avatarChange', 'sendEmail', 'emailSecretAttempt'),
+	`useCount` tinyint unsigned NOT NULL DEFAULT '0',
+	`lastUseTime` bigint unsigned,
+	KEY(`IPAddress`),
+	KEY(`actionName`),
+	KEY(`lastUseTime`)
+)	ENGINE=MEMORY DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;";
+			$result = $mysqli -> query($sql);
+			if($result === false)
+				finishPage(error("Failed to create rateLimiting table. " . $mysqli -> error, true));
+			else
+				addToBody("Created rate limiting table...<br />\n");
+
+			$sql = "CREATE TABLE IF NOT EXISTS `logs` (
+	`logID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`logType` enum('info','warning','error','admin','security') NOT NULL DEFAULT 'info',
+	`logMessage` tinytext  NOT NULL,
+	`logTime` bigint(20) UNSIGNED DEFAULT NULL,
+	`logUserID` int(10) UNSIGNED DEFAULT NULL,
+	`logIPAddress` varchar(50) DEFAULT NULL,
+	PRIMARY KEY(`logID`),
+	KEY(`logType`),
+	KEY(`logTime`),
+	KEY(`logUserID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;";
+			$result = $mysqli -> query($sql);
+			if($result === false)
+				finishPage(error("Failed to create rateLimiting table. " . $mysqli -> error, true));
+			else
+				addToBody("Created rate limiting table...<br />\n");
 
 			// Make configuration file
 			$json = array();

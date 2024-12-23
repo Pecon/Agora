@@ -14,10 +14,10 @@
 	<tr class="loginTable">
 		<td class="loginTable">
 		Username:
-	</td>
-	<td class="loginTable">
-		<input style="margin: 0px; height: 100%;" type="text" name="username" tabIndex="1" value="<?php print($fillUsername); ?>" autofocus required />
-	</td>
+		</td>
+		<td class="loginTable">
+			<input style="margin: 0px; height: 100%;" type="text" name="username" tabIndex="1" value="<?php print($fillUsername); ?>" autofocus required />
+		</td>
 	</tr>
 	<tr class="loginTable">
 		<td class="loginTable">
@@ -54,12 +54,18 @@
 
 	if(isSet($_POST['loggingin']))
 	{
-		usleep(5000);
+		if(!checkRateLimitAction("login", 60, 5))
+		{
+			error("You have exceeded the maximum number of login attempts. Please wait a minute before trying again.");
+			showLoginForm("", "");
+			return;
+		}
 
 		if(!isSet($_POST['username']) || !isSet($_POST['password']))
 		{
 			error("Didn't you forget to send some other post variables??? Like, geeze, you're not even trying.");
 			showLoginForm("", "");
+			return;
 		}
 		$username = $_POST['username'];
 
@@ -68,6 +74,7 @@
 		{
 			error('No user exists by that name.');
 			showLoginForm("", "");
+			addLogMessage("Failed login attempt for non-user '$username'.", 'security');
 			return;
 		}
 
@@ -78,6 +85,7 @@
 		{
 			info('Incorrect password.', "Login");
 			showLoginForm($_POST['username'], "");
+			addLogMessage("Failed login for $username (Bad password).", 'security', $userData['id']);
 			return;
 		}
 
@@ -85,6 +93,7 @@
 		{
 			error("You must verify your email address before logging in.");
 			showLoginForm("", "");
+			addLogMessage("Failed login for $username (Account not verified).", 'security', $userData['id']);
 			return;
 		}
 
@@ -128,13 +137,13 @@
 		$_SESSION['banned'] = $userData['banned'];
 		$_SESSION['userid'] = $userData['id'];
 		$_SESSION['lastpostdata'] = "";
-		$_SESSION['lastpostingtime'] = time();
 		$_SESSION['actionSecret'] = mt_rand(10000, 99999);
 
 		if($_SESSION['banned'] == true)
 		{
 			error("Your account is banned. Goodbye.");
 			session_destroy();
+			addLogMessage("Banned user login rejected.", 'info', $userData['id']);
 		}
 		else
 		{
@@ -144,6 +153,7 @@
 				info("Logged in!<br><a href=\"./\">Continue</a>", "Login");
 
 			addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./'\" />");
+			addLogMessage("User logged in sucessfully.", 'info', $userData['id']);
 		}
 
 		// Generate persistent session
@@ -158,7 +168,7 @@
 		$newSession -> token = $token;
 		$newSession -> id = $userData['id'];
 
-		setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12);
+		setcookie("agoraSession", json_encode($newSession), time()+60*60*24*30*12); // Roughly a year
 
 		$_SESSION['token'] = $token;
 	}

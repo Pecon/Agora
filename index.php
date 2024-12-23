@@ -1,5 +1,21 @@
 <?php
+	global $_script_start, $_startDirectory;
+	$_script_start = microtime(true);
+	$_startDirectory = __DIR__;
+
+	// Agora class autoloader
+	spl_autoload_register(function($className)
+	{
+		$classPath = "./classes/" . $className . ".php";
+
+		if(!is_file($classPath))
+			throw new Exception("Cannot load class '$className': '$classPath' file not found.");
+
+		require $classPath;
+	});
+
 	require_once 'functions.php';
+	require_once 'ratelimit.php';
 	require_once 'database.php';
 	require_once 'page.php';
 
@@ -10,6 +26,26 @@
 	{
 		switch(strToLower($_GET['action']))
 		{
+			case "gotopost":
+				if(!isSet($_GET['post']))
+				{
+					error("No postID specified.");
+					break;
+				}
+
+				$link = getPostLink($_GET['post']);
+
+				if($link === false)
+				{
+					header('Status: 404 Not Found');
+					error("The post specified could not be found. The post may have been deleted or the link you followed may be malformed.");
+					break;
+				}
+
+				header("Location: $link");
+				info('Your browser has been informed of the location of this post and should have redirected you to it, but if you are reading this then that probably didn\'t happen. To view your requested post, please <a href="' . $link . '">click here</a> to complete your redirect manually.', "Redirect");
+
+				break;
 			case "login":
 				loadThemePart("login");
 				break;
@@ -44,34 +80,17 @@
 					$postStuff = $_POST['postcontent'];
 					$preview = bb_parse($postStuff);
 
-					global $_title, $_preview, $_user;
+					global $_title, $_preview, $_postContentPrefill, $_user;
 					$_title = "Post Preview";
 					$_preview = $preview;
+					$_postContentPrefill = htmlentities($postStuff);
 					$_user = findUserByID($_SESSION['userid']);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
 
 					loadThemePart("preview");
-
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					loadThemePart("form-post");
 				}
-
-				else if($_SESSION['lastpostingtime'] > time() - 20)
-				{
-					warn("Your session just started, wait about 20 seconds before posting.");
-					$postStuff = $_POST['postcontent'];
-
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
-				}
-
 				else if(!isSet($_GET['topic']))
 				{
 					error("You need to be in a topic to post.");
@@ -82,12 +101,12 @@
 
 					$postStuff = $_POST['postcontent'];
 
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 				else if(strLen(trim($_POST['postcontent'])) > 10000)
 				{
@@ -95,16 +114,28 @@
 
 					$postStuff = $_POST['postcontent'];
 
-					addToBody('<br /><form action="./?action=post&topic=' . "${_GET['topic']}&page=${_GET['page']}" . '" method="POST">
-						<textarea name="postcontent" class="postbox" tabIndex="1">' . htmlentities($postStuff) . '</textarea>
-						<br />
-						<input class="postButtons" type="submit" name="post" value="Post" tabIndex="3">
-						<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="2">
-						</form><br />');
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 				else if($_SESSION['lastpostdata'] == $_POST['postcontent'])
 				{
 					error("Oops! Looks like you already tried to post that message.");
+				}
+				else if(!checkRateLimitAction("post", 20, 1))
+				{
+					warn("The last post created from your IP was less than 20 seconds ago, please wait a bit before posting.");
+					$postStuff = $_POST['postcontent'];
+
+					global $_postContentPrefill, $_page, $_topicID;
+					$_postContentPrefill = htmlentities($postStuff);
+					$_page = intval($_GET['page']);
+					$_topicID = intval($_GET['topic']);
+
+					loadThemePart("form-post");
 				}
 				else if(isSet($_POST['postcontent']))
 				{
@@ -112,7 +143,6 @@
 					info("Post successful!", "Post topic");
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
-					$_SESSION['lastpostingtime'] = time();
 				}
 
 				break;
@@ -154,24 +184,46 @@
 				{
 					error("Please make your post longer.");
 				}
-				else if(strLen(trim($_POST['editpost'])) > 10000)
+				else if(strLen(trim($_POST['editpost'])) > 10000 && !$_SESSION['admin'])
 				{
 					error("Your post is over the 10000 character limit.");
+				}
+				else if(strLen(trim($_POST['editpost'])) > 30000)
+				{
+					error("Your post is over the 30000 character hard limit.");
+				}
+				else if(!checkRateLimitAction("edit", 20, 2))
+				{
+					error("You need to wait a moment before editing again.");
 				}
 				else if(isSet($_POST['editpost']) && !isSet($_POST['preview']))
 				{
 					editPost($post['userID'], $post['postID'], $_POST['editpost']);
+
+					if(isSet($_POST['edittopicsubject']))
+						editTopicTitle($post['topicID'], $_POST['edittopicsubject']);
+
 					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${post['postID']}");
 					break;
 				}
 
+				global $_postContentPrefill, $_subjectPrefill, $_postID, $_topicID, $_page;
+
+				$_postID = $_GET['post'];
+				$_topicID = $_GET['topic'];
+				$_page = $_GET['page'];
+
+				if(isSet($_POST['edittopicsubject']))
+					$_subjectPrefill = htmlentities($_POST['edittopicsubject']);
+				else if($post['threadIndex'] == 0)
+					$_subjectPrefill = findTopicByID($post['topicID'])['topicName'];
+
 				if(isSet($_POST['editpost']))
-					$prefill = $_POST['editpost'];
+					$_postContentPrefill = htmlentities($_POST['editpost']);
 				else
-					$prefill = $post['postData'];
+					$_postContentPrefill = $post['postData'];
 
-				addToBody("Editing post<br />\n<form method=\"post\" action=\"./?action=edit&post=${_GET['post']}&topic=${_GET['topic']}&page=${_GET['page']}\"><textarea name=\"editpost\" class=\"postbox\">${prefill}</textarea><br />\n<input class=\"postButtons\" type=\"submit\" value=\"Edit\"> <input class=\"postButtons\" type=\"submit\" name=\"preview\" value=\"Preview\"></form>\n");
-
+				loadThemePart("form-edit");
 				break;
 
 			case "recentposts":
@@ -205,39 +257,36 @@
 					{
 						error("Please make your topic title longer.");
 
-						addToBody('<form action="./?action=newtopic" method="POST" >
-							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
-							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
-							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
-						</form>');
+						global $_postContentPrefill, $_subjectPrefill;
+
+						$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+						$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+						loadThemePart("form-newtopic");
 						break;
 					}
 					else if(strLen(trim($_POST['newtopicsubject'])) > 130)
 					{
 						error("Topic title is longer than the 130 character maximum.");
 
-						addToBody('<form action="./?action=newtopic" method="POST" >
-							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
-							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
-							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
-						</form>');
+						global $_postContentPrefill, $_subjectPrefill;
+
+						$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+						$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+						loadThemePart("form-newtopic");
 						break;
 					}
 					else if(strLen(trim($_POST['newtopicpost'])) < 3)
 					{
 						error("Please make your post longer.");
 
-						addToBody('<form action="./?action=newtopic" method="POST" >
-							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
-							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
-							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
-						</form>');
+						global $_postContentPrefill, $_subjectPrefill;
+
+						$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+						$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+						loadThemePart("form-newtopic");
 						break;
 					}
 					else if(isSet($_POST['preview']))
@@ -251,13 +300,13 @@
 
 						loadThemePart("preview");
 
-						addToBody('<form action="./?action=newtopic" method="POST" >
-							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
-							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
-							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
-						</form>');
+
+						global $_postContentPrefill, $_subjectPrefill;
+
+						$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+						$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+						loadThemePart("form-newtopic");
 						break;
 					}
 					else if(strLen(trim($_POST['newtopicpost'])) > 30000)
@@ -265,11 +314,25 @@
 						if(!$_SESSION['admin'])
 						{
 							error("Your post is over the 30000 character limit. Size: " . strLen(trim($_POST['newtopicpost'])));
+
+							global $_postContentPrefill, $_subjectPrefill;
+
+							$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+							$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+							loadThemePart("form-newtopic");
 							break;
 						}
 						else if(strLen(trim($_POST['newtopicpost'])) > 100000)
 						{
 							error("Your post is over the 100000 character hard limit. Size: " . strLen(trim($_POST['newtopicpost'])));
+
+							global $_postContentPrefill, $_subjectPrefill;
+
+							$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+							$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+							loadThemePart("form-newtopic");
 							break;
 						}
 						else
@@ -277,25 +340,23 @@
 							$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 							header("Location: ./?topic=${topicID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
-							$_SESSION['lastpostingtime'] = time();
 						}
-					}
-					else if($_SESSION['lastpostingtime'] > time() - 20)
-					{
-						warn("Your session just started, wait about 20 seconds before posting.");
-
-						addToBody('<form action="./?action=newtopic" method="POST" >
-							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" value="' . $_POST['newtopicsubject'] . '" tabIndex="1" required><br />
-							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2">' . htmlentities($_POST['newtopicpost']) . '</textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
-							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
-						</form>');
-						break;
 					}
 					else if($_SESSION['lastpostdata'] == $_POST['newtopicsubject'])
 					{
-						error("Oops! Looks like you already tried to post that message.");
+						error("Oops! Looks like you already tried to post that topic.");
+						break;
+					}
+					else if(!checkRateLimitAction("post", 20, 1))
+					{
+						warn("The last post created from your IP was less than 20 seconds ago, please wait a bit before posting.");
+
+						global $_postContentPrefill, $_subjectPrefill;
+
+						$_postContentPrefill = htmlentities($_POST['newtopicpost']);
+						$_subjectPrefill = htmlentities($_POST['newtopicsubject']);
+
+						loadThemePart("form-newtopic");
 						break;
 					}
 					else
@@ -303,19 +364,12 @@
 						$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 						header("Location: ./?topic=${topicID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
-						$_SESSION['lastpostingtime'] = time();
 					}
 				}
 
 				else
 				{
-					addToBody('<form action="./?action=newtopic" method="POST" >
-							Subject: <input type="text" maxLength="130" minLength="3" name="newtopicsubject" tabIndex="1" required><br />
-							Original post:<br />
-							<textarea class="postbox" maxLength="' . ($_SESSION['admin'] ? 100000 : 30000) . '" minLength="3" name="newtopicpost" tabIndex="2"></textarea><br />
-							<input class="postButtons" type="submit" name="create" value="Create topic" tabIndex="4">
-							<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="3">
-						</form>');
+					loadThemePart("form-newtopic");
 				}
 				break;
 
@@ -336,8 +390,6 @@
 					$_post = intval($_GET['post']);
 
 					loadThemePart("edits");
-
-					// displayPostEdits(intval($_GET['post']));
 				}
 				break;
 
@@ -348,73 +400,7 @@
 					break;
 				}
 
-				if(isSet($_GET['id']))
-				{
-					global $_id;
-					$_id = intval($_GET['id']);
-
-					loadThemePart("message");
-					// displayMessage($_GET['id']);
-				}
-				else if(isSet($_GET['page']))
-				{
-					global $_page, $_sent;
-					$_page = intval($_GET['page']);
-					$_sent = false;
-
-					loadThemePart("messages");
-					// displayRecentMessages($_GET['page'], false);
-				}
-				else
-				{
-					global $_page, $_sent;
-					$_page = 0;
-					$_sent = false;
-
-					loadThemePart("messages");
-					// displayRecentMessages(0, false);
-				}
-
-				break;
-
-			case "outbox":
-				if(!isSet($_SESSION['loggedin']))
-				{
-					error("You must be logged in to perform this action.");
-					break;
-				}
-
-				if(isSet($_GET['id']))
-					displayMessage($_GET['id']);
-				else if(isSet($_GET['page']))
-				{
-					global $_page, $_sent;
-					$_page = intval($_GET['page']);
-					$_sent = true;
-
-					loadThemePart("messages");
-					// displayRecentMessages($_GET['page'], true);
-				}
-				else
-				{
-					global $_page, $_sent;
-					$_page = 0;
-					$_sent = true;
-
-					loadThemePart("messages");
-					// displayRecentMessages(0, true);
-				}
-
-				break;
-
-			case "composemessage":
-				if(!isSet($_SESSION['loggedin']))
-				{
-					error("You must be logged in to perform this action.");
-					break;
-				}
-
-				if(isSet($_POST['toName']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
+				if(isSet($_POST['recipient']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
 				{
 					if(isSet($_POST['preview']))
 					{
@@ -429,46 +415,148 @@
 
 						loadThemePart("preview");
 					}
-					else if($_SESSION['lastpostingtime'] > time() - 20)
+					else if(strLen($_POST['postcontent']) > 10000 && !$_SESSION['admin'])
 					{
-						error("Please wait a minute before doing that.");
+						error("Your message is over the 10000 character limit.");
+					}
+					else if(!checkRateLimitAction("sendMessage", 20, 1))
+					{
+						error("Please wait a bit before sending another message.");
 					}
 					else if(isSet($_POST['send']))
 					{
-						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['toName'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
+						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['recipient'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
 
 						if($success)
 						{
-							$_SESSION['lastpostingtime'] = time();
 							info("Message sent successfully!", "Send message");
 							header('location: ./?action=outbox');
+							break;
 						}
-						break;
+						else
+						{
+							info("Failed to send message.", "Send message");
+						}
 					}
 
-					addToBody('<span>&nbsp;&rarr;&nbsp;</span><h3>Composing message</h3><br /><form action="./?action=composemessage" method="POST">
-					To: <input type="text" name="toName" value="' . htmlentities($_POST['toName']) . '" tabIndex="1" required>
-					<br />
-					Subject: <input type="text" name="subject" value="' . htmlentities($_POST['subject']) . '" tabIndex="2" required>
-					<br />
-					<textarea name="postcontent" class="postbox" tabIndex="3">' . htmlentities($_POST['postcontent']) . '</textarea>
-					<br />
-					<input class="postButtons" type="submit" name="send" value="Send" tabIndex="5">
-					<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="4">
-					</form><br />');
+					global $_postContentPrefill, $_recipientPrefill, $_subjectPrefill;
+
+					$_postContentPrefill = htmlentities($_POST['postcontent']);
+					$_recipientPrefill = htmlentities($_POST['recipient']);
+					$_subjectPrefill = htmlentities($_POST['subject']);
+
+					loadThemePart("form-messagereply");
+				}
+
+				
+
+				if(isSet($_GET['id']))
+				{
+					global $_id;
+					$_id = intval($_GET['id']);
+
+					loadThemePart("message");
+					loadThemePart("form-messagereply");
+				}
+				else if(isSet($_GET['page']))
+				{
+					global $_page, $_sent;
+					$_page = intval($_GET['page']);
+					$_sent = false;
+
+					loadThemePart("messages");
+				}
+				else
+				{
+					global $_page, $_sent;
+					$_page = 0;
+					$_sent = false;
+
+					loadThemePart("messages");
+				}
+
+				break;
+
+			case "outbox":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
 					break;
 				}
 
-				addToBody('<div class="topicHeader">&rarr; Composing message</div><br /><form action="./?action=composemessage" method="POST">
-					To: <input type="text" name="toName" value="" tabIndex="1" required>
-					<br />
-					Subject: <input type="text" name="subject" value="" tabIndex="2" required>
-					<br />
-					<textarea name="postcontent" class="postbox" tabIndex="3"></textarea>
-					<br />
-					<input class="postButtons" type="submit" name="send" value="Send" tabIndex="5">
-					<input class="postButtons" type="submit" name="preview" value="Preview" tabIndex="4">
-					</form><br />');
+				if(isSet($_GET['page']))
+				{
+					global $_page, $_sent;
+					$_page = intval($_GET['page']);
+					$_sent = true;
+
+					loadThemePart("messages");
+				}
+				else
+				{
+					global $_page, $_sent;
+					$_page = 0;
+					$_sent = true;
+
+					loadThemePart("messages");
+				}
+
+				break;
+
+			case "composemessage":
+				if(!isSet($_SESSION['loggedin']))
+				{
+					error("You must be logged in to perform this action.");
+					break;
+				}
+
+				if(isSet($_POST['recipient']) && isSet($_POST['subject']) && isSet($_POST['postcontent']))
+				{
+					if(isSet($_POST['preview']))
+					{
+						// Create preview
+						$postStuff = $_POST['postcontent'];
+						$preview = bb_parse($postStuff);
+
+						global $_title, $_preview, $_user;
+						$_title = htmlentities($_POST['subject']) . ' (Preview)';
+						$_preview = $preview;
+						$_user = findUserByID($_SESSION['userid']);
+
+						loadThemePart("preview");
+					}
+					else if(strLen($_POST['postcontent']) > 10000 && !$_SESSION['admin'])
+					{
+						error("Your message is over the 10000 character limit.");
+					}
+					else if(!checkRateLimitAction("sendMessage", 20, 1))
+					{
+						error("Please wait a bit before sending another message.");
+					}
+					else if(isSet($_POST['send']))
+					{
+						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['recipient'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
+
+						if($success)
+						{
+							info("Message sent successfully!", "Send message");
+							header('location: ./?action=outbox');
+							break;
+						}
+						else
+						{
+							info("Failed to send message.", "Send message");
+						}
+					}
+
+					global $_postContentPrefill, $_recipientPrefill, $_subjectPrefill;
+
+					$_postContentPrefill = htmlentities($_POST['postcontent']);
+					$_recipientPrefill = htmlentities($_POST['recipient']);
+					$_subjectPrefill = htmlentities($_POST['subject']);
+				}
+
+				loadThemePart("form-composemessage");
 
 				break;
 
@@ -530,11 +618,39 @@
 					break;
 				}
 
+				if(!checkRateLimitAction("avatarChange", 5, 60))
+				{
+					error("Too many avatar changes, please wait a minute before trying to upload another avatar.");
+					break;
+				}
+
 				if(isSet($_FILES['avatar']))
 				{
 					if($_FILES['avatar']['error'] !== UPLOAD_ERR_OK)
 					{
-						error("An error occurred while uploading your avatar. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						$error = $_FILES['avatar']['error'];
+
+						if($error == UPLOAD_ERR_INI_SIZE)
+							error("The uploaded file exceeds the maximum filesize this server is configured to support.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_FORM_SIZE)
+							error("The uploaded file exceeds the maximum filesize.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_PARTIAL)
+							error("The uploaded file did not finish uploading completely. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_NO_FILE)
+							error("No file was uploaded.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+						else if($error == UPLOAD_ERR_NO_TMP_DIR)
+						{
+							error("Your avatar could not be processed because the server is missing a temporary directory to handle the upload.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+							addLogMessage("User's uploaded avatar could not be processed due to the lack of a PHP upload temp directory. This is a configuration problem.", 'error');
+						}
+						else if($error == UPLOAD_ERR_CANT_WRITE)
+						{
+							error("Your avatar could not be processed due to an issue writing data on the server. Please try again later.");
+							addLogMessage("User's uploaded avatar could not be processed because of a disk write error. Is the system out of disk space? Permission issue?");
+						}
+						else
+							error("An error occurred while uploading your avatar. Please try again.<br /><a href=\"./?action=avatarchange\">Continue</a>");
+
 						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=avatarchange'\" />");
 					}
 					else if($_FILES['avatar']['size'] > 2024000)
@@ -553,6 +669,7 @@
 							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
 							//header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
 							info("Avatar updated successfully.", "Avatar change");
+							addLogMessage("User changed their avatar.", 'info');
 						}
 						else
 						{
@@ -618,6 +735,11 @@ EOT;
 			case "emailchange":
 				if(isSet($_GET['code']) && isSet($_GET['id']))
 				{
+					if(!checkRateLimitAction("emailSecretAttempt", 5, 600))
+					{
+						error("Maximum attempts exceeded. Wait 10 minutes before trying again.");
+						break;
+					}
 					if(verifyEmailChange($_GET['id'], $_GET['code']))
 					{
 						info("Your new email address was successfully verified!", "Change email");
@@ -638,6 +760,11 @@ EOT;
 
 				if(isSet($_POST['newemail']))
 				{
+					if(!checkRateLimitAction("sendEmail", 600, 2))
+					{
+						error("Maximum number of email actions reached. Please wait 10 minutes before trying again.");
+						break;
+					}
 					if(updateEmailByID($_SESSION['userid'], $_POST['newemail']))
 					{
 						if($require_email_verification)
@@ -667,6 +794,12 @@ EOT;
 				break;
 
 			case "verify":
+				if(!checkRateLimitAction("emailSecretAttempt", 5, 600))
+				{
+					error("Maximum attempts exceeded. Wait 10 minutes before trying again.");
+					break;
+				}
+
 				$error = verifyAccount($_GET['code']);
 
 				if($error === false)
@@ -682,6 +815,11 @@ EOT;
 			case "resetpassword":
 				if(isSet($_GET['code']) && isSet($_GET['id']))
 				{
+					if(!checkRateLimitAction("emailSecretAttempt", 5, 600))
+					{
+						error("Maximum attempts exceeded. Wait 10 minutes before trying again.");
+						break;
+					}
 					if(getVerificationByID($_GET['id']) !== $_GET['code'])
 					{
 						error("This verifcation code is invalid.");
@@ -750,6 +888,12 @@ EOT;
 					addToBody($form);
 					break;
 				}
+				if(!checkRateLimitAction("sendEmail", 600, 2))
+				{
+					error("Maximum number of email actions reached. Please wait 10 minutes before trying again.");
+					break;
+				}
+
 				$error = sendResetEmail($_POST['email']);
 
 				if($error === false)
@@ -763,6 +907,18 @@ EOT;
 				break;
 
 			case "locktopic":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+				
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
@@ -783,7 +939,29 @@ EOT;
 				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
 				break;
 
+			case "admin":
+				if(!$_SESSION['admin'])
+				{
+					error("You do not have permission to view this page.");
+					break;
+				}
+
+				loadThemePart("admin");
+				break;
+
 			case "stickytopic":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in to perform this action.");
@@ -805,18 +983,6 @@ EOT;
 				break;
 
 			case "deletepost":
-				if(!isSet($_SESSION['loggedin']))
-				{
-					error("You must be logged in.");
-					break;
-				}
-
-				if(!$_SESSION['admin'])
-				{
-					error("You do not have permission to do this action.");
-					break;
-				}
-
 				if(!isSet($_GET['post']))
 				{
 					error("No post specified.");
@@ -835,6 +1001,18 @@ EOT;
 				break;
 
 			case "ban":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in.");
@@ -858,6 +1036,18 @@ EOT;
 				break;
 
 			case "promote":
+				if(!isSet($_GET['as']))
+				{
+					error("Action secret not provided.");
+					break;
+				}
+
+				if($_GET['as'] != $_SESSION['actionSecret'])
+				{
+					error("Incorrect action secret.");
+					break;
+				}
+
 				if(!isSet($_SESSION['loggedin']))
 				{
 					error("You must be logged in.");
@@ -919,7 +1109,7 @@ EOT;
 
 		if(isSet($_SESSION['admin']))
 			if($_SESSION['admin'])
-				addToBody("<br /><a href=\"./admin.php\">Admin</a>");
+				addToBody("<br /><a href=\"./?action=admin\">Admin</a>");
 	}
 
 	// End of possible actions, close mysql connection.

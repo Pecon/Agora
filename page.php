@@ -47,14 +47,21 @@ if(isSet($force_ssl))
 		}
 	}
 
-$_script_start = microtime(true);
+global $_script_start, $_script_nonce;
+
+if(!isSet($_script_start))
+	$_script_start = microtime(true);
+
+$_script_nonce = bin2hex(openssl_random_pseudo_bytes(12));
+
 error_reporting(E_ALL);
 ini_set("log_errors", true);
-ini_set("error_log", "./php-error.log");
+ini_set("error_log", "./php_error.log");
 ini_set("session.gc_maxlifetime", 18000);
 ini_set("session.cookie_lifetime", 18000);
 header('cache-control: private');
 header('expires: 0');
+header("Content-Security-Policy: script-src 'nonce-${_script_nonce}';");
 session_start();
 
 $_title = "";
@@ -226,8 +233,8 @@ function finishPage()
 	print($_bodyText);
 
 	global $_version, $_time, $_queries, $_year;
-	$_version = "2.0.0-beta2";
-	$_time = round((microtime(true) - $_script_start) * 1000, 3);
+	$_version = "2.0.0-beta3";
+	$_time = round((microtime(true) - $_script_start) * 1000, 1);
 	$_queries = $_mysqli_numQueries . " " . ($_mysqli_numQueries == 1 ? "query" : "queries");
 	$_year = date('Y');
 	

@@ -57,10 +57,12 @@
 				$_SESSION['unreadMessages'] -= 1;
 		}
 
-		print('<form method="POST" action="./?action=composemessage"><input type="hidden" name="toName" value="' . $sender['username'] . '" /><input type="hidden" name="subject" value="RE: ' . $message['subject'] . '" /><input type="hidden" name="replyID" value="' . $message['messageID'] . '" />');
-		print('<textarea class="postbox" name="postcontent" tabindex="1">[quote ' . $sender['username'] . ']' . $message['messageData'] . "[/quote]\n</textarea><br />");
-		print('<input class="postButtons" type="submit" name="send" value="Reply" tabindex="3">
-		<input class="postButtons" type="submit" name="preview" value="Preview" tabindex="2"></form>');
+		global $_postContentPrefill, $_recipientPrefill, $_subjectPrefill;
+		$_postContentPrefill = "[quote ${sender['username']}]\n${message['messageData']}\n[/quote]";
+		$_recipientPrefill = $sender['username'];
+		$_subjectPrefill = 'RE: ' . $message['subject'];
+
+		directLoadThemePart("form-messagereply");
 	}
 		
 	return true;

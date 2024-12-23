@@ -8,7 +8,7 @@
 	else
 	{
 		if($_SESSION['admin'])
-			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
+			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}&amp;as=${_SESSION['actionSecret']}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}&amp;as=${_SESSION['actionSecret']}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
 		else
 			$adminControl = "";
 	}
@@ -32,7 +32,8 @@
 
 	$websiteComps = parse_url($website);
 	if(isSet($websiteComps['host']))
-		$websitePretty = $websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : "");
+		$websitePretty = htmlentities($websiteComps['host'] . (isSet($websiteComps['path']) ? (strlen($websiteComps['path']) > 1 ? $websiteComps['path'] : "") : ""));
+	$website = htmlentities($website);
 
 
 	print("\n<div class=\"profileContainer\">${adminControl}\n<div class=\"profileContents\"><div class=\"profileStats\"><div class=\"profileEntry\">\n${username}\n</div>\n<div class=\"profileEntry\">\n" .
@@ -44,7 +45,7 @@
 			<div class=\"profileEntry\">Last active: ${lastActive}</div>\n<div class=\"profileEntry\">" .
 			(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a>" : "Website: None") .
 			"</div>
-			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&user=${_userData['id']}\">View this user's posts</a></div>
+			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&amp;user=${_userData['id']}\">View this user's posts</a></div>
 			</div>
 			<div class=\"profileText\">
 			${profileDisplayText}

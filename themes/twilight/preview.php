@@ -21,7 +21,7 @@
 	print("<img class=\"avatar\" src=\"./avatar.php?user=${user['id']}&amp;cb=${user['avatarUpdated']}\" /><div class=\"postDate finetext\">${date}</div><div class=\"userPostSeperator\"></div></div>");
 
 	// Display the post body
-	print("\n<div class=\"postBody\"><div class=\"postText\">${_preview}</div></div></div>");
+	print("\n<div class=\"postBody\"><div class=\"postText\">${_preview}</div><div class=\"postFooter\">&nbsp;</div></div></div>");
 
 	print('<div class="topicFooter"></div></div>');
 ?>

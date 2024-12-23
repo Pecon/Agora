@@ -1,6 +1,7 @@
 <?php
 	require_once './data.php';
 	require_once './database.php';
+	require_once './logging.php';
 
 	date_default_timezone_set($site_timezone);
 
@@ -43,7 +44,6 @@
 						$_SESSION['banned'] = $userData['banned'];
 						$_SESSION['userid'] = $userData['id'];
 						$_SESSION['lastpostdata'] = "";
-						$_SESSION['lastpostingtime'] = time();
 						$_SESSION['actionSecret'] = mt_rand(10000, 99999);
 						$_SESSION['token'] = $session['token'];
 
@@ -184,6 +184,8 @@
 		$sql = "UPDATE users SET verified=1, verification=0 WHERE id='${ID}'";
 		$result = querySQL($sql);
 
+		addLogMessage("User verified their email.", 'info', $ID);
+
 		return true;
 	}
 
@@ -248,8 +250,11 @@ EOF;
 		if($error === false)
 		{
 			error("Failed to send verification email. Please try again later.");
+			addLogMessage("Failed to send password reset email.", 'error', $result['id']);
 			return false;
 		}
+
+		addLogMessage("Password reset email sent for user.", 'security', $result['id']);
 
 		return true;
 	}
@@ -296,7 +301,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Banned user (${id}) ${user['username']}.");
+		adminLog("Banned user \$USERID:${id}");
 		return true;
 	}
 
@@ -308,7 +313,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Unbanned user (${id}) ${user['username']}.");
+		adminLog("Unbanned user \$USERID:${id}");
 		return true;
 	}
 
@@ -341,7 +346,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Promoted user (${id}) ${user['username']} to admin.");
+		adminLog("Promoted user \$USERID:${id} to admin.");
 		return true;
 	}
 
@@ -365,7 +370,7 @@ EOF;
 		$result = querySQL($sql);
 
 		
-		adminLog("Demoted user (${id}) ${user['username']} from admin.");
+		adminLog("Demoted user \$USERID:${id} from admin.");
 		return true;
 	}
 
@@ -538,7 +543,7 @@ EOF;
 					$keepOriginal = true;
 			}
 			else if($imgType == "image/bmp")
-				$image = imagecreatefromwbmp($imagePath);
+				$image = imagecreatefrombmp($imagePath);
 			else if($imgType == "image/webp")
 				$image = imagecreatefromwebp($imagePath);
 			else
@@ -782,7 +787,10 @@ EOF;
 		if(!filter_var($website, FILTER_VALIDATE_URL) || strlen($website) > 200)
 		{
 			if(strToLower($website) != "http://" && strlen($website) > 1)
+			{
+				$website = findUserByID($id)['website'];
 				error("Your website url is invalid or too long.");
+			}
 			else if(strToLower($website) == "http://")
 				$website = findUserByID($id)['website'];
 			else
@@ -814,16 +822,6 @@ EOF;
 		return true;
 	}
 
-	function displayRecentTopics($page)
-	{
-		
-	}
-
-	function displayRecentPosts($start, $num)
-	{
-		
-	}
-
 	function fetchSinglePost($postID)
 	{
 		static $post = array();
@@ -844,15 +842,20 @@ EOF;
 		return $row;
 	}
 
-	function displayPostEdits($postID)
-	{
-		
-	}
-
-	function displayThread($topicID, $page)
+	function getPostLink($postID)
 	{
 		global $items_per_page;
-		
+		$postID = intval($postID);
+
+		$post = fetchSinglePost($postID);
+
+		if($post === false)
+			return false;
+
+		$topicPage = floor($post['threadIndex'] / $items_per_page);
+
+		$link = "./?topic=${post['topicID']}&page=${topicPage}#${post['postID']}";
+		return $link;
 	}
 
 	function createThread($userID, $topic, $postData)
@@ -866,6 +869,7 @@ EOF;
 		$topicID = getLastInsertID();
 
 		createPost($userID, $topicID, $postData);
+		addLogMessage('User started a new topic $TOPICID:' . $topicID);
 		return $topicID;
    }
 
@@ -892,7 +896,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("set topic (${topicID}) locked status to " . ($newValue ? "Locked" : "Not Locked") . ".");
+		adminLog(($newValue ? "Locked" : "Unlocked") . " topic \$TOPICID:${topicID}");
 		return $newValue;
    }
 
@@ -919,7 +923,7 @@ EOF;
 
 		querySQL($sql);
 
-		adminLog("set topic (${topicID}) sticky status to " . ($newValue ? "Sticky" : "Not Sticky") . ".");
+		adminLog("Topic \$TOPICID:${topicID} is " . ($newValue ? "now sticky" : "no longer sticky") . ".");
 		return $newValue;
 	}
 
@@ -948,7 +952,7 @@ EOF;
 
 		// Make entry in posts table
 		$mysqli = getSQLConnection();
-		$sql = "INSERT INTO posts (userID, threadID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${topicID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
+		$sql = "INSERT INTO posts (userID, topicID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${topicID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
 		querySQL($sql);
 
 		$postID = getLastInsertID();
@@ -965,6 +969,8 @@ EOF;
 
 		$sql = "UPDATE users SET postCount='${postCount}' WHERE id=${userID}";
 		querySQL($sql);
+
+		addLogMessage('User created a post $POSTID:' . $postID . ' in $TOPICID:' . $topicID, 'info', $userID);
 		
 		return $postID;
 	}
@@ -983,109 +989,80 @@ EOF;
 			return;
 		}
 
-		if(boolval(findTopicbyID($post['threadID'])['locked']))
+		if(boolval(findTopicbyID($post['topicID'])['locked']))
 		{
 			error("You can't edit posts in a locked thread.");
 			return;
 		}
 
 		$changeTime = time();
-		$userID = intval($userID);
 		$postID = intval($postID);
 		$oldPostData = sanitizeSQL($post['postPreparsed']);
 
-		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, threadID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['threadID']}');";
+		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('${post['changeID']}', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['topicID']}');";
 		querySQL($sql);
 
 		$changeID = getLastInsertID();
 		$newPostParsed = sanitizeSQL(bb_parse($newPostData));
 		$newPostData = sanitizeSQL(htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
 
+		addLogMessage('User edited their post $POSTID:' . $postID, 'info', $userID);
+
 		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
 		querySQL($sql);
 	}
 
-	function deletePost($id)
+	function editTopicTitle($topicID, $newTitle)
 	{
-		$id = intval($id);
+		$topicID = intval($topicID);
+		$topic = findTopicbyID($topicID);
 
-		if(!$post = fetchSinglePost($id))
+		if(!$topic)
 		{
-			error("This post does not exist.");
-			return false;
+			error("This topic does not exist.");
+			return;
 		}
 
-		if($post['threadIndex'] == 0)
+		if($_SESSION['userid'] !== $topic['creatorUserID'] && !$_SESSION['admin'])
 		{
-			// Delete the thread entry as well
-			$thread = findTopicByID($post['threadID']);
-			$threadCreator = findUserByID($thread['creatorUserID']);
-
-			$sql = "DELETE FROM topics WHERE topicID='${post['threadID']}';";
-			querySQL($sql);
-
-			$sql = "DELETE FROM posts WHERE threadID='${post['threadID']}';";
-			querySQL($sql);
-
-			$sql = "DELETE FROM changes WHERE threadID='${post['threadID']}';";
-			querySQL($sql);
-
-			adminLog("Deleted thread by ${threadCreator['id']} ${threadCreator['username']}: ${post['threadID']} . ${thread['topicName']}");
-		}
-		else
-		{
-			// Check if we need to update the latest post data
-			$topic = findTopicByID($post['threadID']);
-
-			if($topic['lastpostid'] == $id)
-			{
-				// Find the last existing post in the thread.
-				$sql = "SELECT postID, threadIndex, postDate FROM posts WHERE threadID='${post['threadID']}' ORDER BY threadIndex DESC LIMIT 0,2";
-				$result = querySQL($sql);
-
-				// Skip the first result since it's going to be the post we're about to delete. We want the one after it.
-				$result -> fetch_assoc();
-				$newLastPost = $result -> fetch_assoc();
-				$newPostCount = $newLastPost['threadIndex'] + 1;
-
-				// Update the thread with the new values
-				$sql = "UPDATE topics SET lastpostid='${newLastPost['postID']}', lastposttime='${newLastPost['postDate']}', numposts='${newPostCount}' WHERE topicID='${post['threadID']}';";
-				querySQL($sql);
-			}
-
-			// Delete just this post out of the thread
-			$post = fetchSinglePost($id);
-			$postStuff = str_replace(array("\r", "\n"), " ", $post['postData']);
-			$user = findUserByID($post['userID'])['username'];
-
-			$sql = "DELETE FROM posts WHERE postID='${id}';";
-			querySQL($sql);
-
-			// Fix thread indexes
-			$sql = "UPDATE posts SET threadIndex=threadIndex-1 WHERE threadID='${post['threadID']}' AND threadIndex>'${post['threadIndex']}';";
-			querySQL($sql);
-
-			// De-increment user post count
-			$sql = "UPDATE users SET postCount=postCount-1 WHERE id='${post['userID']}';";
-			querySQL($sql);
-
-			$sql = "DELETE FROM changes WHERE postID='${id}';";
-			querySQL($sql);
-
-			adminLog("Deleted post by ${user} (${post['userID']}): (${id}) ${postStuff}");
+			error("You do not have permission to edit this topic's title.");
+			return;
 		}
 
-		return true;
+		if($topic['locked'])
+		{
+			error("The subject of a locked topic cannot be edited.");
+			return;
+		}
+
+		$newTitle = sanitizeSQL(htmlentities($newTitle, ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+
+		if(strlen($newTitle) > 130)
+		{
+			error("Your subject is over the 130 character limit!");
+			return;
+		}
+
+		addLogMessage('User changed their topic\'s title from ' . $topic['topicName'] . ' to $TOPICID:' . $topicID);
+
+		$sql = "UPDATE topics SET topicName='${newTitle}' WHERE topicID=${topicID};";
+		querySQL($sql);
 	}
 
-
+	function deletePost(int $id)
+	{
+		try
+		{
+			$admin = new admin();
+			return $admin -> deletePost($id);
+		}
+		catch(Exception $error)
+		{
+			error($error -> getMessage());
+		}
+	}
 
 	// Private messaging functions
-
-	function displayRecentMessages($page, $sent)
-	{
-		
-	}
 
 	function displayMessage($ID)
 	{
@@ -1135,7 +1112,7 @@ EOF;
 
 		if($recipient === false)
 		{
-			error("Could not find a user by that name.");
+			warn("Could not find a user by that name.");
 			return false;
 		}
 
@@ -1153,11 +1130,13 @@ EOF;
 				querySQL($sql);
 			}
 
+			addLogMessage('User sent a private message to $USERID:' . $reply['recipientID'] . '.');
 			return true;
 		}
 		else
 		{
 			error("Message could not be sent for an unknown reason. This is probably a bug.");
+			addLogMessage("User was unable to send a private message to $USERID:${recipient['id']}", 'error');
 			return false;
 		}
 	}
@@ -1228,55 +1207,41 @@ EOF;
 		return $str;
 	}
 
+	function charAt($string, $index)
+	{
+		if($index >= strlen($string) || $index < 0)
+			return false;
+
+		return substr($string, $index, 1);
+	}
+
+	function filter_url($string)
+	{
+		// Search for "anyProtocol://anyURI"
+		// If not in that format, slap an http:// onto it.
+		if(!preg_match("/^(?:[A-Za-z])+:\/\/(?:[\w\W]+)$/", $string))
+			$string = "http://" . $string;
+
+		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
+	}
+
+	function filter_uri($string)
+	{
+		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
+	}
+
 	function bb_parse($text)
 	{
-		require_once 'bbcode.php';
-
 		try
 		{
-			$text = parseTag($text, 0, "root");
+			$parser = new bbcodeParser($text);
+
+			return $parser -> getParsed();
 		}
-		catch(Exception $e)
+		catch(Exception $error)
 		{
-			error("Error: " . $e -> getText());
-			$text = false;
+			error("Error in BBCode parsing: " . $error -> getMessage());
+			return false;
 		}
-
-		return $text;
-	}
-
-
-	function adminLog($stuff)
-	{
-		$file = fopen("./admin.log", "a");
-		$file.fwrite($file, time() . " " . $_SESSION['userid'] . " " . $stuff . "\r\n");
-
-		fclose($file);
-	}
-
-	function adminLogParse($log)
-	{
-		$return = "";
-		$lines = explode("\n", $log);
-
-		foreach($lines as $line)
-		{
-			$words = explode(" ", $line);
-			$wordCount = count($words);
-
-			if($wordCount < 3)
-				continue;
-
-			$return = $return . date("r", intval($words[0]));
-			$user = findUserByID(intval($words[1]));
-			$return = $return . " ${user['username']} (${words[1]})";
-
-			for($i = 2; $i < $wordCount; $i++)
-			{
-				$return = $return . " " . $words[$i];
-			}
-		}
-
-		return $return;
 	}
 ?>

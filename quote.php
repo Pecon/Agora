@@ -24,5 +24,6 @@
 		return;
 	}
 
-	print($user['username'] . "\n" . $post['postData']);
+	header("Content-Type: text/plain");
+	print($user['username'] . "\n" . html_entity_decode($post['postData'], ENT_SUBSTITUTE | ENT_QUOTES, 'UTF-8'));
 ?>

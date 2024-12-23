@@ -46,11 +46,13 @@
 		$backgroundSwitch = false;
 		foreach($posts as $index => $post)
 		{
-			$topic = findTopicbyID($post['threadID']);
+			$topic = findTopicbyID($post['topicID']);
 			$user = findUserByID($post['userID']);
 			$username = $user['username'];
 			$date = date("F d, Y H:i:s", $post['postDate']);
 			$topicPage = floor($post['threadIndex'] / $items_per_page);
+
+			$backgroundSwitch = !$backgroundSwitch;
 
 			if($index === 0)
 				print('<div class="post topPost' . ($backgroundSwitch ? " postBackgroundA" : " postBackgroundB") . '">');
@@ -75,7 +77,7 @@
 
 
 			// Display the post body
-			print("\n<div class=\"postBody\"><div class=\"postText\">\n<a href=\"./?topic=${post['threadID']}&amp;page=${topicPage}#${post['postID']}\">\n${topic['topicName']}\n</a>\n<hr />\n${post['postPreparsed']}\n</div>");
+			print("\n<div class=\"postBody\"><div class=\"postText\">\n<a href=\"./?action=gotopost&amp;post=${post['postID']}\">\n${topic['topicName']}\n</a>\n<hr />\n${post['postPreparsed']}\n</div>");
 
 			// Moving on to the post controls
 			print("\n<div class=\"postFooter\">");
@@ -85,7 +87,7 @@
 			if(isSet($_SESSION['loggedin']))
 			{
 				if($_SESSION['admin'])
-					print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}\">Delete</a> ");
+					print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete</a> ");
 			}
 
 			// If logged in and there are edits, display the view edits button
@@ -93,7 +95,7 @@
 				print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
 
 			// Display the permalink button and wrap up.
-			print("<a class=\"inPostButtons\" href=\"./?topic=${post['threadID']}&amp;page=${topicPage}#${post['postID']}\">Permalink</a></div></div></div>\n");
+			print("<a class=\"inPostButtons\" href=\"./?action=gotopost&amp;post=${post['postID']}\">Permalink</a></div></div></div>\n");
 		}
 		
 		print("\n<div class=\"topicFooter\">");

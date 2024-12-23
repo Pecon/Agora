@@ -199,6 +199,14 @@
 		}
 
 		$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+		// Check rate limiting status
+		if(!checkRateLimitAction("register", 300, 2))
+		{
+			error("You may only attempt two registrations per five minutes. Please try again later.");
+			showRegisterForm($_POST['username'], "", $_POST['email']);
+			return;
+		}
 		
 
 		if($settings['require_email_verification'])
@@ -231,6 +239,7 @@ EOF;
 			if($error === false)
 			{
 				error("Failed to send verification email. Please try again later.");
+				addLogMessage("Failed to send new user verification email.", 'error');
 				finishPage();
 			}
 		}
@@ -243,10 +252,20 @@ EOF;
 		$password = sanitizeSQL($password);
 		$email = sanitizeSQL($_POST['email']);
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, blid, profiletext, profiletextPreparsed, verification, usergroup) VALUES ('${username}', '${password}', ${regDate}, '${email}', ${auth}, 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, blid, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', ${auth}, 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . intVal(!$settings['require_email_verification']) . "');";
 
 		querySQL($sql);
+
+		if($sql === false)
+		{
+			error("There was an error processing your registration request.");
+			showRegisterForm($_POST['username'], "", $_POST['email']);
+			return;
+		}
+
 		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a>", "Register");
+		addLogMessage("User account created.", 'info', getLastInsertID());
 
 		disconnectSQL();
 	}
