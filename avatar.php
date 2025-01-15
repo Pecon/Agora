@@ -26,7 +26,7 @@
 		else
 			$mime = "application/octet-stream";
 		
-		header("Content-type: ${mime}");
+		header("Content-type: {$mime}");
 		header("Cache-control: max-age=10080");
 		
 		print($avatar);

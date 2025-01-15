@@ -19,7 +19,7 @@ function checkRateLimitAction(string $actionName, int $cooldownSeconds, int $thr
 		// Continue anyways I guess
 	}
 
-	$sql = "SELECT * FROM `rateLimiting` WHERE `IPAddress` = '${IP}' AND `actionName` = '${actionName}';";
+	$sql = "SELECT * FROM `rateLimiting` WHERE `IPAddress` = '{$IP}' AND `actionName` = '{$actionName}';";
 	$result = querySQL($sql);
 
 	if($result === false)
@@ -30,7 +30,7 @@ function checkRateLimitAction(string $actionName, int $cooldownSeconds, int $thr
 	if($result -> num_rows == 0)
 	{
 		// Insert a ratelimiting row for this IP and action
-		$sql = "INSERT INTO `rateLimiting` (`IPAddress`, `actionName`, `useCount`, `lastUseTime`) VALUES ('${IP}', '${actionName}', 1, UNIX_TIMESTAMP());";
+		$sql = "INSERT INTO `rateLimiting` (`IPAddress`, `actionName`, `useCount`, `lastUseTime`) VALUES ('{$IP}', '{$actionName}', 1, UNIX_TIMESTAMP());";
 		$result = querySQL($sql);
 
 		if($result === false)
@@ -55,7 +55,7 @@ function checkRateLimitAction(string $actionName, int $cooldownSeconds, int $thr
 	}
 
 	// Update the row
-	$sql = "UPDATE `rateLimiting` SET `useCount` = `useCount` + 1, `lastUseTime` = UNIX_TIMESTAMP() WHERE `IPAddress` = '${IP}' AND `actionName` = '${actionName}';";
+	$sql = "UPDATE `rateLimiting` SET `useCount` = `useCount` + 1, `lastUseTime` = UNIX_TIMESTAMP() WHERE `IPAddress` = '{$IP}' AND `actionName` = '{$actionName}';";
 	$result = querySQL($sql);
 
 	if($result === false)

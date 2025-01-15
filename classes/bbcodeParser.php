@@ -69,7 +69,7 @@
 				else
 					$lineNumbers = "On line " . $error['lineNumbers'][0];
 
-				warn("BBCode Parser: ${error['errorText']} $errorCount $lineNumbers.");
+				warn("BBCode Parser: {$error['errorText']} $errorCount $lineNumbers.");
 			}
 		}
 

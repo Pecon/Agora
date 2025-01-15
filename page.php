@@ -61,7 +61,7 @@ ini_set("session.gc_maxlifetime", 18000);
 ini_set("session.cookie_lifetime", 18000);
 header('cache-control: private');
 header('expires: 0');
-header("Content-Security-Policy: script-src 'nonce-${_script_nonce}';");
+header("Content-Security-Policy: script-src 'nonce-{$_script_nonce}';");
 session_start();
 
 $_title = "";

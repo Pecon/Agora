@@ -56,7 +56,7 @@
 
 						// Update the last seen time and IP in session table
 						$time = time();
-						$sql = "UPDATE sessions SET lastSeenIP='${_SERVER['REMOTE_ADDR']}', lastSeenTime=${time} WHERE id=${session['id']};";
+						$sql = "UPDATE sessions SET lastSeenIP='{$_SERVER['REMOTE_ADDR']}', lastSeenTime={$time} WHERE id={$session['id']};";
 						querySQL($sql);
 
 						// info("Your session has been restored.", "Session restored");
@@ -116,7 +116,7 @@
 		}
 		$_SESSION['banned'] = $userData['banned'];
 
-		$sql = "SELECT COUNT(*) FROM privateMessages WHERE `recipientID` = ${_SESSION['userid']} AND `read` = 0;";
+		$sql = "SELECT COUNT(*) FROM privateMessages WHERE `recipientID` = {$_SESSION['userid']} AND `read` = 0;";
 		$result = querySQL($sql);
 		$result = $result -> fetch_assoc();
 		$_SESSION['unreadMessages'] = $result['COUNT(*)'];
@@ -146,7 +146,7 @@
 	{
 		$ID = intval($ID);
 
-		$sql = "SELECT verification FROM users WHERE id='${ID}';";
+		$sql = "SELECT verification FROM users WHERE id='{$ID}';";
 		$result = querySQL($sql);
 
 		$result = $result -> fetch_assoc();
@@ -157,7 +157,7 @@
 	{
 		$ID = intval($ID);
 
-		$sql = "UPDATE users SET verification='0' WHERE id='${ID}';";
+		$sql = "UPDATE users SET verification='0' WHERE id='{$ID}';";
 		$result = querySQL($sql);
 
 		return true;
@@ -172,7 +172,7 @@
 		}
 
 		$code = sanitizeSQL($code);
-		$sql = "SELECT id FROM users WHERE verification='${code}'";
+		$sql = "SELECT id FROM users WHERE verification='{$code}'";
 		$result = querySQL($sql);
 
 		$result = $result -> fetch_assoc();
@@ -181,7 +181,7 @@
 
 		$ID = intval($result['id']);
 
-		$sql = "UPDATE users SET verified=1, verification=0 WHERE id='${ID}'";
+		$sql = "UPDATE users SET verified=1, verification=0 WHERE id='{$ID}'";
 		$result = querySQL($sql);
 
 		addLogMessage("User verified their email.", 'info', $ID);
@@ -199,7 +199,7 @@
 
 		$realEmail = $email;
 		$email = sanitizeSQL($email);
-		$sql = "SELECT id, verified FROM users WHERE email='${email}'";
+		$sql = "SELECT id, verified FROM users WHERE email='{$email}'";
 
 		$result = querySQL($sql);
 
@@ -236,17 +236,17 @@
 		$message = <<<EOF
 This email was sent to you because a password reset was initiated on your account. If you intended to do this, please click the link below:<br />
 <br />
-<a href="${url}">${url}</a><br />
+<a href="{$url}">{$url}</a><br />
 <br />
 If you did not initiate this reset, you may safely disregard this email.<br />
 EOF;
 		$verificationCode = sanitizeSQL($verification);
-		$sql = "UPDATE users SET verification='${verificationCode}' WHERE id='${result['id']}'";
+		$sql = "UPDATE users SET verification='{$verificationCode}' WHERE id='{$result['id']}'";
 		$result = querySQL($sql);
 
 		global $site_name;
 
-		$error = mail($realEmail, "$site_name password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+		$error = mail($realEmail, "$site_name password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@{$domain}\r\nX-Mailer: PHP/" . phpversion());
 		if($error === false)
 		{
 			error("Failed to send verification email. Please try again later.");
@@ -278,7 +278,7 @@ EOF;
 			return $topic[$ID];
 
 		$ID = intval($ID);
-		$sql = "SELECT * FROM topics WHERE topicID = ${ID}";
+		$sql = "SELECT * FROM topics WHERE topicID = {$ID}";
 		$result = querySQL($sql);
 
 		if($numResults = $result -> num_rows > 0)
@@ -301,7 +301,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Banned user \$USERID:${id}");
+		adminLog("Banned user \$USERID:{$id}");
 		return true;
 	}
 
@@ -309,11 +309,11 @@ EOF;
 	{
 
 		$id = intval($id);
-		$sql = "UPDATE users SET banned=0, tagline='' WHERE id='${id}'";
+		$sql = "UPDATE users SET banned=0, tagline='' WHERE id='{$id}'";
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Unbanned user \$USERID:${id}");
+		adminLog("Unbanned user \$USERID:{$id}");
 		return true;
 	}
 
@@ -346,7 +346,7 @@ EOF;
 		$result = querySQL($sql);
 
 		$user = findUserByID($id);
-		adminLog("Promoted user \$USERID:${id} to admin.");
+		adminLog("Promoted user \$USERID:{$id} to admin.");
 		return true;
 	}
 
@@ -366,11 +366,11 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE users SET usergroup='member', tagline='' WHERE id='${id}'";
+		$sql = "UPDATE users SET usergroup='member', tagline='' WHERE id='{$id}'";
 		$result = querySQL($sql);
 
 		
-		adminLog("Demoted user \$USERID:${id} from admin.");
+		adminLog("Demoted user \$USERID:{$id} from admin.");
 		return true;
 	}
 
@@ -505,7 +505,7 @@ EOF;
 	function getAvatarByID($id)
 	{
 		$id = intval($id);
-		$sql = "SELECT avatar FROM users WHERE id=${id};";
+		$sql = "SELECT avatar FROM users WHERE id={$id};";
 
 		$result = querySQL($sql);
 		$result = $result -> fetch_assoc();
@@ -620,7 +620,7 @@ EOF;
 			$inputData = sanitizeSQL(fread(fopen($imagePath, "rb"), filesize($imagePath)));
 			unlink($imagePath);
 			$time = time();
-			$sql = "UPDATE users SET avatar='${inputData}', avatarUpdated='${time}' WHERE id=${id};";
+			$sql = "UPDATE users SET avatar='{$inputData}', avatarUpdated='{$time}' WHERE id={$id};";
 
 			querySQL($sql);
 		}
@@ -636,7 +636,7 @@ EOF;
 	function getPasswordHashByID($ID)
 	{
 		$ID = intval($ID);
-		$sql = "SELECT passkey FROM users WHERE id=${ID};";
+		$sql = "SELECT passkey FROM users WHERE id={$ID};";
 
 		$result = querySQL($sql);
 
@@ -648,7 +648,7 @@ EOF;
 		$ID = intval($ID);
 		$newHash = sanitizeSQL($newHash);
 
-		$sql = "UPDATE users SET passkey='${newHash}' WHERE id=${ID};";
+		$sql = "UPDATE users SET passkey='{$newHash}' WHERE id={$ID};";
 
 		querySQL($sql);
 	}
@@ -656,7 +656,7 @@ EOF;
 	function getEmailByID($ID)
 	{
 		$ID = intval($ID);
-		$sql = "SELECT email FROM users WHERE id=${ID};";
+		$sql = "SELECT email FROM users WHERE id={$ID};";
 
 		$result = querySQL($sql);
 
@@ -688,9 +688,9 @@ EOF;
 			$user = getUserNameByID($ID);
 
 			$message = <<<EOF
-	This email was sent to you because an email change was initiated on your account, ${user}. If you intended to do this, please click the link below to confirm the new email:<br />
+	This email was sent to you because an email change was initiated on your account, {$user}. If you intended to do this, please click the link below to confirm the new email:<br />
 	<br />
-	<a href="${url}">${url}</a><br />
+	<a href="{$url}">{$url}</a><br />
 	<br />
 	If you are not the owner of the account, pleae disregard this email.<br />
 EOF;
@@ -698,12 +698,12 @@ EOF;
 			$verificationCode = sanitizeSQL($verification);
 			$newEmail = sanitizeSQL($newEmail);
 			$ID = intval($ID);
-			$sql = "UPDATE users SET emailVerification='${verificationCode}', newEmail='${newEmail}' WHERE id='${ID}';";
+			$sql = "UPDATE users SET emailVerification='{$verificationCode}', newEmail='{$newEmail}' WHERE id='{$ID}';";
 			querySQL($sql);
 
 			global $site_name;
 
-			$error = mail($newEmail, "$site_name email change", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+			$error = mail($newEmail, "$site_name email change", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@{$domain}\r\nX-Mailer: PHP/" . phpversion());
 			if($error === false)
 			{
 				error("Failed to send verification email. Please try again later.");
@@ -717,7 +717,7 @@ EOF;
 			$ID = intval($ID);
 			$newEmail = sanitizeSQL(trim($newEmail));
 
-			$sql = "UPDATE users SET email='${newEmail}' WHERE id=${ID};";
+			$sql = "UPDATE users SET email='{$newEmail}' WHERE id={$ID};";
 
 			querySQL($sql);
 			return true;
@@ -735,7 +735,7 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE users SET email='${user['newEmail']}', newEmail='', emailVerification=0 WHERE id='${ID}';";
+		$sql = "UPDATE users SET email='{$user['newEmail']}', newEmail='', emailVerification=0 WHERE id='{$ID}';";
 		$result = querySQL($sql);
 
 		return true;
@@ -745,7 +745,7 @@ EOF;
 	{
 		$username = sanitizeSQL(strToLower($username));
 		$email = sanitizeSQL(strToLower($email));
-		$sql = "SELECT * FROM users WHERE lower(username) = '${username}' OR lower(email) = '${email}';";
+		$sql = "SELECT * FROM users WHERE lower(username) = '{$username}' OR lower(email) = '{$email}';";
 		$result = querySQL($sql);
 
 		if($result -> num_rows > 0)
@@ -816,7 +816,7 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE users SET profiletext='${rawText}', profiletextPreparsed='${text}', tagline='${tagLine}', website='${website}' WHERE id=${id}";
+		$sql = "UPDATE users SET profiletext='{$rawText}', profiletextPreparsed='{$text}', tagline='{$tagLine}', website='{$website}' WHERE id={$id}";
 		$result = querySQL($sql);
 
 		return true;
@@ -854,7 +854,7 @@ EOF;
 
 		$topicPage = floor($post['threadIndex'] / $items_per_page);
 
-		$link = "./?topic=${post['topicID']}&page=${topicPage}#${post['postID']}";
+		$link = "./?topic={$post['topicID']}&page={$topicPage}#{$post['postID']}";
 		return $link;
 	}
 
@@ -892,11 +892,11 @@ EOF;
 
 		$newValue = !$topic['locked'];
 
-		$sql = "UPDATE topics SET locked='${newValue}' WHERE topicID='{$topicID}';";
+		$sql = "UPDATE topics SET locked='{$newValue}' WHERE topicID='{$topicID}';";
 
 		querySQL($sql);
 
-		adminLog(($newValue ? "Locked" : "Unlocked") . " topic \$TOPICID:${topicID}");
+		adminLog(($newValue ? "Locked" : "Unlocked") . " topic \$TOPICID:{$topicID}");
 		return $newValue;
    }
 
@@ -919,11 +919,11 @@ EOF;
 
 		$newValue = !$topic['sticky'];
 
-		$sql = "UPDATE topics SET sticky='${newValue}' WHERE topicID='{$topicID}';";
+		$sql = "UPDATE topics SET sticky='{$newValue}' WHERE topicID='{$topicID}';";
 
 		querySQL($sql);
 
-		adminLog("Topic \$TOPICID:${topicID} is " . ($newValue ? "now sticky" : "no longer sticky") . ".");
+		adminLog("Topic \$TOPICID:{$topicID} is " . ($newValue ? "now sticky" : "no longer sticky") . ".");
 		return $newValue;
 	}
 
@@ -952,7 +952,7 @@ EOF;
 
 		// Make entry in posts table
 		$mysqli = getSQLConnection();
-		$sql = "INSERT INTO posts (userID, topicID, postDate, postData, postPreparsed, threadIndex) VALUES (${userID}, ${topicID}, '${date}', '${postData}', '${parsedPost}', '${row['numposts']}');";
+		$sql = "INSERT INTO posts (userID, topicID, postDate, postData, postPreparsed, threadIndex) VALUES ({$userID}, {$topicID}, '{$date}', '{$postData}', '{$parsedPost}', '{$row['numposts']}');";
 		querySQL($sql);
 
 		$postID = getLastInsertID();
@@ -961,13 +961,13 @@ EOF;
 		$numPosts = $row['numposts'] + 1;
 
 		// Update thread entry
-		$sql = "UPDATE topics SET lastposttime='${date}', lastpostid='${postID}', numposts='${numPosts}' WHERE topicID=${topicID}";
+		$sql = "UPDATE topics SET lastposttime='{$date}', lastpostid='{$postID}', numposts='{$numPosts}' WHERE topicID={$topicID}";
 		querySQL($sql);
 
 		// Update user post count
 		$postCount = getUserPostcountByID($userID) + 1;
 
-		$sql = "UPDATE users SET postCount='${postCount}' WHERE id=${userID}";
+		$sql = "UPDATE users SET postCount='{$postCount}' WHERE id={$userID}";
 		querySQL($sql);
 
 		addLogMessage('User created a post $POSTID:' . $postID . ' in $TOPICID:' . $topicID, 'info', $userID);
@@ -1000,7 +1000,7 @@ EOF;
 		$changeID = (int) $post['changeID'];
 		$oldPostData = sanitizeSQL($post['postPreparsed']);
 
-		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('$changeID', '${oldPostData}', '${changeTime}', '${post['postID']}', '${post['topicID']}');";
+		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('$changeID', '{$oldPostData}', '{$changeTime}', '{$post['postID']}', '{$post['topicID']}');";
 		querySQL($sql);
 
 		$changeID = getLastInsertID();
@@ -1046,7 +1046,7 @@ EOF;
 
 		addLogMessage('User changed their topic\'s title from ' . $topic['topicName'] . ' to $TOPICID:' . $topicID);
 
-		$sql = "UPDATE topics SET topicName='${newTitle}' WHERE topicID=${topicID};";
+		$sql = "UPDATE topics SET topicName='{$newTitle}' WHERE topicID={$topicID};";
 		querySQL($sql);
 	}
 
@@ -1117,7 +1117,7 @@ EOF;
 			return false;
 		}
 
-		$sql = "INSERT INTO privateMessages (senderID, recipientID, messageDate, messageData, messagePreparsed, subject) VALUES ('${_SESSION['userid']}', '${recipient['id']}', '" . time() . "', '$text', '$parsedText', '$subject');";
+		$sql = "INSERT INTO privateMessages (senderID, recipientID, messageDate, messageData, messagePreparsed, subject) VALUES ('{$_SESSION['userid']}', '{$recipient['id']}', '" . time() . "', '$text', '$parsedText', '$subject');";
 		$result = querySQL($sql);
 
 		if($result !== false)
@@ -1137,7 +1137,7 @@ EOF;
 		else
 		{
 			error("Message could not be sent for an unknown reason. This is probably a bug.");
-			addLogMessage("User was unable to send a private message to $USERID:${recipient['id']}", 'error');
+			addLogMessage("User was unable to send a private message to $USERID:{$recipient['id']}", 'error');
 			return false;
 		}
 	}
@@ -1152,7 +1152,7 @@ EOF;
 		else
 		{
 			$pageAction = htmlentities($pageAction);
-			$pageAction = "./?${pageAction}&amp;page=";
+			$pageAction = "./?{$pageAction}&amp;page=";
 		}
 		
 		$currentPage = intval($currentPage);

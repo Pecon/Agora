@@ -1,14 +1,14 @@
 <?php
 	global $site_name, $_userData, $_id;
 	setPageTitle("Profile of " . $_userData['username']);
-	setPageDescription("The profile of ${_userData['username']} on $site_name.");
+	setPageDescription("The profile of {$_userData['username']} on $site_name.");
 
 	if(!isSet($_SESSION['loggedin']))
 		$adminControl = "";
 	else
 	{
 		if($_SESSION['admin'])
-			$adminControl = "<a href=\"./?action=ban&amp;id=${_id}&amp;as=${_SESSION['actionSecret']}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id=${_id}&amp;as=${_SESSION['actionSecret']}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
+			$adminControl = "<a href=\"./?action=ban&amp;id={$_id}&amp;as={$_SESSION['actionSecret']}\">" . ($_userData['banned'] ? "Unban" : "Ban") . " this user</a> &nbsp; <a href=\"./?action=promote&amp;id={$_id}&amp;as={$_SESSION['actionSecret']}\">" . ($_userData['usergroup'] == 'admin' ? "Demote" : "Promote") . " this user</a><br >\n";
 		else
 			$adminControl = "";
 	}
@@ -35,18 +35,18 @@
 	$website = htmlentities($website);
 
 
-	print("\n<div class=\"profileContainer\">${adminControl}\n<div class=\"profileContents\"><div class=\"profileStats\"><div class=\"profileEntry\">\n${username}\n</div>\n<div class=\"profileEntry\">\n" .
-			(strLen($tagLine) > 0 ? "<span class=\"${taglineClass}\">${tagLine}</span></div>\n" : "</div>") .
-			"<div class=\"profileEntry\"><img class=avatar src=\"./avatar.php?user=${_id}&amp;${_userData['avatarUpdated']}\" /></div>
+	print("\n<div class=\"profileContainer\">{$adminControl}\n<div class=\"profileContents\"><div class=\"profileStats\"><div class=\"profileEntry\">\n{$username}\n</div>\n<div class=\"profileEntry\">\n" .
+			(strLen($tagLine) > 0 ? "<span class=\"{$taglineClass}\">{$tagLine}</span></div>\n" : "</div>") .
+			"<div class=\"profileEntry\"><img class=avatar src=\"./avatar.php?user={$_id}&amp;{$_userData['avatarUpdated']}\" /></div>
 			<div class=\"profileEntry\">Posts: {$postCount}</div>
 			<div class=\"profileEntry\">Registered: {$reg_date}</div>
 			<div class=\"profileEntry\">Last active: {$lastActive}</div>\n<div class=\"profileEntry\">" .
-			(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"${website}\">${websitePretty}</a>" : "Website: None") .
+			(strLen($website) > 0 && isSet($websitePretty) ? "Website: <a target=\"_blank\" href=\"{$website}\">{$websitePretty}</a>" : "Website: None") .
 			"</div>
-			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&amp;user=${_userData['id']}\">View this user's posts</a></div>
+			<div class=\"profileEntry\"><a href=\"./?action=recentPosts&amp;user={$_userData['id']}\">View this user's posts</a></div>
 			</div>
 			<div class=\"profileText\">
-			${profileDisplayText}
+			{$profileDisplayText}
 			</div>
 			</div>\n");
 
@@ -68,11 +68,11 @@
 					<div class="profileSettings">
 						Profile info<br />
 						<form action="./?action=updateprofile" method=POST>
-							Tagline: <input type="text" name="tagline" maxLength="30" value="${tagLine}"/><br />
-							Website: <input type="text" name="website" maxLength="200" value="${website}"/><br />
+							Tagline: <input type="text" name="tagline" maxLength="30" value="{$tagLine}"/><br />
+							Website: <input type="text" name="website" maxLength="200" value="{$website}"/><br />
 							<br />
 							Update profile text (you may use bbcode here):<br />
-							<textarea class="postbox" maxLength="1000" name="updateProfileText">${updateProfileText}</textarea><br />
+							<textarea class="postbox" maxLength="1000" name="updateProfileText">{$updateProfileText}</textarea><br />
 							<input class="postButtons" type="submit" value="Update profile">
 						</form>
 					</div>

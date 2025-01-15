@@ -12,25 +12,25 @@
 		return;
 	}
 	setPageTitle($row['topicName']);
-	setPageDescription("Topic ${row['topicName']} by ${creator['username']}.");
+	setPageDescription("Topic {$row['topicName']} by {$creator['username']}.");
 	$topicControls = "";
 
 	if(isSet($_SESSION['userid']))
 	{
 		$quotesEnabled = true;
 		$quoteString = Array();
-		print("<script src=\"./js/quote.js\" type=\"text/javascript\" nonce=\"${_script_nonce}\" async></script>\n");
+		print("<script src=\"./js/quote.js\" type=\"text/javascript\" nonce=\"{$_script_nonce}\" async></script>\n");
 
 		if($row['creatorUserID'] == $_SESSION['userid'] || $_SESSION['admin'])
-			$topicControls = "<a href=\"./?action=locktopic&amp;topic=${_topicID}&amp;as=${_SESSION['actionSecret']}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
+			$topicControls = "<a href=\"./?action=locktopic&amp;topic={$_topicID}&amp;as={$_SESSION['actionSecret']}\">" . (boolval($row['locked']) ? "Unlock" : "Lock") . " topic</a> &nbsp;&nbsp;";
 
 		if($_SESSION['admin'])
 		{
-			$sql = "SELECT postID FROM posts WHERE topicID='${_topicID}' AND threadIndex='0';";
+			$sql = "SELECT postID FROM posts WHERE topicID='{$_topicID}' AND threadIndex='0';";
 			$result = querySQL($sql);
 			$result = $result -> fetch_assoc();
 
-			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic=${_topicID}&amp;as=${_SESSION['actionSecret']}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post=${result['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete topic</a> &nbsp;&nbsp; ";
+			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic={$_topicID}&amp;as={$_SESSION['actionSecret']}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post={$result['postID']}&amp;as={$_SESSION['actionSecret']}\">Delete topic</a> &nbsp;&nbsp; ";
 		}
 	}
 	else
@@ -42,14 +42,14 @@
 		$topicStatus = (boolval($row['sticky']) ? '<span class="icon stickyTopic"></span>' : "") . (boolval($row['locked']) ? '<span class="icon lockedTopic"></span>' : "");
 
 	print('<article class="topicContainer">');
-	print("<header class=\"topicHeader\"><span>${topicStatus}</span><h3><a href=\"./?topic=${row['topicID']}\">${row['topicName']}</a></h3>\n<br />${topicControls}<br />\n");
+	print("<header class=\"topicHeader\"><span>{$topicStatus}</span><h3><a href=\"./?topic={$row['topicID']}\">{$row['topicName']}</a></h3>\n<br />{$topicControls}<br />\n");
 
-	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID=${_topicID};") -> fetch_assoc()["COUNT(*)"];
-	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
+	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID={$_topicID};") -> fetch_assoc()["COUNT(*)"];
+	displayPageNavigationButtons($_page, $numPosts, "topic={$_topicID}", true);
 	print("</header>");
 
 	// Get all the posts into one array
-	$sql = "SELECT * FROM posts WHERE topicID='${_topicID}' ORDER BY threadIndex ASC LIMIT ${start}, ${end}";
+	$sql = "SELECT * FROM posts WHERE topicID='{$_topicID}' ORDER BY threadIndex ASC LIMIT {$start}, {$end}";
 	$posts = querySQL($sql);
 
 	$allPosts = Array();
@@ -59,7 +59,7 @@
 	// Write one query to get all the user data we need
 	$sql = "SELECT id, username, usergroup, banned, tagline, avatarUpdated FROM users WHERE ";
 	foreach($allPosts as $post)
-		$sql = $sql . "id = '${post['userID']}' OR ";
+		$sql = $sql . "id = '{$post['userID']}' OR ";
 
 	$sql = $sql . " id = '-1';";
 	$users = querySQL($sql);
@@ -111,25 +111,25 @@
 		print('<section class="' . $postClasses . '">');
 
 		// Display username of poster
-		print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"${post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user=${post['userID']}\">${username}</a>");
+		print("\n<div class=\"postUser\"><a class=\"userLink\" name=\"{$post['postID']}\"></a><a class=\"userLink\" href=\"./?action=viewProfile&amp;user={$post['userID']}\">{$username}</a>");
 
 
 		// Display the user's tagline
 		if($user['banned'])
-			print("<div class=\"userTagline taglineBanned finetext\">${user['tagline']}</div>");
+			print("<div class=\"userTagline taglineBanned finetext\">{$user['tagline']}</div>");
 		else if($user['usergroup'] == 'admin')
-			print("<div class=\"userTagline taglineAdmin finetext\">${user['tagline']}</div>");
+			print("<div class=\"userTagline taglineAdmin finetext\">{$user['tagline']}</div>");
 		else
-			print("<div class=\"userTagline tagline finetext\">${user['tagline']}</div>");
+			print("<div class=\"userTagline tagline finetext\">{$user['tagline']}</div>");
 
 		// Display the user's avatar and the post date
 		$date = date("F d, Y H:i:s", $post['postDate']);
 		$timeTag = date('c', $post['postDate']);
-		print("<img class=\"avatar\" src=\"./avatar.php?user=${post['userID']}&amp;cb=${user['avatarUpdated']}\" /><time datetime=\"${timeTag}\" class=\"postDate finetext\">${date}</time><div class=\"userPostSeperator\"></div></div>");
+		print("<img class=\"avatar\" src=\"./avatar.php?user={$post['userID']}&amp;cb={$user['avatarUpdated']}\" /><time datetime=\"{$timeTag}\" class=\"postDate finetext\">{$date}</time><div class=\"userPostSeperator\"></div></div>");
 
 
 		// Display the post body
-		print("\n<div class=\"postBody\"><article class=\"postText\">${post['postPreparsed']}</article>");
+		print("\n<div class=\"postBody\"><article class=\"postText\">{$post['postPreparsed']}</article>");
 
 
 		// Moving on to the post controls
@@ -140,14 +140,14 @@
 		if(isSet($_SESSION['loggedin']))
 		{
 			if($_SESSION['admin'])
-				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post=${post['postID']}&amp;as=${_SESSION['actionSecret']}\">Delete</a> ");
+				print("<a class=\"inPostButtons\" href=\"./?action=deletepost&amp;post={$post['postID']}&amp;as={$_SESSION['actionSecret']}\">Delete</a> ");
 		}
 
 
 		// If logged in, show the quote button
 		if($quotesEnabled)
 		{
-			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "") . "&amp;quote=${post['postID']}#editor\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton quoteButtonClass\" quotepostid=\"${post['postID']}\" href=\"#editor\">Quote/Reply</a> ");
+			print("<noscript style=\"display: inline;\"><a class=\"inPostButtons\" href=\"./?topic={$_topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "") . "&amp;quote={$post['postID']}#editor\">Quote/Reply</a></noscript><a class=\"inPostButtons javascriptButton quoteButtonClass\" quotepostid=\"{$post['postID']}\" href=\"#editor\">Quote/Reply</a> ");
 
 			if(isSet($_GET['quote']))
 			{
@@ -161,20 +161,20 @@
 
 			// If the post owner, show the edit button
 			if($post['userID'] == $_SESSION['userid'] && !$row['locked'])
-				print("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic=${_topicID}" . (isSet($_GET['page']) ? "&amp;page=${_GET['page']}" : "&amp;page=0") . "\">Edit&nbsp;post</a> ");
+				print("<a class=\"inPostButtons\" href=\"./?action=edit&amp;post={$post['postID']}&amp;topic={$_topicID}" . (isSet($_GET['page']) ? "&amp;page={$_GET['page']}" : "&amp;page=0") . "\">Edit&nbsp;post</a> ");
 		}
 
 
 		// If logged in and there are edits, display the view edits button
 		if($post['changeID'] > 0 && isSet($_SESSION['userid']))
-			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post=${post['postID']}\">View&nbsp;edits</a> ");
+			print("<a class=\"inPostButtons\" href=\"./?action=viewedits&amp;post={$post['postID']}\">View&nbsp;edits</a> ");
 
 		// Display the permalink button and wrap up.
-		print("<a class=\"inPostButtons\" href=\"./?action=gotopost&amp;post=${post['postID']}\">Permalink</a></div></div></section>\n");
+		print("<a class=\"inPostButtons\" href=\"./?action=gotopost&amp;post={$post['postID']}\">Permalink</a></div></div></section>\n");
 	}
 	print("\n<div class=\"topicFooter\">");
 
-	displayPageNavigationButtons($_page, $numPosts, "topic=${_topicID}", true);
+	displayPageNavigationButtons($_page, $numPosts, "topic={$_topicID}", true);
 
 	print("</div>\n</article>\n");
 

@@ -9,7 +9,7 @@
 	$sql = "SELECT * FROM privateMessages WHERE " . ($sent ? "senderID=" : "recipientID=") . $_SESSION['userid'] . ($sent ? "" : " AND deleted=0") . " ORDER BY messageDate DESC LIMIT {$start},{$num}";
 	$result = querySQL($sql);
 
-	$description = "Message inbox for ${user['username']}.";
+	$description = "Message inbox for {$user['username']}.";
 	setPageTitle("Message " . ($sent ? "outbox" : "inbox"));
 
 	$threadStatus = "";
@@ -24,9 +24,9 @@
 		print('<h2>' . ($sent ? "Outbox" : "Inbox") . '</h2>');
 
 		if($sent)
-			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE senderID = ${_SESSION['userid']} ;") -> fetch_assoc()['COUNT(*)'];
+			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE senderID = {$_SESSION['userid']} ;") -> fetch_assoc()['COUNT(*)'];
 		else
-			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = ${_SESSION['userid']} ;") -> fetch_assoc()['COUNT(*)'];
+			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = {$_SESSION['userid']} ;") -> fetch_assoc()['COUNT(*)'];
 
 		displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"), true);
 		print('</div>');
@@ -74,7 +74,7 @@
 				$topicEntryClass = "";
 
 			$sentTime = date("F d, Y H:i:s", $row['messageDate']);
-			print("<div class=\"topicEntry${topicEntryClass}\"><div class=\"topicTitle\">${threadStatus} <a href=\"./?action=messaging&amp;id=$messageID \">$subject</a><br /><span class=\"finetext\">From <a href=\"./?action=viewProfile&amp;user={$creator['id']}\">{$creatorName}</a></span></div><div class=\"topicDate\">$sentTime</div>" . (!$sent ? '<div class="topicReplies"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="hidden" name="actionSecret" value="' . $_SESSION['actionSecret'] . '"><input type="submit" value="Delete" /></form></div>' : '') . '</div>');
+			print("<div class=\"topicEntry{$topicEntryClass}\"><div class=\"topicTitle\">{$threadStatus} <a href=\"./?action=messaging&amp;id=$messageID \">$subject</a><br /><span class=\"finetext\">From <a href=\"./?action=viewProfile&amp;user={$creator['id']}\">{$creatorName}</a></span></div><div class=\"topicDate\">$sentTime</div>" . (!$sent ? '<div class="topicReplies"><form method="POST" action="./?action=deletemessage"><input type="hidden" name="id" value="' . $messageID . '" /><input type="hidden" name="actionSecret" value="' . $_SESSION['actionSecret'] . '"><input type="submit" value="Delete" /></form></div>' : '') . '</div>');
 		}
 
 		print('<div class="boardFooter">');

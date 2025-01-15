@@ -66,7 +66,7 @@ class admin
 			$statement -> bind_param('i', $post['topicID']);
 			executeStatement($statement);
 
-			adminLog("Deleted topic by \$USERID:${threadCreator['id']} ((${post['topicID']}) . ${thread['topicName']})");
+			adminLog("Deleted topic by \$USERID:{$threadCreator['id']} (({$post['topicID']}) . {$thread['topicName']})");
 		}
 		else
 		{
@@ -114,7 +114,7 @@ class admin
 			$statement -> bind_param('i', $postID);
 			executeStatement($statement);
 
-			adminLog("Deleted post by \$USERID:${post['userID']} ((${postID}) ${postStuff})");
+			adminLog("Deleted post by \$USERID:{$post['userID']} (({$postID}) {$postStuff})");
 		}
 
 		return true;

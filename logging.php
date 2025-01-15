@@ -42,14 +42,14 @@
 
 		$query = "INSERT INTO `logs`";
 		$fields = "(`logType`, `logMessage`, `logTime`";
-		$values = " VALUES('${logType}', '${logMessage}', UNIX_TIMESTAMP()";
+		$values = " VALUES('{$logType}', '{$logMessage}', UNIX_TIMESTAMP()";
 
 		if(isSet($logUserID))
 		{
 			$logUserID = intval($logUserID);
 
 			$fields .= ",`logUserID`";
-			$values .= ",${logUserID}";
+			$values .= ",{$logUserID}";
 		}
 
 		if(isSet($logIPAddress))
@@ -57,7 +57,7 @@
 			$logIPAddress = sanitizeSQL($logIPAddress);
 
 			$fields .= ",`logIPAddress`";
-			$values .= ",'${logIPAddress}'";
+			$values .= ",'{$logIPAddress}'";
 		}
 
 		$query .= $fields . ")" . $values . ");";
@@ -94,7 +94,7 @@
 				return false;
 
 			$types = sanitizeSQL($types);
-			$sql = "SELECT * FROM `logs` WHERE `logType` = '${types}' ORDER BY `logTime` DESC LIMIT ${start}, ${count};";
+			$sql = "SELECT * FROM `logs` WHERE `logType` = '{$types}' ORDER BY `logTime` DESC LIMIT {$start}, {$count};";
 		}
 		else if(is_array($types))
 		{
@@ -124,12 +124,12 @@
 				$type = sanitizeSQL($type);
 
 				if(!isSet($whereClause))
-					$whereClause = "`logType` = '${type}'";
+					$whereClause = "`logType` = '{$type}'";
 				else
-					$whereClause .= " OR `logType` = '${type}'";
+					$whereClause .= " OR `logType` = '{$type}'";
 			}
 
-			$sql = "SELECT * FROM `logs` WHERE ${whereClause} ORDER BY `logTime` DESC LIMIT ${start}, ${count}";
+			$sql = "SELECT * FROM `logs` WHERE {$whereClause} ORDER BY `logTime` DESC LIMIT {$start}, {$count}";
 		}
 
 		$result = querySQL($sql);

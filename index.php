@@ -141,7 +141,7 @@
 				{
 					$postID = createPost($_SESSION['userid'], intval($_GET['topic']), $_POST['postcontent']);
 					info("Post successful!", "Post topic");
-					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${postID}");
+					header("Location: ./?topic={$_GET['topic']}&page={$_GET['page']}#{$postID}");
 					$_SESSION['lastpostdata'] = $_POST['postcontent'];
 				}
 
@@ -203,7 +203,7 @@
 					if(isSet($_POST['edittopicsubject']))
 						editTopicTitle($post['topicID'], $_POST['edittopicsubject']);
 
-					header("Location: ./?topic=${_GET['topic']}&page=${_GET['page']}#${post['postID']}");
+					header("Location: ./?topic={$_GET['topic']}&page={$_GET['page']}#{$post['postID']}");
 					break;
 				}
 
@@ -338,7 +338,7 @@
 						else
 						{
 							$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-							header("Location: ./?topic=${topicID}");
+							header("Location: ./?topic={$topicID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 						}
 					}
@@ -362,7 +362,7 @@
 					else
 					{
 						$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
-						header("Location: ./?topic=${topicID}");
+						header("Location: ./?topic={$topicID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 					}
 				}
@@ -608,7 +608,7 @@
 
 				updateUserProfileText($_SESSION['userid'], $_POST['updateProfileText'], $_POST['tagline'], $_POST['website']);
 				displayUserProfile($_SESSION['userid']);
-				// header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+				// header("Location: ./?action=viewprofile&user={$_SESSION['userid']}");
 				break;
 
 			case "avatarchange":
@@ -660,14 +660,14 @@
 					}
 					else
 					{
-						$location = "./data/avatartemp_${_SESSION['userid']}.dat";
+						$location = "./data/avatartemp_{$_SESSION['userid']}.dat";
 
 						$success = updateAvatarByID($_SESSION['userid'], $location);
 
 						if($success)
 						{
-							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
-							//header("Location: ./?action=viewprofile&user=${_SESSION['userid']}");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user={$_SESSION['userid']}'\" />");
+							//header("Location: ./?action=viewprofile&user={$_SESSION['userid']}");
 							info("Avatar updated successfully.", "Avatar change");
 							addLogMessage("User changed their avatar.", 'info');
 						}
@@ -707,8 +707,8 @@ EOT;
 						if($_POST['newpassword'] == $_POST['confirmnewpassword'])
 						{
 							updatePasswordByID($_SESSION['userid'], password_hash($_POST['newpassword'], PASSWORD_BCRYPT));
-							info("Your password has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change password");
-							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							info("Your password has been updated.<br /><a href=\"./?action=viewprofile&user={$_SESSION['userid']}\">Continue</a>", "Change password");
+							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user={$_SESSION['userid']}'\" />");
 						}
 						else
 							error("The new passwords you entered didn't match.<br /><a href=\"./?action=passwordchange\">Try again</a>");
@@ -771,8 +771,8 @@ EOT;
 							info("A confirmation email has been sent to the new email address. Please click the link in the email to confirm this change.", "Change email");
 						else
 						{
-							info("Your email has been updated.<br /><a href=\"./?action=viewprofile&user=${_SESSION['userid']}\">Continue</a>", "Change email");
-							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user=${_SESSION['userid']}'\" />");
+							info("Your email has been updated.<br /><a href=\"./?action=viewprofile&user={$_SESSION['userid']}\">Continue</a>", "Change email");
+							addToHead("<meta http-equiv=\"refresh\" content=\"5;URL='./?action=viewprofile&user={$_SESSION['userid']}'\" />");
 						}
 					}
 					else
@@ -831,7 +831,7 @@ EOT;
 						<h1>Complete Password Reset</h1>
 						<table border=1 style="align: center; padding: 3px;">
 							<form method="POST">
-								New password: <input type="password" class="" minLength="${min_password_length}" maxLength="72" name="newpassword" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
+								New password: <input type="password" class="" minLength="{$min_password_length}" maxLength="72" name="newpassword" tabIndex="1" autocomplete="new-password" required pattern="(^[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~][A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~ ]{0,70}[A-Za-z0-9!@#$%^&*()\-_=+\[\]{}|\\;:\x27\x22,./<>?~]$)" /><br />
 								Confirm password: <input type="password" name="confirmpassword" tabIndex="2" /><br />
 								<input class="postButtons" type="submit" value="Change password" tabIndex="3" />
 							</form>
@@ -857,7 +857,7 @@ EOD;
 						}
 						else if(strlen($_POST['newpassword']) < $min_password_length)
 						{
-							error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
+							error("Error: Password is too short. Use at least {$min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
 							break;
 						}
 						else if(stripos($_POST['newpassword'], "password") !== false && strlen($_POST['password']) < 16)
@@ -936,7 +936,7 @@ EOT;
 					break;
 
 				info(($result ? "Locked" : "Unlocked") . " topic!", "Topic controls");
-				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
+				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic={$_GET['topic']}'\" />");
 				break;
 
 			case "admin":
@@ -979,7 +979,7 @@ EOT;
 					break;
 
 				info(($result ? "Sticky'd" : "Unsticky'd") . " topic!", "Topic controls");
-				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic=${_GET['topic']}'\" />");
+				// addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?topic={$_GET['topic']}'\" />");
 				break;
 
 			case "deletepost":
@@ -1032,7 +1032,7 @@ EOT;
 
 				$result = toggleBanUserByID($_GET['id']);
 				warn(($result ? "Banned" : "Unbanned") . " user!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user=${_GET['id']}'\" />");
+				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user={$_GET['id']}'\" />");
 				break;
 
 			case "promote":
@@ -1067,7 +1067,7 @@ EOT;
 
 				$result = togglePromoteUserByID($_GET['id']);
 				warn(($result ? "Promoted" : "Demoted") . " user!");
-				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user=${_GET['id']}'\" />");
+				addToHead("<meta http-equiv=\"refresh\" content=\"1;URL='./?action=viewProfile&user={$_GET['id']}'\" />");
 				break;
 
 			case "search":

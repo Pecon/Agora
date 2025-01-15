@@ -28,7 +28,7 @@ if(count($threads) > 0)
 	$sql = "SELECT id, username FROM users WHERE ";
 
 	foreach($threads as $thread)
-		$sql = $sql . "ID='${thread['creatorUserID']}' OR ";
+		$sql = $sql . "ID='{$thread['creatorUserID']}' OR ";
 	$sql = $sql . " ID=null;";
 
 	$result = querySQL($sql);
@@ -47,7 +47,7 @@ if(count($threads) > 0)
 	$sql = "SELECT postID, userID, postDate FROM posts WHERE ";
 
 	foreach($threads as $thread)
-		$sql = $sql . "postID='${thread['lastpostid']}' OR ";
+		$sql = $sql . "postID='{$thread['lastpostid']}' OR ";
 	$sql = $sql . " postID=null;";
 
 	$result = querySQL($sql);
@@ -77,7 +77,7 @@ if(count($threads) > 0)
 		$topicID = $row['topicID'];
 		$topicName = $row['topicName'];
 
-		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID=${topicID};") -> fetch_assoc()['COUNT(*)'];
+		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID={$topicID};") -> fetch_assoc()['COUNT(*)'];
 		$numPosts = intval($numPosts);
 		$creator = $allUserID[$row['creatorUserID']];
 		$creatorName = $creator['username'];
@@ -100,15 +100,15 @@ if(count($threads) > 0)
 		else
 			$topicEntryClass = "";
 
-		print("<div class=\"topicEntry${topicEntryClass}\"><div class=\"topicTitle\">${threadStatus} <a href=\"./?topic=${topicID}\">${topicName}</a> <span class=finetext>");
+		print("<div class=\"topicEntry{$topicEntryClass}\"><div class=\"topicTitle\">{$threadStatus} <a href=\"./?topic={$topicID}\">{$topicName}</a> <span class=finetext>");
 
 		global $items_per_page;
 		if($numPosts > $items_per_page) // Don't show page nav buttons if there is only one page
-			displayPageNavigationButtons(0, $numPosts, "topic=${topicID}", true);
+			displayPageNavigationButtons(0, $numPosts, "topic={$topicID}", true);
 
 		$numReplies = $numPosts - 1;
 
-		print("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicReplies\">${numReplies} " . ($numReplies == 1 ? "Reply" : "Replies") . "</div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
+		print("</span><br /><span class=\"finetext\">Started by <a href=\"./?action=viewProfile&amp;user={$row['creatorUserID']}\">{$creatorName}</a></span></div><div class=\"topicReplies\">{$numReplies} " . ($numReplies == 1 ? "Reply" : "Replies") . "</div><div class=\"topicDate\">Last post by <a href=\"./?action=viewProfile&amp;user={$lastPost['userID']}\">{$postUserName}</a> on {$lastPostTime}</div></div>\n");
 	}
 
 	print('<div class="boardFooter">');

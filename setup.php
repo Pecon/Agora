@@ -261,20 +261,20 @@ EOT;
 
 			if(($connectTime = (microtime() - $timer) * 1000) > 50)
 			{
-				addToBody(warn("Warning: The MySQL server took a significant amount of time to respond (${connectTime} ms). Forum performance may be sub-optimal.<br />", true));
+				addToBody(warn("Warning: The MySQL server took a significant amount of time to respond ({$connectTime} ms). Forum performance may be sub-optimal.<br />", true));
 
 				if(strtolower($server) != "localhost")
 					addToBody(warn("Using a remote MySQL server will probably degrade performance. Consider using a local one.", true));
 			}
 
-			$sql = "CREATE DATABASE IF NOT EXISTS ${database};";
+			$sql = "CREATE DATABASE IF NOT EXISTS {$database};";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				finishPage(error("Failed to create database. " . $mysqli -> error, true));
 			else
 				addToBody("Database is created...<br />\n");
 
-			$sql = "USE ${database};";
+			$sql = "USE {$database};";
 			$result = $mysqli -> query($sql);
 			if($result === false)
 				finishPage(error("Failed to select database. " . $mysqli -> error, true));
@@ -573,7 +573,7 @@ EOT;
 
 		if(strlen($_POST['password']) < $min_password_length)
 		{
-			error("Error: Password is too short. Use at least ${min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
+			error("Error: Password is too short. Use at least {$min_password_length} characters. This is the only requirement aside from your password not being 'password'.");
 			finishPage();
 		}
 		else if(stripos($_POST['password'], "password") !== false && strlen($_POST['password']) < 16)
@@ -595,12 +595,12 @@ EOT;
 		$email = mysqli_real_escape_string($mysqli, $_POST['email']);
 		$regDate = time();
 
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, usergroup, tagline) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'admin', 'Administrator')";
+		$sql = "INSERT INTO users (username, passkey, reg_date, email, usergroup, tagline) VALUES ('{$username}', '{$password}', {$regDate}, '{$email}', 'admin', 'Administrator')";
 
 		if($mysqli -> query($sql) === TRUE)
 		{
 			addToBody("<h1>Installation complete</h1><br>");
-			addToBody("Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a><br /><br /><br />For security reasons, setup.php has been deleted.");
+			addToBody("Your username is {$realUsername}.<br><a href=\"./?action=login\">Log in</a><br /><br /><br />For security reasons, setup.php has been deleted.");
 			unlink("./setup.php"); // Delete the setup file afterwards for security reasons.
 		}
 		else
