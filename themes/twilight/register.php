@@ -168,14 +168,14 @@
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=verify&code=" . $verification;
 
 			$message = <<<EOF
-Thank you for registering on $site_name! Your username is ${username}. Please verify your email by visiting the following url:<br />
+Thank you for registering on $site_name! Your username is {$username}. Please verify your email by visiting the following url:<br />
 <br />
-<a target="_BLANK" href="${url}">${url}</a><br />
+<a target="_BLANK" href="{$url}">{$url}</a><br />
 <br />
 If you did not intend to sign up for this forum, you may safely disregard this email.<br />
 EOF;
 
-			$error = mail($_POST['email'], "$site_name email verification", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@${domain}\r\nX-Mailer: PHP/" . phpversion());
+			$error = mail($_POST['email'], "{$site_name} email verification", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=UTF-8\r\nFrom: donotreply@{$domain}\r\nX-Mailer: PHP/" . phpversion());
 			if($error === false)
 			{
 				error("Failed to send verification email. Please try again later.");
@@ -184,32 +184,31 @@ EOF;
 			}
 		}
 		else
+		{
 			$verification = 0;
+		}
 
 		$regDate = time();
-		$realUsername = $username;
-		$username = sanitizeSQL($username);
-		$password = sanitizeSQL($password);
-		$email = sanitizeSQL($_POST['email']);
+		$email = $_POST['email'];
+		$emailVerificationRequired = (int) (!$settings['require_email_verification']);
 
-		// $sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, usergroup) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . (boolval($settings['require_email_verification']) ? "unverified" : "member") . "');";
-		$sql = "INSERT INTO users (username, passkey, reg_date, email, profiletext, profiletextPreparsed, verification, verified) VALUES ('${username}', '${password}', ${regDate}, '${email}', 'New user', 'New user', '${verification}', '" . intVal(!$settings['require_email_verification']) . "');";
+		$sql = 'INSERT INTO `users` (`username`, `passkey`, `reg_date`, `email`, `profiletext`, `profiletextPreparsed`, `verification`, `verified`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
 
-		querySQL($sql);
+		DBConnection::execute($sql, [$username, $password, $regDate, $email, 'New user', 'New user', $verification, $emailVerificationRequired]);
 
 		if($sql === false)
 		{
 			error("There was an error processing your registration request.");
-			showRegisterForm($_POST['username'], "", $_POST['email']);
+			showRegisterForm($username, "", $email);
 			return;
 		}
 
-		info("Registration completed successfully. Your username is ${realUsername}.<br><a href=\"./?action=login\">Log in</a>", "Register");
-		addLogMessage("User account created.", 'info', getLastInsertID());
-
-		disconnectSQL();
+		info("Registration completed successfully. Your username is {$username}.<br><a href=\"./?action=login\">Log in</a>", "Register");
+		addLogMessage("User account created.", 'info', DBConnection::getInsertID());
 	}
 	else
+	{
 		showRegisterForm("", "", "");
+	}
 
 ?>

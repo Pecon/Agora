@@ -10,12 +10,11 @@ class admin
 		if(!isset($_SESSION['loggedin']))
 		{
 			throw new Exception("You must be logged in to perform this action.");
-			return false;
 		}
 
 		if(!isset($_SESSION['admin']))
 		{
-			return false;
+			throw new Exception("Internal error");
 		}
 
 		if(isset($_GET['as']) && isset($_SESSION['actionSecret']))
@@ -25,10 +24,9 @@ class admin
 		}
 
 		$this -> adminLevel = $_SESSION['admin'];
-		return true;
 	}
 
-	public function deletePost(int $postID)
+	public function deletePost(int $postID): bool
 	{
 		if($this -> adminLevel == 0)
 		{
@@ -54,17 +52,9 @@ class admin
 			$thread = findTopicByID($post['topicID']);
 			$threadCreator = findUserByID($thread['creatorUserID']);
 
-			$statement = prepareStatement("DELETE FROM topics WHERE topicID=?");
-			$statement -> bind_param('i', $post['topicID']);
-			executeStatement($statement);
-
-			$statement = prepareStatement("DELETE FROM posts WHERE topicID=?");
-			$statement -> bind_param('i', $post['topicID']);
-			executeStatement($statement);
-
-			$statement = prepareStatement("DELETE FROM changes WHERE topicID=?");
-			$statement -> bind_param('i', $post['topicID']);
-			executeStatement($statement);
+			$statement = DBConnection::execute('DELETE FROM `topics` WHERE `topicID` = ?', [$post['topicID']]);
+			$statement = DBConnection::execute('DELETE FROM `posts` WHERE `topicID` = ?', [$post['topicID']]);
+			$statement = DBConnection::execute('DELETE FROM `changes` WHERE `topicID` = ?', [$post['topicID']]);
 
 			adminLog("Deleted topic by \$USERID:{$threadCreator['id']} (({$post['topicID']}) . {$thread['topicName']})");
 		}
@@ -76,19 +66,13 @@ class admin
 			if($topic['lastpostid'] == $postID)
 			{
 				// Find the last existing post in the thread.
-				$statement = prepareStatement("SELECT postID, threadIndex, postDate FROM posts WHERE topicID=? ORDER BY threadIndex DESC LIMIT 0,2");
-				$statement -> bind_param('i', $post['topicID']);
-				$result = executeStatement($statement);
+				$result = DBConnection::execute('SELECT `postID`, `threadIndex`, `postDate` FROM `posts` WHERE `topicID` = ? ORDER BY `threadIndex` DESC LIMIT 1, 1', [$post['topicID']]);
 
-				// Skip the first result since it's going to be the post we're about to delete. We want the one after it.
-				$result -> fetch_assoc();
 				$newLastPost = $result -> fetch_assoc();
 				$newPostCount = $newLastPost['threadIndex'] + 1;
 
 				// Update the thread with the new values
-				$statement = prepareStatement("UPDATE topics SET lastpostid=?, lastposttime=?, numposts=? WHERE topicID=?");
-				$statement -> bind_param('iiii', $newLastPost['postID'], $newLastPost['postDate'], $newPostCount, $post['topicID']);
-				executeStatement($statement);
+				DBConnection::execute('UPDATE `topics` SET `lastpostid` = ?, `lastposttime` = ?, `numposts` = ? WHERE `topicID` = ?', [$newLastPost['postID'], $newLastPost['postDate'], $newPostCount, $post['topicID']]);
 			}
 
 			// Delete just this post out of the thread
@@ -96,23 +80,15 @@ class admin
 			$postStuff = str_replace(array("\r", "\n"), " ", $post['postData']);
 			// $user = findUserByID($post['userID'])['username'];
 
-			$statement = prepareStatement("DELETE FROM posts WHERE postID=?");
-			$statement -> bind_param('i', $postID);
-			executeStatement($statement);
+			DBConnection::execute('DELETE FROM `posts` WHERE `postID` = ?', [$postID]);
 
 			// Fix thread indexes
-			$statement = prepareStatement("UPDATE posts SET threadIndex = threadIndex - 1 WHERE topicID=? AND threadIndex > ?");
-			$statement -> bind_param('ii', $post['topicID'], $post['threadIndex']);
-			executeStatement($statement);
+			DBConnection::execute('UPDATE `posts` SET `threadIndex` = `threadIndex` - 1 WHERE `topicID` = ? AND `threadIndex` > ?', [$post['topicID'], $post['threadIndex']]);
 
 			// De-increment user post count
-			$statement = prepareStatement("UPDATE users SET postCount = postCount - 1 WHERE id=?");
-			$statement -> bind_param('i', $post['userID']);
-			executeStatement($statement);
+			DBConnection::execute('UPDATE `users` SET `postCount` = `postCount` - 1 WHERE `id` = ?', [$post['userID']]);
 
-			$statement = prepareStatement("DELETE FROM changes WHERE postID=?");
-			$statement -> bind_param('i', $postID);
-			executeStatement($statement);
+			DBConnection::execute('DELETE FROM `changes` WHERE `postID` = ?', [$postID]);
 
 			adminLog("Deleted post by \$USERID:{$post['userID']} (({$postID}) {$postStuff})");
 		}

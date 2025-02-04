@@ -48,8 +48,8 @@
 		if(!$message['read'])
 		{
 			// Mark as read
-			$sql = "UPDATE privateMessages SET `read` = '1' WHERE `messageID` = '{$message['messageID']}';";
-			$result = querySQL($sql);
+			$sql = 'UPDATE `privateMessages` SET `read` = 1 WHERE `messageID` = ?';
+			$result = DBConnection::execute($sql, [$message['messageID']]);
 
 			if($result === false)
 				error("Failed to set message as read.");

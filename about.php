@@ -10,7 +10,7 @@
 	<div class="finetext" style="width: 400px; text-align: left">
 <pre>
 Agora is a single-board forum system for online discussions.
-Copyright (C) 2020  pecon.us
+Copyright (C) 2025  pecon.us
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published

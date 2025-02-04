@@ -6,8 +6,8 @@
 		if(isSet($_GET['as']))
 			if($_SESSION['actionSecret'] == $_GET['as'])
 			{
-				$sql = "DELETE FROM sessions WHERE userID={$_SESSION['userid']} AND token='{$_SESSION['token']}';";
-				querySQL($sql);
+				$sql = 'DELETE FROM `sessions` WHERE `userID` = ? AND `token` = ?';
+				DBConnection::execute($sql, [$_SESSION['userid'], $_SESSION['token']]);
 
 				session_unset();
 				session_destroy();

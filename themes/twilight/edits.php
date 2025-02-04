@@ -15,8 +15,8 @@
 
 	$changeID = $post['changeID'];
 
-	$sql = "SELECT * FROM changes WHERE id={$changeID}";
-	$result = querySQL($sql);
+	$sql = 'SELECT * FROM `changes` WHERE `id` = ?';
+	$result = DBConnection::execute($sql, [$changeID]);
 
 	if($result === false)
 	{
@@ -60,8 +60,8 @@
 		}
 
 		$changeText = $change['postData'];
-		$sql = "SELECT * FROM changes WHERE id={$changeID}";
-		$result = querySQL($sql);
+		$sql = 'SELECT * FROM `changes` WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$changeID]);
 
 		if($result == false)
 		{

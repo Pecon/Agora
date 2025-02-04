@@ -8,7 +8,7 @@
 
 	if(!isSet($_POST['setup']))
 	{
-			$license = file_get_contents("./LICENSE");
+			$license = htmlentities(file_get_contents("./LICENSE"));
 			$form = <<<EOT
 			<h1>Agora Setup</h1><br />
 			<hr /><br />
@@ -67,6 +67,8 @@ EOT;
 			addToBody("good.<br /><br />\r\n");
 		else if(stripos($software, "nginx") > -1)
 			addToBody("good.<br /><br />\r\n");
+		else if(stripos($software, "caddy") > -1)
+			addToBody("good.<br /><br />\r\n");
 		else
 		{
 			$problem = true;
@@ -74,7 +76,7 @@ EOT;
 		}
 
 		addToBody("PHP version: " . PHP_VERSION . " ... ");
-		if(version_compare(PHP_VERSION, '7.0.0') >= 0)
+		if(version_compare(PHP_VERSION, '8.2.0') >= 0)
 			addToBody("good.<br /><br />\r\n");
 		else
 		{
@@ -553,7 +555,7 @@ EOT;
 
 
 		// Verify username is OK
-		$username = normalize_special_characters(strip_tags($_POST['username']));
+		$username = trim($_POST['username']);
 		if(strLen($username) > 20)
 		{
 			error("Username is too long. Pick something under 20 characters.");

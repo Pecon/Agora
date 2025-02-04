@@ -8,30 +8,30 @@ global $site_name;
 $description = "Welcome to $site_name!";
 
 // Get the data of all displayed threads
-$sql = "SELECT * FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
-$result = querySQL($sql);
+$sql = 'SELECT * FROM `topics` ORDER BY `sticky` DESC, `lastposttime` DESC LIMIT ?, ?';
+$result = DBConnection::execute($sql, [$start, $num]);
 
 $threads = Array();
 while($thread = $result -> fetch_assoc())
 	array_push($threads, $thread);
 
-$totalTopics = querySQL("SELECT COUNT(*) FROM topics") -> fetch_assoc()['COUNT(*)'];
+$totalTopics = DBConnection::execute('SELECT COUNT(*) AS `count` FROM `topics`') -> fetch_assoc()['count'];
 
 if(count($threads) > 0)
 {
-	// Get the post counts for all these threads
-	// $sql = "SELECT COUNT(*) FROM topics ORDER BY sticky DESC, lastposttime DESC LIMIT {$start},{$num}";
-	// $counts = querySQL($sql);
-	// Nevermind I need to find a way to do this.
-
 	// Get all the creators for all these threads
-	$sql = "SELECT id, username FROM users WHERE ";
+	$sql = 'SELECT `id`, `username` FROM `users` WHERE ';
+	$inputBindings = [];
 
 	foreach($threads as $thread)
-		$sql = $sql . "ID='{$thread['creatorUserID']}' OR ";
-	$sql = $sql . " ID=null;";
+	{
+		$sql = $sql . '`id` = ? OR ';
+		array_push($inputBindings, $thread['creatorUserID']);
+	}
 
-	$result = querySQL($sql);
+	$sql = $sql . ' `id` IS NULL';
+
+	$result = DBConnection::execute($sql, $inputBindings);
 	$users = Array();
 	while($user = $result -> fetch_assoc())
 		array_push($users, $user);
@@ -44,13 +44,17 @@ if(count($threads) > 0)
 	unset($user);
 
 	// Get all last posts for these threads
-	$sql = "SELECT postID, userID, postDate FROM posts WHERE ";
+	$sql = 'SELECT `postID`, `userID`, `postDate` FROM `posts` WHERE ';
+	$inputBindings = [];
 
 	foreach($threads as $thread)
-		$sql = $sql . "postID='{$thread['lastpostid']}' OR ";
-	$sql = $sql . " postID=null;";
+	{
+		$sql = $sql . '`postID` = ? OR ';
+		array_push($inputBindings, $thread['lastpostid']);
+	}
+	$sql = $sql . ' `postID` IS NULL';
 
-	$result = querySQL($sql);
+	$result = DBConnection::execute($sql, $inputBindings);
 	$posts = Array();
 	while($post = $result -> fetch_assoc())
 	{
@@ -77,8 +81,7 @@ if(count($threads) > 0)
 		$topicID = $row['topicID'];
 		$topicName = $row['topicName'];
 
-		$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID={$topicID};") -> fetch_assoc()['COUNT(*)'];
-		$numPosts = intval($numPosts);
+		$numPosts = DBConnection::execute('SELECT COUNT(*) AS `count` FROM `posts` WHERE `topicID` = ?', [$topicID]) -> fetch_assoc()['count'];
 		$creator = $allUserID[$row['creatorUserID']];
 		$creatorName = $creator['username'];
 		$description = $description . "\n$topicName, by $creatorName";

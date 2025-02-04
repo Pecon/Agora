@@ -11,23 +11,25 @@
 	$title = "All recent posts";
 
 	if($_user == null)
-		$sql = "SELECT * FROM posts ORDER BY postID DESC LIMIT {$start},{$num}";
+	{
+		$sql = 'SELECT * FROM `posts` ORDER BY `postID` DESC LIMIT ?, ?';
+		$result = DBConnection::execute($sql, [$start, $num]);
+	}
 	else
 	{
 		$title = "Recent posts of {$_user['username']}";
-		$sql =  "SELECT * FROM posts WHERE userID={$_user['id']} ORDER BY postID DESC LIMIT {$start},{$num}";
+		$sql =  'SELECT * FROM `posts` WHERE `userID` = ? ORDER BY `postID` DESC LIMIT ?, ?';
+		$result = DBConnection::execute($sql, [$_user['id'], $start, $num]);
 	}
 
 	setPageTitle($title);
 
-	$result = querySQL($sql);
-
 	if($result -> num_rows > 0)
 	{
 		if($_user == null)
-			$numPosts = querySQL("SELECT COUNT(*) FROM posts;") -> fetch_assoc()["COUNT(*)"];
+			$numPosts = DBConnection::execute('SELECT COUNT(*) AS `count` FROM `posts`') -> fetch_assoc()['count'];
 		else
-			$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE userID={$_user['id']};") -> fetch_assoc()["COUNT(*)"];
+			$numPosts = DBConnection::execute('SELECT COUNT(*) AS `count` FROM `posts` WHERE `userID` = ?', [$_user['id']]) -> fetch_assoc()['count'];
 
 		print('<div class="topicContainer">');
 		print("<div class=\"topicHeader\"><span>&nbsp;&rarr;&nbsp;</span><h3>$title</h3>\n");
@@ -46,7 +48,7 @@
 		$backgroundSwitch = false;
 		foreach($posts as $index => $post)
 		{
-			$topic = findTopicbyID($post['topicID']);
+			$topic = findTopicByID($post['topicID']);
 			$user = findUserByID($post['userID']);
 			$username = $user['username'];
 			$date = date("F d, Y H:i:s", $post['postDate']);

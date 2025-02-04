@@ -6,8 +6,8 @@
 	$num = $items_per_page;
 	$user = findUserByID($_SESSION['userid']);
 
-	$sql = "SELECT * FROM privateMessages WHERE " . ($sent ? "senderID=" : "recipientID=") . $_SESSION['userid'] . ($sent ? "" : " AND deleted=0") . " ORDER BY messageDate DESC LIMIT {$start},{$num}";
-	$result = querySQL($sql);
+	$sql = 'SELECT * FROM `privateMessages` WHERE ' . ($sent ? '`senderID = ?`' : '`recipientID` = ?') . ($sent ? '' : ' AND `deleted` = 0') . ' ORDER BY `messageDate` DESC LIMIT ?, ?';
+	$result = DBConnection::execute($sql, [$_SESSION['userid'], $start, $num]);
 
 	$description = "Message inbox for {$user['username']}.";
 	setPageTitle("Message " . ($sent ? "outbox" : "inbox"));
@@ -18,15 +18,15 @@
 	{
 		$description = $description . ($sent ? "\nRecently sent messages:" : "\nRecent messages:");
 		?>
-	<div class="boardContainer">	
+	<div class="boardContainer">
 		<div class="boardHeader">
 		<?php
 		print('<h2>' . ($sent ? "Outbox" : "Inbox") . '</h2>');
 
-		if($sent)
-			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE senderID = {$_SESSION['userid']} ;") -> fetch_assoc()['COUNT(*)'];
-		else
-			$totalMessages = querySQL("SELECT COUNT(*) FROM privateMessages WHERE recipientID = {$_SESSION['userid']} ;") -> fetch_assoc()['COUNT(*)'];
+		$message = $result -> fetch_all(MYSQLI_ASSOC);
+
+		$sql = 'SELECT COUNT(*) AS `count` FROM `privateMessages` WHERE ' . ($sent ? '`senderID`' : '`recipientID`') . ' = ?';
+		$totalMessages = DBConnection::execute($sql, [$_SESSION['userid']]) -> fetch_assoc()['count'];
 
 		displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"), true);
 		print('</div>');

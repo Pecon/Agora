@@ -13,7 +13,7 @@
 			$logType = func_get_arg(1);
 
 		if($numArgs > 2)
-			$logUserID = func_get_arg(2);
+			$logUserID = (int) func_get_arg(2);
 
 		if($numArgs > 3)
 			$logIPAddress = func_get_arg(3);
@@ -27,8 +27,6 @@
 
 		if(!isSet($logType))
 			$logType = "info";
-		else
-			$logType = sanitizeSQL($logType);
 
 		if(!isSet($logUserID))
 			if(isSet($_SESSION['userid']))
@@ -38,31 +36,30 @@
 			if(isSet($_SERVER['REMOTE_ADDR']))
 				$logIPAddress = $_SERVER['REMOTE_ADDR'];
 
-		$logMessage = sanitizeSQL(htmlentities(html_entity_decode($logMessage), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$logMessage = htmlentities(html_entity_decode($logMessage), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		$query = "INSERT INTO `logs`";
 		$fields = "(`logType`, `logMessage`, `logTime`";
-		$values = " VALUES('{$logType}', '{$logMessage}', UNIX_TIMESTAMP()";
+		$values = " VALUES(?, ?, UNIX_TIMESTAMP()";
+		$valueBindings = [$logType, $logMessage];
 
 		if(isSet($logUserID))
 		{
-			$logUserID = intval($logUserID);
-
 			$fields .= ",`logUserID`";
-			$values .= ",{$logUserID}";
+			$values .= ",?";
+			array_push($valueBindings, $logUserID);
 		}
 
 		if(isSet($logIPAddress))
 		{
-			$logIPAddress = sanitizeSQL($logIPAddress);
-
 			$fields .= ",`logIPAddress`";
-			$values .= ",'{$logIPAddress}'";
+			$values .= ",?";
+			array_push($valueBindings, $logIPAddress);
 		}
 
 		$query .= $fields . ")" . $values . ");";
 
-		querySQL($query);
+		DBConnection::execute($query, $valueBindings);
 	}
 
 	// Add a message to just the admin log
@@ -73,9 +70,10 @@
 
 	// $types should be a valid string for the log type to get, or an array containing valid strings for the log types to get
 	// Returns array of log entries
-	function getLogs($types, int $start, int $count)
+	function getLogs($types, int $start, int $count): ?Array
 	{
 		$validTypes = Array('info', 'warning', 'error', 'admin', 'security');
+		$valueBindings = [];
 
 		if(is_string($types))
 		{
@@ -91,10 +89,10 @@
 			}
 
 			if(!$valid)
-				return false;
+				return null;
 
-			$types = sanitizeSQL($types);
-			$sql = "SELECT * FROM `logs` WHERE `logType` = '{$types}' ORDER BY `logTime` DESC LIMIT {$start}, {$count};";
+			$valueBindings = [$types, $start, $count];
+			$sql = 'SELECT * FROM `logs` WHERE `logType` = ? ORDER BY `logTime` DESC LIMIT ?, ?';
 		}
 		else if(is_array($types))
 		{
@@ -117,31 +115,33 @@
 			}
 
 			if(!$valid)
-				return false;
+				return null;
 
 			foreach($types as $type)
 			{
-				$type = sanitizeSQL($type);
+				array_push($valueBindings, $type);
 
 				if(!isSet($whereClause))
-					$whereClause = "`logType` = '{$type}'";
+					$whereClause = '`logType` = ?';
 				else
-					$whereClause .= " OR `logType` = '{$type}'";
+					$whereClause .= ' OR `logType` = ?';
 			}
 
-			$sql = "SELECT * FROM `logs` WHERE {$whereClause} ORDER BY `logTime` DESC LIMIT {$start}, {$count}";
+			array_push($valueBindings, $start);
+			array_push($valueBindings, $count);
+			$sql = 'SELECT * FROM `logs` WHERE ' . $whereClause . ' ORDER BY `logTime` DESC LIMIT ?, ?';
 		}
 
-		$result = querySQL($sql);
+		$result = DBConnection::execute($sql, $valueBindings);
 
 		if($result === false)
-			return false;
+			return null;
 
-		$result = $result -> fetch_all(MYSQLI_BOTH);
+		$result = $result -> fetch_all(MYSQLI_ASSOC);
 		return $result;
 	}
 
-	function findLogReplacers($log, $replacer)
+	function findLogReplacers(string $log, string $replacer)
 	{
 		while(true)
 		{
@@ -155,7 +155,7 @@
 		}
 	}
 
-	function expandLogLinks($log)
+	function expandLogLinks(string $log): string
 	{
 		// Replace POSTID with links to posts
 		$replacements = findLogReplacers($log, "POSTID");

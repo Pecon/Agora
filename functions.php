@@ -5,7 +5,7 @@
 
 	date_default_timezone_set($site_timezone);
 
-	function reauthuser()
+	function reauthuser(): void
 	{
 		if(!isSet($_SESSION['userid']))
 		{
@@ -18,11 +18,8 @@
 				if($findSession === false)
 					return;
 
-				$idCheck = intval($findSession -> id);
-				$tokenCheck = sanitizeSQL($findSession -> token);
-
-				$sql = "SELECT * FROM sessions WHERE userID=$idCheck AND token='$tokenCheck';";
-				$result = querySQL($sql);
+				$sql = 'SELECT * FROM `sessions` WHERE `userID` = ? AND `token` = ?';
+				$result = DBConnection::execute($sql, [$findSession -> id, $findSession -> token]);
 
 				if($result -> num_rows > 0)
 				{
@@ -37,7 +34,7 @@
 							return;
 						}
 
-						$userData = findUserbyID($idCheck);
+						$userData = findUserByID($findSession -> id);
 
 						$_SESSION['loggedin'] = true;
 						$_SESSION['name'] = $userData['username'];
@@ -56,10 +53,8 @@
 
 						// Update the last seen time and IP in session table
 						$time = time();
-						$sql = "UPDATE sessions SET lastSeenIP='{$_SERVER['REMOTE_ADDR']}', lastSeenTime={$time} WHERE id={$session['id']};";
-						querySQL($sql);
-
-						// info("Your session has been restored.", "Session restored");
+						$sql = 'UPDATE `sessions` SET `lastSeenIP` = ?, `lastSeenTime` = ? WHERE `id` = ?;';
+						DBConnection::execute($sql, [$_SERVER['REMOTE_ADDR'], $time, $session['id']]);
 					}
 
 					if(!isSet($_SESSION['loggedin']))
@@ -116,10 +111,10 @@
 		}
 		$_SESSION['banned'] = $userData['banned'];
 
-		$sql = "SELECT COUNT(*) FROM privateMessages WHERE `recipientID` = {$_SESSION['userid']} AND `read` = 0;";
-		$result = querySQL($sql);
+		$sql = 'SELECT COUNT(*) AS `count` FROM `privateMessages` WHERE `recipientID` = ? AND `read` = 0';
+		$result = DBConnection::execute($sql, [$_SESSION['userid']]);
 		$result = $result -> fetch_assoc();
-		$_SESSION['unreadMessages'] = $result['COUNT(*)'];
+		$_SESSION['unreadMessages'] = $result['count'];
 
 		if($_SESSION['banned'] == true)
 		{
@@ -130,7 +125,7 @@
 		}
 	}
 
-	function sendMail($toAddress, $subject, $contents)
+	function sendMail(string $toAddress, string $subject, string $contents): void
 	{
 		global $site_name;
 		$fromName = "$site_name Agora <donotreply@" . $_SERVER['SERVER_NAME'] . ">";
@@ -142,28 +137,24 @@
 		$success = mail($toAddress, $subject, $contents, $headers);
 	}
 
-	function getVerificationByID($ID)
+	function getVerificationByID(int $ID): Array
 	{
-		$ID = intval($ID);
-
-		$sql = "SELECT verification FROM users WHERE id='{$ID}';";
-		$result = querySQL($sql);
+		$sql = 'SELECT `verification` FROM `users` WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		$result = $result -> fetch_assoc();
 		return $result['verification'];
 	}
 
-	function clearVerificationByID($ID)
+	function clearVerificationByID(int $ID): bool
 	{
-		$ID = intval($ID);
-
-		$sql = "UPDATE users SET verification='0' WHERE id='{$ID}';";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `verification` = "0" WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		return true;
 	}
 
-	function verifyAccount($code)
+	function verifyAccount(string $code): bool
 	{
 		if(strlen($code) != 64)
 		{
@@ -171,25 +162,22 @@
 			return false;
 		}
 
-		$code = sanitizeSQL($code);
-		$sql = "SELECT id FROM users WHERE verification='{$code}'";
-		$result = querySQL($sql);
+		$sql = 'SELECT `id` FROM `users` WHERE `verification` = ?';
+		$result = DBConnection::execute($sql, [$code]);
 
 		$result = $result -> fetch_assoc();
 		if(!isSet($result['id']))
 			return false;
 
-		$ID = intval($result['id']);
-
-		$sql = "UPDATE users SET verified=1, verification=0 WHERE id='{$ID}'";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `verified` = 1, `verification` = 0 WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		addLogMessage("User verified their email.", 'info', $ID);
 
 		return true;
 	}
 
-	function sendResetEmail($email)
+	function sendResetEmail(string $email): ?bool
 	{
 		if(!filter_var($email, FILTER_VALIDATE_EMAIL))
 		{
@@ -197,11 +185,9 @@
 			return false;
 		}
 
-		$realEmail = $email;
-		$email = sanitizeSQL($email);
-		$sql = "SELECT id, verified FROM users WHERE email='{$email}'";
+		$sql = 'SELECT `id`, `verified` FROM `users` WHERE `email` = ?';
 
-		$result = querySQL($sql);
+		$result = DBConnection::execute($sql, [$email]);
 
 		$result = $result -> fetch_assoc();
 		if(!isSet($result['id']))
@@ -211,8 +197,7 @@
 
 		if($result['verified'] == 0)
 		{
-			error("This account is not yet verified. You cannot reset the password until the account is verified. If you have not seen your verification email, please check your spam folder and/or wait a few minutes for it to arrive. If the email does not arrive, try registering again or contact the administrator for manual verification.");
-			return -1;
+			return null;
 		}
 
 		$verification = bin2hex(openssl_random_pseudo_bytes(32));
@@ -240,13 +225,12 @@ This email was sent to you because a password reset was initiated on your accoun
 <br />
 If you did not initiate this reset, you may safely disregard this email.<br />
 EOF;
-		$verificationCode = sanitizeSQL($verification);
-		$sql = "UPDATE users SET verification='{$verificationCode}' WHERE id='{$result['id']}'";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `verification` = ? WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$verification, $result['id']]);
 
 		global $site_name;
 
-		$error = mail($realEmail, "$site_name password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@{$domain}\r\nX-Mailer: PHP/" . phpversion());
+		$error = mail($email, "$site_name password reset", $message, "MIME-Version: 1.0\r\nContent-type: text/html; charset=iso-utf-8\r\nFrom: donotreply@{$domain}\r\nX-Mailer: PHP/" . phpversion());
 		if($error === false)
 		{
 			error("Failed to send verification email. Please try again later.");
@@ -259,72 +243,65 @@ EOF;
 		return true;
 	}
 
-	function findTopicbyID()
+	function findTopicByID(): Array|false
 	{
 		$numArgs = func_num_args();
 
 		if($numArgs < 1 || $numArgs > 2)
-			return;
+		{
+			throw new Exception('Invalid argument count for findTopicByID(int $ID, bool $noCache)');
+		}
 
-		$ID = func_get_arg(0);
-		$nocache = false;
+		$ID = (int) func_get_arg(0);
+		$noCache = false;
 
 		if($numArgs > 1)
-			$nocache = boolval(func_get_arg(1));
+			$noCache = (bool) func_get_arg(1);
 
 		static $topic = Array();
 
-		if(isSet($topic[$ID]) && !$nocache)
+		if(isSet($topic[$ID]) && !$noCache)
 			return $topic[$ID];
 
-		$ID = intval($ID);
-		$sql = "SELECT * FROM topics WHERE topicID = {$ID}";
-		$result = querySQL($sql);
+		$sql = 'SELECT * FROM `topics` WHERE `topicID` = ? LIMIT 1';
+		$result = DBConnection::execute($sql, [$ID]);
 
-		if($numResults = $result -> num_rows > 0)
+		if($result -> num_rows == 0)
 		{
-			while($row = $result -> fetch_assoc())
-			{
-				$topic[$ID] = $row;
-				return $row;
-			}
 			return false;
 		}
-		else
-			return false;
+
+		return $result -> fetch_assoc();
 	}
 
-	function banUserByID($id)
+	function banUserByID(int $ID): bool
 	{
-		$id = intval($id);
-		$sql = "UPDATE users SET banned=1, tagline='Banned user' WHERE id={$id}";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `banned` = 1, `tagline` = "Banned user" WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		$user = findUserByID($id);
-		adminLog("Banned user \$USERID:{$id}");
+		adminLog("Banned user \$USERID:{$ID}");
 		return true;
 	}
 
-	function unbanUserByID($id)
+	function unbanUserByID(int $ID): bool
 	{
-
-		$id = intval($id);
-		$sql = "UPDATE users SET banned=0, tagline='' WHERE id='{$id}'";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `banned` = 0, `tagline` = "" WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		$user = findUserByID($id);
 		adminLog("Unbanned user \$USERID:{$id}");
 		return true;
 	}
 
-	function toggleBanUserByID($id)
+	function toggleBanUserByID(int $ID): ?bool
 	{
-		$user = findUserByID($id);
+		$user = findUserByID($ID);
 
 		if($user === false)
 		{
 			error("No user exists by that id.");
-			return;
+			return null;
 		}
 
 		if($user['banned'])
@@ -339,23 +316,21 @@ EOF;
 		}
 	}
 
-	function promoteUserByID($id)
+	function promoteUserByID(int $ID): bool
 	{
-		$id = intval($id);
-		$sql = "UPDATE users SET usergroup='admin', tagline='Administrator' WHERE id={$id}";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `usergroup` = "admin", `tagline` = "Administrator" WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
-		$user = findUserByID($id);
-		adminLog("Promoted user \$USERID:{$id} to admin.");
+		$user = findUserByID($ID);
+		adminLog("Promoted user \$USERID:{$ID} to admin.");
 		return true;
 	}
 
-	function demoteUserByID($id)
+	function demoteUserByID(int $ID): bool
 	{
-		$id = intval($id);
-		$user = findUserByID($id);
+		$user = findUserByID($ID);
 
-		if($id == 1)
+		if($ID == 1)
 		{
 			error("You cannot demote the superuser.");
 			return false;
@@ -366,50 +341,46 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE users SET usergroup='member', tagline='' WHERE id='{$id}'";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `usergroup` = "member", `tagline` = "" WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		
-		adminLog("Demoted user \$USERID:{$id} from admin.");
+		adminLog("Demoted user \$USERID:{$ID} from admin.");
 		return true;
 	}
 
-	function togglePromoteUserByID($id)
+	function togglePromoteUserByID(int $ID): ?bool
 	{
-		$user = findUserByID($id);
+		$user = findUserByID($ID);
 
 		if($user === false)
 		{
 			error("No user exists by that id.");
-			return;
+			return null;
 		}
 
 		if($user['usergroup'] == 'admin')
 		{
-			demoteUserByID($id);
+			demoteUserByID($ID);
 			return false;
 		}
 		else
 		{
-			promoteUserByID($id);
+			promoteUserByID($ID);
 			return true;
 		}
 	}
 
-
-	function findUserbyName($name)
+	function findUserbyName(string $name): Array|false
 	{
 		// Speed up many requests by avoiding duplicate mysql queries
 		static $user = array();
 
-		$name = htmlentities(html_entity_decode(trim($name)));
-
 		if(isSet($user[$name]))
 			return $user[$name];
 
-		$name = sanitizeSQL(strToLower($name));
-		$sql = "SELECT * FROM users WHERE lower(username) = '{$name}'";
-		$result = querySQL($sql);
+		$sql = 'SELECT * FROM `users` WHERE lower(`username`) = ? LIMIT 1';
+		$result = DBConnection::execute($sql, [$name]);
 
 		if($numResults = $result -> num_rows > 0)
 		{
@@ -425,245 +396,166 @@ EOF;
 			return false;
 	}
 
-	function findUserbyID($ID)
+	function findUserByID(int $ID, bool $skipCache = false): Array|false
 	{
 		static $user = array();
 
-		if(isSet($user[$ID]))
+		if(isSet($user[$ID]) && !$skipCache)
+		{
 			return $user[$ID];
+		}
 
-		$ID = intval($ID);
-		$sql = "SELECT * FROM users WHERE id = {$ID}";
-		$result = querySQL($sql);
+		$sql = 'SELECT * FROM `users` WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
-		if($numResults = $result -> num_rows > 0)
+		if($result -> num_rows == 0)
 		{
-			while($row = $result -> fetch_assoc())
-			{
-				$user[$ID] = $row;
-				return $row;
-			}
 			return false;
 		}
-		else
-			return false;
+
+		return $result -> fetch_assoc();
 	}
 
-	function findUserbyID_nocache($ID)
+	function updateAvatarByID(int $ID, string $imagePath): bool
 	{
-		$ID = intval($ID);
-		$sql = "SELECT * FROM users WHERE id = {$ID}";
-		$result = querySQL($sql);
-
-		if($numResults = $result -> num_rows > 0)
-		{
-			while($row = $result -> fetch_assoc())
-			{
-				$user[$ID] = $row;
-				return $row;
-			}
-			return false;
-		}
-		else
-			return false;
-	}
-
-	function getUserNameByID($id)
-	{
-		$id = intval($id);
-		$sql = "SELECT username FROM users WHERE id = '{$id}'";
-		$result = querySQL($sql);
-
-		if($numResults = $result -> num_rows > 0)
-		{
-			while($row = $result -> fetch_assoc())
-			{
-				return $row['username'];
-			}
-			return false;
-		}
-		else
-			return false;
-	}
-
-	function getUserPostcountByID($id)
-	{
-		$id = intval($id);
-		$sql = "SELECT postCount FROM users WHERE id = '{$id}'";
-		$result = querySQL($sql);
-
-		if($numResults = $result -> num_rows > 0)
-		{
-			while($row = $result -> fetch_assoc())
-				return $row['postCount'];
-			return false;
-		}
-		else
-			return false;
-	}
-
-	function getAvatarByID($id)
-	{
-		$id = intval($id);
-		$sql = "SELECT avatar FROM users WHERE id={$id};";
-
-		$result = querySQL($sql);
-		$result = $result -> fetch_assoc();
-
-		if(isSet($result['avatar']))
-			return $result['avatar'];
-		return false;
-	}
-
-	function updateAvatarByID($id, $imagePath)
-	{
-		if(move_uploaded_file($_FILES['avatar']['tmp_name'], $imagePath))
-		{
-			$imgInfo = getimagesize($imagePath);
-			$width = $imgInfo[0];
-			$height = $imgInfo[1];
-			$imgType = $imgInfo['mime'];
-			$keepOriginal = false;
-			$scaled = false;
-
-			if($imgType == "image/png")
-			{
-				$image = imagecreatefrompng($imagePath);
-
-				if(filesize($imagePath) < 65000)
-					$keepOriginal = true;
-			}
-			else if($imgType == "image/jpeg")
-				$image = imagecreatefromjpeg($imagePath);
-			else if($imgType == "image/gif")
-			{
-				$image = imagecreatefromgif($imagePath);
-
-				if(filesize($imagePath) < 65000)
-					$keepOriginal = true;
-			}
-			else if($imgType == "image/bmp")
-				$image = imagecreatefrombmp($imagePath);
-			else if($imgType == "image/webp")
-				$image = imagecreatefromwebp($imagePath);
-			else
-			{
-				unlink($imagePath);
-				error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, bmp, webp, or gif type image.");
-				return false;
-			}
-
-			// Delete the raw uploaded image so it isn't left there if we exit from an error.
-			if(!$keepOriginal)
-				unlink($imagePath);
-
-			if($image === false)
-			{
-				error("Failed to load image.");
-				return false;
-			}
-
-			if($height > 100 || $width > 100)
-			{
-				if($height > $width)
-				{
-					$newHeight = 100;
-					$newWidth = round($width * ($newHeight / $height));
-				}
-				else
-				{
-					$newWidth = 100;
-					$newHeight = round($height * ($newWidth / $width));
-				}
-
-				$newImage = imagecreatetruecolor($newWidth, $newHeight);
-
-				// Make sure transparency is spared.
-				imagesavealpha($image, true);
-				imagesavealpha($newImage, true);
-				imagesetinterpolation($newImage, IMG_BICUBIC);
-
-				$error = imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-
-				if($error === false)
-				{
-					error("Unable to scale image.");
-					return false;
-				}
-
-				imagedestroy($image);
-				$image = $newImage;
-				$scaled = true;
-
-				warn("Your image was scaled because it was too big. Some quality may have been lost.");
-			}
-
-			// Save the converted image.
-			if(!$keepOriginal || $scaled)
-			{
-				$error = imagepng($image, $imagePath, 9, PNG_NO_FILTER);
-
-				if($error === false)
-				{
-					error("Unable to save converted image.");
-					return false;
-				}
-
-				if(!$scaled)
-					warn("Your image was converted to PNG format.");
-			}
-
-			imagedestroy($image);
-
-			//Upload the avatar to the MySQL database
-			$id = intval($id);
-			$inputData = sanitizeSQL(fread(fopen($imagePath, "rb"), filesize($imagePath)));
-			unlink($imagePath);
-			$time = time();
-			$sql = "UPDATE users SET avatar='{$inputData}', avatarUpdated='{$time}' WHERE id={$id};";
-
-			querySQL($sql);
-		}
-		else
+		if(!move_uploaded_file($_FILES['avatar']['tmp_name'], $imagePath))
 		{
 			error("Uploaded file could not be validated.");
 			return false;
 		}
 
+		$imgInfo = getimagesize($imagePath);
+		$width = $imgInfo[0];
+		$height = $imgInfo[1];
+		$imgType = $imgInfo['mime'];
+		$keepOriginal = false;
+		$scaled = false;
+
+		if($imgType == "image/png")
+		{
+			$image = imagecreatefrompng($imagePath);
+
+			if(filesize($imagePath) < 65000)
+				$keepOriginal = true;
+		}
+		else if($imgType == "image/jpeg")
+			$image = imagecreatefromjpeg($imagePath);
+		else if($imgType == "image/gif")
+		{
+			$image = imagecreatefromgif($imagePath);
+
+			if(filesize($imagePath) < 65000)
+				$keepOriginal = true;
+		}
+		else if($imgType == "image/bmp")
+			$image = imagecreatefrombmp($imagePath);
+		else if($imgType == "image/webp")
+			$image = imagecreatefromwebp($imagePath);
+		else
+		{
+			unlink($imagePath);
+			error("Avatar is in an unsupported image format. Please make your avatar a png, jpeg, bmp, webp, or gif type image.");
+			return false;
+		}
+
+		// Delete the raw uploaded image so it isn't left there if we exit from an error.
+		if(!$keepOriginal)
+		{
+			unlink($imagePath);
+		}
+
+		if($image === false)
+		{
+			error("Failed to load image.");
+			return false;
+		}
+
+		if($height > 100 || $width > 100)
+		{
+			if($height > $width)
+			{
+				$newHeight = 100;
+				$newWidth = round($width * ($newHeight / $height));
+			}
+			else
+			{
+				$newWidth = 100;
+				$newHeight = round($height * ($newWidth / $width));
+			}
+
+			$newImage = imagecreatetruecolor($newWidth, $newHeight);
+
+			// Make sure transparency is spared.
+			imagesavealpha($image, true);
+			imagesavealpha($newImage, true);
+			imagesetinterpolation($newImage, IMG_BICUBIC);
+
+			$error = imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+			if($error === false)
+			{
+				error("Unable to scale image.");
+				return false;
+			}
+
+			imagedestroy($image);
+			$image = $newImage;
+			$scaled = true;
+
+			warn("Your image was scaled because it was too big. Some quality may have been lost.");
+		}
+
+		// Save the converted image.
+		if(!$keepOriginal || $scaled)
+		{
+			$error = imagepng($image, $imagePath, 9, PNG_NO_FILTER);
+
+			if($error === false)
+			{
+				error("Unable to save converted image.");
+				return false;
+			}
+
+			if(!$scaled)
+				warn("Your image was converted to PNG format.");
+		}
+
+		imagedestroy($image);
+
+		//Upload the avatar to the MySQL database
+		$imageData = fread(fopen($imagePath, "rb"), filesize($imagePath));
+		unlink($imagePath);
+		$time = time();
+		$sql = "UPDATE `users` SET `avatar` = ?, `avatarUpdated` = ? WHERE `id` = ?;";
+
+		DBConnection::execute($sql, [$imageData, $time, $ID]);
+
 		return true;
 	}
 
-	function getPasswordHashByID($ID)
+	function getPasswordHashByID(int $ID): ?string
 	{
-		$ID = intval($ID);
-		$sql = "SELECT passkey FROM users WHERE id={$ID};";
+		$sql = 'SELECT `passkey` FROM `users` WHERE `id` = ?;';
 
-		$result = querySQL($sql);
+		$result = DBConnection::execute($sql, [$ID]);
 
-		return $result -> fetch_assoc()['passkey'];
+		if(!$result)
+		{
+			return null;
+		}
+
+		$hash = $result -> fetch_assoc()['passkey'] ?? null;
+		return $hash;
 	}
 
-	function updatePasswordByID($ID, $newHash)
+	function updatePasswordByID(int $ID, string $newHash): void
 	{
-		$ID = intval($ID);
-		$newHash = sanitizeSQL($newHash);
+		$sql = 'UPDATE `users` SET `passkey` = ? WHERE `id` = ?';
 
-		$sql = "UPDATE users SET passkey='{$newHash}' WHERE id={$ID};";
-
-		querySQL($sql);
+		DBConnection::execute($sql, [$newHash, $ID]);
 	}
 
-	function getEmailByID($ID)
-	{
-		$ID = intval($ID);
-		$sql = "SELECT email FROM users WHERE id={$ID};";
-
-		$result = querySQL($sql);
-
-		return $result -> fetch_assoc()['email'];
-	}
-
-	function updateEmailByID($ID, $newEmail)
+	function updateEmailByID(int $ID, string $newEmail): bool
 	{
 		if(filter_var($newEmail, FILTER_VALIDATE_EMAIL) === false)
 			return false;
@@ -685,21 +577,19 @@ EOF;
 			global $force_ssl;
 
 			$url = ($force_ssl ? "https://" : "http://") . $domain . $uri . "index.php?action=emailchange&amp;code=" . $verification . "&amp;id=" . $ID;
-			$user = getUserNameByID($ID);
+			$user = findUserByID($ID);
+			$username = htmlentities($user['username']);
 
 			$message = <<<EOF
-	This email was sent to you because an email change was initiated on your account, {$user}. If you intended to do this, please click the link below to confirm the new email:<br />
+	This email was sent to you because an email change was initiated on your account, {$username}. If you intended to do this, please click the link below to confirm the new email:<br />
 	<br />
 	<a href="{$url}">{$url}</a><br />
 	<br />
 	If you are not the owner of the account, pleae disregard this email.<br />
 EOF;
 
-			$verificationCode = sanitizeSQL($verification);
-			$newEmail = sanitizeSQL($newEmail);
-			$ID = intval($ID);
-			$sql = "UPDATE users SET emailVerification='{$verificationCode}', newEmail='{$newEmail}' WHERE id='{$ID}';";
-			querySQL($sql);
+			$sql = 'UPDATE `users` SET `emailVerification`= ?, `newEmail` = ? WHERE `id` = ?';
+			DBConnection::execute($sql, [$verification, $newEmail, $ID]);
 
 			global $site_name;
 
@@ -714,19 +604,17 @@ EOF;
 		}
 		else
 		{
-			$ID = intval($ID);
-			$newEmail = sanitizeSQL(trim($newEmail));
+			$newEmail = trim($newEmail);
 
-			$sql = "UPDATE users SET email='{$newEmail}' WHERE id={$ID};";
+			$sql = 'UPDATE `users` SET `email` = ? WHERE `id` = ?';
 
-			querySQL($sql);
+			DBConnection::execute($sql, [$newEmail, $ID]);
 			return true;
 		}
 	}
 
-	function verifyEmailChange($ID, $verification)
+	function verifyEmailChange(int $ID, string $verification): bool
 	{
-		$ID = intval($ID);
 		$user = findUserByID($ID);
 
 		if($verification !== $user['emailVerification'])
@@ -735,38 +623,27 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE users SET email='{$user['newEmail']}', newEmail='', emailVerification=0 WHERE id='{$ID}';";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `email` = ?, `newEmail` = "", `emailVerification` = "0" WHERE `id` = ?';
+		DBConnection::execute($sql, [$user['newEmail']]);
 
 		return true;
 	}
 
-	function checkUserExists($username, $email)
+	function checkUserExists(string $username, string $email): bool
 	{
-		$username = sanitizeSQL(strToLower($username));
-		$email = sanitizeSQL(strToLower($email));
-		$sql = "SELECT * FROM users WHERE lower(username) = '{$username}' OR lower(email) = '{$email}';";
-		$result = querySQL($sql);
+		$sql = 'SELECT * FROM `users` WHERE lower(`username`) = lower(?) OR lower(`email`) = lower(?)';
+		$result = DBConnection::execute($sql, [$username, $email]);
 
-		if($result -> num_rows > 0)
-		{
-			while($row = $result -> fetch_assoc())
-				return true;
-
-			return false;
-		}
-
-		else
-			return false;
+		return $result -> num_rows > 0;
 	}
 
-	function displayUserProfile($id)
+	function displayUserProfile(int $ID): void
 	{
 		global $_userData, $_id;
-		$_userData = findUserByID_nocache($id);
-		$_id = $id;
+		$_userData = findUserByID($ID, true);
+		$_id = $ID;
 
-		if($_userData == false)
+		if(!$_userData)
 		{
 			error("No user by this user id exists.");
 			return;
@@ -775,7 +652,7 @@ EOF;
 		loadThemePart("profile");
 	}
 
-	function updateUserProfileText($id, $text, $tagLine, $website)
+	function updateUserProfileText(int $ID, string $text, string $tagLine, string $website): bool
 	{
 		if(strlen($text) > 1001)
 		{
@@ -788,11 +665,11 @@ EOF;
 		{
 			if(strToLower($website) != "http://" && strlen($website) > 1)
 			{
-				$website = findUserByID($id)['website'];
+				$website = findUserByID($ID)['website'];
 				error("Your website url is invalid or too long.");
 			}
 			else if(strToLower($website) == "http://")
-				$website = findUserByID($id)['website'];
+				$website = findUserByID($ID)['website'];
 			else
 				$website = "";
 		}
@@ -801,14 +678,13 @@ EOF;
 		{
 			error("Your tagline is too long.");
 
-			$tagLine = findUserByID($id)['tagline'];
+			$tagLine = findUserByID($ID)['tagline'];
 		}
 
-		$id = intval($id);
-		$rawText = sanitizeSQL(htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
-		$text = sanitizeSQL(bb_parse($text));
-		$website = sanitizeSQL(trim($website));
-		$tagLine = sanitizeSQL(htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$rawText = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+		$text = bb_parse($text);
+		$website = trim($website);
+		$tagLine = htmlentities(html_entity_decode(trim($tagLine)), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		if(strlen($text) > 2000)
 		{
@@ -816,23 +692,22 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE users SET profiletext='{$rawText}', profiletextPreparsed='{$text}', tagline='{$tagLine}', website='{$website}' WHERE id={$id}";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `users` SET `profiletext` = ?, `profiletextPreparsed` = ?, `tagline` = ?, `website` = ? WHERE `id` = ?';
+		$result = DBConnection::execute($sql, [$rawText, $text, $tagLine, $website]);
 
 		return true;
 	}
 
-	function fetchSinglePost($postID)
+	function fetchSinglePost(int $postID): Array|false
 	{
 		static $post = array();
 
 		if(isSet($post[$postID]))
 			return $post[$postID];
 
-		$postID = intval($postID);
-		$sql = "SELECT * FROM posts WHERE postID={$postID};";
+		$sql = 'SELECT * FROM `posts` WHERE `postID` = ?';
 
-		$result = querySQL($sql);
+		$result = DBConnection::execute($sql, [$postID]);
 
 		if($result === false)
 			return false;
@@ -842,10 +717,9 @@ EOF;
 		return $row;
 	}
 
-	function getPostLink($postID)
+	function getPostLink(int $postID): string|false
 	{
 		global $items_per_page;
-		$postID = intval($postID);
 
 		$post = fetchSinglePost($postID);
 
@@ -858,199 +732,208 @@ EOF;
 		return $link;
 	}
 
-	function createThread($userID, $topic, $postData)
+	function createTopic(int $userID, string $topicName, string $postText): int
 	{
-		$userID = intval($userID);
-		$topic = sanitizeSQL(htmlentities(html_entity_decode($topic), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$topicName = htmlentities(html_entity_decode($topic), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
-		$sql = "INSERT INTO topics (creatorUserID, topicName) VALUES ({$userID}, '{$topic}');";
+		$sql = 'INSERT INTO `topics` (`creatorUserID`, `topicName`) VALUES (?, ?)';
 
-		$result = querySQL($sql);
-		$topicID = getLastInsertID();
+		DBConnection::beginTransaction('createTopic');
+		$result = DBConnection::execute($sql, [$userID, $topicName]);
+		$topicID = DBConnection::getInsertID();
 
-		createPost($userID, $topicID, $postData);
+		createPost($userID, $topicID, $postText);
+
 		addLogMessage('User started a new topic $TOPICID:' . $topicID);
+		DBConnection::commitTransaction('createTopic');
+
 		return $topicID;
    }
 
-   function lockTopic($topicID)
+   function lockTopic(int $topicID): ?bool
    {
-		$topicID = intval($topicID);
-		$topic = findTopicbyID($topicID);
+		$topic = findTopicByID($topicID);
 
 		if($topic === false)
 		{
 			error("That topic does not exist.");
-			return -1;
+			return null;
 		}
 
 		if($_SESSION['userid'] != $topic['creatorUserID'] && !$_SESSION['admin'])
 		{
 			error("You do not have permission to do this action.");
-			return -1;
+			return null;
 		}
 
-		$newValue = !$topic['locked'];
+		$newValue = (int) (!$topic['locked']);
 
-		$sql = "UPDATE topics SET locked='{$newValue}' WHERE topicID='{$topicID}';";
+		$sql = 'UPDATE `topics` SET `locked` = ? WHERE `topicID` = ?';
 
-		querySQL($sql);
+		DBConnection::execute($sql, [$newValue, $topicID]);
 
 		adminLog(($newValue ? "Locked" : "Unlocked") . " topic \$TOPICID:{$topicID}");
-		return $newValue;
+		return (bool) $newValue;
    }
 
-	function stickyTopic($topicID)
+	function stickyTopic(int $topicID): ?bool
 	{
-		$topicID = intval($topicID);
-		$topic = findTopicbyID($topicID);
+		$topic = findTopicByID($topicID);
 
 		if($topic === false)
 		{
 			error("That topic does not exist.");
-			return -1;
+			return null;
 		}
 
 		if(!$_SESSION['admin'])
 		{
 			error("You do not have permission to do this action.");
-			return -1;
+			return null;
 		}
 
-		$newValue = !$topic['sticky'];
+		$newValue = (int) (!$topic['sticky']);
 
-		$sql = "UPDATE topics SET sticky='{$newValue}' WHERE topicID='{$topicID}';";
+		$sql = 'UPDATE `topics` SET `sticky` = ? WHERE `topicID` = ?';
 
-		querySQL($sql);
+		DBConnection::execute($sql, [$newValue, $topicID]);
 
 		adminLog("Topic \$TOPICID:{$topicID} is " . ($newValue ? "now sticky" : "no longer sticky") . ".");
-		return $newValue;
+		return (bool) $newValue;
 	}
 
-	function createPost($userID, $topicID, $postData)
+	function createPost(int $userID, int $topicID, string $postText): ?int
 	{
-		$userID = intval($userID);
-		$topicID = intval($topicID);
-
-		$row = findTopicbyID($topicID);
-		if($row === false)
+		$topic = findTopicByID($topicID);
+		if($topic === false)
 		{
-			error("Could not find thread data.");
-			return;
+			error("Could not find thread.");
+			return null;
 		}
 
-		if($row['locked'] == true)
+		if($topic['locked'] == true)
 		{
 			error("This thread is locked. No further posts are permitted.");
-			return false;
+			return null;
 		}
 
 		// Cleanse post data
-		$parsedPost = sanitizeSQL(bb_parse($postData));
-		$postData = sanitizeSQL(htmlentities(html_entity_decode($postData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$parsedPost = bb_parse($postText);
+		$postText = htmlentities(html_entity_decode($postText), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$date = time();
 
 		// Make entry in posts table
-		$mysqli = getSQLConnection();
-		$sql = "INSERT INTO posts (userID, topicID, postDate, postData, postPreparsed, threadIndex) VALUES ({$userID}, {$topicID}, '{$date}', '{$postData}', '{$parsedPost}', '{$row['numposts']}');";
-		querySQL($sql);
+		DBConnection::beginTransaction('createPost');
+		$sql = 'INSERT INTO `posts` (`userID`, `topicID`, `postDate`, `postData`, `postPreparsed`, `threadIndex`) VALUES (?, ?, ?, ?, ?, ?)';
+		DBConnection::execute($sql, [$userID, $topicID, $date, $postText, $parsedPost, $topic['numposts']]);
 
-		$postID = getLastInsertID();
+		$postID = DBConnection::getInsertID();
 
 		// Make new data for thread entry
-		$numPosts = $row['numposts'] + 1;
+		$numPosts = $topic['numposts'] + 1;
 
 		// Update thread entry
-		$sql = "UPDATE topics SET lastposttime='{$date}', lastpostid='{$postID}', numposts='{$numPosts}' WHERE topicID={$topicID}";
-		querySQL($sql);
+		$sql = 'UPDATE `topics` SET `lastposttime` = ?, `lastpostid` = ?, `numposts` = ? WHERE `topicID` = ?';
+		DBConnection::execute($sql, [$date, $postID, $numPosts, $topicID]);
 
 		// Update user post count
+		$user = findUserByID($userID);
+		$postCount = $user['postCount'];
 		$postCount = getUserPostcountByID($userID) + 1;
 
-		$sql = "UPDATE users SET postCount='{$postCount}' WHERE id={$userID}";
-		querySQL($sql);
+		$sql = 'UPDATE `users` SET `postCount` = ? WHERE `id` = ?';
+		DBConnection::execute($sql, [$postCount, $userID]);
 
 		addLogMessage('User created a post $POSTID:' . $postID . ' in $TOPICID:' . $topicID, 'info', $userID);
+		DBConnection::commitTransaction('createPost');
 		
 		return $postID;
 	}
 
-	function editPost($userID, $postID, $newPostData)
+	function editPost(int $userID, int $postID, string $newPostText): bool
 	{
 		if($_SESSION['userid'] !== $userID && !$_SESSION['admin'])
 		{
 			error("You do not have permission to edit this post.");
-			return;
+			return false;
 		}
 
-		if(!$post = fetchSinglePost($postID))
+		$post = fetchSinglePost($postID);
+
+		if(!$post)
 		{
 			error("This post does not exist.");
-			return;
+			return false;
 		}
 
-		if(boolval(findTopicbyID($post['topicID'])['locked']))
+		$topic = findTopicByID($post['topicID']);
+
+		if($topic['locked'])
 		{
 			error("You can't edit posts in a locked thread.");
-			return;
+			return false;
 		}
 
 		$changeTime = time();
-		$postID = intval($postID);
 		$changeID = (int) $post['changeID'];
-		$oldPostData = sanitizeSQL($post['postPreparsed']);
+		$oldPostText = $post['postPreparsed'];
 
-		$sql = "INSERT INTO changes (lastChange, postData, changeTime, postID, topicID) VALUES ('$changeID', '{$oldPostData}', '{$changeTime}', '{$post['postID']}', '{$post['topicID']}');";
-		querySQL($sql);
+		DBConnection::beginTransaction('editPost');
+		$sql = 'INSERT INTO `changes` (`lastChange`, `postData`, `changeTime`, `postID`, `topicID`) VALUES (?, ?, ?, ?, ?)';
+		DBConnection::execute($sql, [$changeID, $oldPostText, $changeTime, $post['postID'], $post['topicID']]);
 
-		$changeID = getLastInsertID();
-		$newPostParsed = sanitizeSQL(bb_parse($newPostData));
-		$newPostData = sanitizeSQL(htmlentities(html_entity_decode($newPostData), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$changeID = DBConnection::getInsertID();
+		$newPostParsed = bb_parse($newPostText);
+		$newPostText = htmlentities(html_entity_decode($newPostText), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		addLogMessage('User edited their post $POSTID:' . $postID, 'info', $userID);
 
-		$sql = "UPDATE posts SET postData='{$newPostData}', postPreparsed='{$newPostParsed}', changeID={$changeID} WHERE postID={$postID};";
-		querySQL($sql);
+		$sql = 'UPDATE `posts` SET `postData` = ?, `postPreparsed` = ?, `changeID` = ? WHERE `postID` = ?';
+		DBConnection::execute($sql, [$newPostText, $newPostParsed, $changeID, $postID]);
+		DBConnection::commitTransaction('editPost');
+
+		return true;
 	}
 
-	function editTopicTitle($topicID, $newTitle)
+	function editTopicTitle(int $topicID, string $newTitle): bool
 	{
-		$topicID = intval($topicID);
-		$topic = findTopicbyID($topicID);
+		$topic = findTopicByID($topicID);
 
 		if(!$topic)
 		{
 			error("This topic does not exist.");
-			return;
+			return false;
 		}
 
 		if($_SESSION['userid'] !== $topic['creatorUserID'] && !$_SESSION['admin'])
 		{
 			error("You do not have permission to edit this topic's title.");
-			return;
+			return false;
 		}
 
 		if($topic['locked'])
 		{
 			error("The subject of a locked topic cannot be edited.");
-			return;
+			return false;
 		}
 
-		$newTitle = sanitizeSQL(htmlentities($newTitle, ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
+		$newTitle = htmlentities($newTitle, ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		if(strlen($newTitle) > 130)
 		{
 			error("Your subject is over the 130 character limit!");
-			return;
+			return false;
 		}
 
 		addLogMessage('User changed their topic\'s title from ' . $topic['topicName'] . ' to $TOPICID:' . $topicID);
 
-		$sql = "UPDATE topics SET topicName='{$newTitle}' WHERE topicID={$topicID};";
-		querySQL($sql);
+		$sql = 'UPDATE `topics` SET `topicName` = ? WHERE `topicID` = ?';
+		DBConnection::execute($sql, [$newTitle, $topicID]);
+
+		return true;
 	}
 
-	function deletePost(int $id)
+	function deletePost(int $id): bool
 	{
 		try
 		{
@@ -1060,23 +943,16 @@ EOF;
 		catch(Exception $error)
 		{
 			error($error -> getMessage());
+			return false;
 		}
 	}
 
 	// Private messaging functions
 
-	function displayMessage($ID)
+	function fetchSingleMessage(int $ID): Array|false
 	{
-		
-	}
-
-	function fetchSingleMessage($ID)
-	{
-		$ID = intval($ID);
-
-		$sql = "SELECT * FROM privateMessages WHERE messageID='$ID';";
-		$result = querySQL($sql);
-
+		$sql = 'SELECT * FROM `privateMessages` WHERE `messageID` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		if($result !== false)
 			return $result -> fetch_assoc();
@@ -1084,9 +960,8 @@ EOF;
 			return false;
 	}
 
-	function deleteMessage($ID)
+	function deleteMessage(int $ID): bool
 	{
-		$ID = intval($ID);
 		$message = fetchSingleMessage($ID);
 
 		if($message['recipientID'] != $_SESSION['userid'])
@@ -1095,8 +970,8 @@ EOF;
 			return false;
 		}
 
-		$sql = "UPDATE privateMessages SET `deleted` = '1' WHERE `messageID` = $ID;";
-		$result = querySQL($sql);
+		$sql = 'UPDATE `privateMessages` SET `deleted` = 1 WHERE `messageID` = ?';
+		$result = DBConnection::execute($sql, [$ID]);
 
 		if($result === false)
 			return false;
@@ -1104,11 +979,11 @@ EOF;
 			return true;
 	}
 
-	function sendMessage($text, $subject, $to, $replyID)
+	function sendMessage(string $text, string $subject, int $to, ?int $replyID): bool
 	{
 		$recipient = findUserbyName($to);
-		$subject = sanitizeSQL(htmlentities(html_entity_decode($subject), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8"));
-		$parsedText = sanitizeSQL(bb_parse($text));
+		$subject = htmlentities(html_entity_decode($subject), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+		$parsedText = bb_parse($text);
 		$text = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		if($recipient === false)
@@ -1117,32 +992,34 @@ EOF;
 			return false;
 		}
 
-		$sql = "INSERT INTO privateMessages (senderID, recipientID, messageDate, messageData, messagePreparsed, subject) VALUES ('{$_SESSION['userid']}', '{$recipient['id']}', '" . time() . "', '$text', '$parsedText', '$subject');";
-		$result = querySQL($sql);
+		$sql = 'INSERT INTO `privateMessages` (`senderID`, `recipientID`, `messageDate`, `messageData`, `messagePreparsed`, `subject`) VALUES (?, ?, ?, ?, ?, ?)';
+		$time = time();
+		$result = DBConnection::execute($sql, [$_SESSION['userid'], $recipient['id'], $time, $text, $parsedText, $subject]);
 
-		if($result !== false)
-		{
-			$replyID = intval($replyID);
-			$reply = fetchSingleMessage($replyID);
-
-			if($reply['recipientID'] == $_SESSION['userid'] && $reply['senderID'] == $recipient)
-			{
-				$sql = "UPDATE privateMessages SET `read` = 2 WHERE `messageID` = $replyID;";
-				querySQL($sql);
-			}
-
-			addLogMessage('User sent a private message to $USERID:' . $reply['recipientID'] . '.');
-			return true;
-		}
-		else
+		if(!$result)
 		{
 			error("Message could not be sent for an unknown reason. This is probably a bug.");
 			addLogMessage("User was unable to send a private message to $USERID:{$recipient['id']}", 'error');
 			return false;
 		}
+
+		if($replyID !== null)
+		{
+			$reply = fetchSingleMessage($replyID);
+
+			if($reply['recipientID'] == $_SESSION['userid'] && $reply['senderID'] == $recipient)
+			{
+				$sql = 'UPDATE `privateMessages` SET `read` = 2 WHERE `messageID` = ?';
+				DBConnection::execute($sql, [$replyID]);
+			}
+		}
+
+		addLogMessage('User sent a private message to $USERID:' . $reply['recipientID'] . '.');
+		return true;
+
 	}
 
-	function displayPageNavigationButtons($currentPage, $totalItems, $pageAction, $print)
+	function displayPageNavigationButtons(int $currentPage, int $totalItems, ?string $pageAction, bool $print): void
 	{
 		// This value can be modified from your .settings.json file (under the /data directory)
 		global $items_per_page;
@@ -1155,8 +1032,6 @@ EOF;
 			$pageAction = "./?{$pageAction}&amp;page=";
 		}
 		
-		$currentPage = intval($currentPage);
-		$totalItems = intval($totalItems);
 		$totalPages = ceil($totalItems / $items_per_page);
 
 		// Pages Start At One
@@ -1202,13 +1077,13 @@ EOF;
 
 	// Other functions
 
-	function normalize_special_characters($str)
+	function normalize_special_characters(string $str): string
 	{
 		// Eventually.
 		return $str;
 	}
 
-	function charAt($string, $index)
+	function charAt(string $string, int $index): string
 	{
 		if($index >= strlen($string) || $index < 0)
 			return false;
@@ -1216,7 +1091,7 @@ EOF;
 		return substr($string, $index, 1);
 	}
 
-	function filter_url($string)
+	function filter_url(string $string): string
 	{
 		// Search for "anyProtocol://anyURI"
 		// If not in that format, slap an http:// onto it.
@@ -1226,12 +1101,12 @@ EOF;
 		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
 	}
 
-	function filter_uri($string)
+	function filter_uri(string $string): string
 	{
 		return str_replace(Array('"', '\\'), Array('%22', '%5C'), $string);
 	}
 
-	function bb_parse($text)
+	function bb_parse(string $text): string|false
 	{
 		try
 		{
@@ -1245,4 +1120,3 @@ EOF;
 			return false;
 		}
 	}
-?>

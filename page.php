@@ -117,13 +117,13 @@ function getThemePart($part)
 function setPageTitle($title)
 {
 	global $_title;
-	$_title = strip_tags($title);
+	$_title = htmlentities($title);
 }
 
 function setPageDescription($description)
 {
 	global $_description;
-	$_description = strip_tags($description);
+	$_description = htmlentities($description);
 }
 
 function addPageTag($tag)

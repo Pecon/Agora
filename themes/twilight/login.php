@@ -161,8 +161,8 @@
 		$token =  bin2hex(openssl_random_pseudo_bytes(32));
 		$ip = $_SERVER['REMOTE_ADDR'];
 
-		$sql = "INSERT INTO sessions (`id`, `userID`, `loginTime`, `lastSeenTime`, `token`, `creationIP`, `lastSeenIP`) VALUES (NULL, {$userData['id']}, {$time}, {$time}, '{$token}', '{$ip}', '{$ip}');";
-		querySQL($sql);
+		$sql = 'INSERT INTO `sessions` (`id`, `userID`, `loginTime`, `lastSeenTime`, `token`, `creationIP`, `lastSeenIP`) VALUES (NULL, ?, ?, ?, ?, ?, ?)';
+		DBConnection::execute($sql, [$userData['id'], $time, $time, $token, $ip, $ip]);
 
 		$newSession = new StdClass();
 		$newSession -> token = $token;

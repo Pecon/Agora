@@ -16,7 +16,6 @@
 
 	require_once 'functions.php';
 	require_once 'ratelimit.php';
-	require_once 'database.php';
 	require_once 'page.php';
 
 	setPageTitle($site_name);
@@ -337,7 +336,7 @@
 						}
 						else
 						{
-							$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
+							$topicID = createTopic($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 							header("Location: ./?topic={$topicID}");
 							$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 						}
@@ -361,7 +360,7 @@
 					}
 					else
 					{
-						$topicID = createThread($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
+						$topicID = createTopic($_SESSION['userid'], $_POST['newtopicsubject'], $_POST['newtopicpost']);
 						header("Location: ./?topic={$topicID}");
 						$_SESSION['lastpostdata'] = $_POST['newtopicsubject'];
 					}
@@ -425,7 +424,7 @@
 					}
 					else if(isSet($_POST['send']))
 					{
-						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['recipient'], (isSet($_POST['replyID']) ? $_POST['replyID'] : -1));
+						$success = sendMessage($_POST['postcontent'], $_POST['subject'], $_POST['recipient'], ($_POST['replyID'] ?? null));
 
 						if($success)
 						{
@@ -711,12 +710,16 @@ EOT;
 							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=viewprofile&user={$_SESSION['userid']}'\" />");
 						}
 						else
+						{
 							error("The new passwords you entered didn't match.<br /><a href=\"./?action=passwordchange\">Try again</a>");
 							addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=passwordchange'\" />");
+						}
 					}
 					else
+					{
 						error("Incorrect password.<br /><a href=\"./?action=passwordchange\">Try again</a>");
 						addToHead("<meta http-equiv=\"refresh\" content=\"3;URL='./?action=passwordchange'\" />");
+					}
 				}
 				else
 				{
@@ -901,9 +904,16 @@ EOT;
 					error("Couldn't send reset email. Contact the system administrator.");
 					break;
 				}
-
-				if($error == 1)
+				else if($error === null)
+				{
+					error("This account is not yet verified. You cannot reset the password until the account is verified. If you have not seen your verification email, please check your spam folder and/or wait a few minutes for it to arrive. If the email does not arrive, try registering again or contact the administrator for manual verification.");
+					break;
+				}
+				else
+				{
 					info("Reset email sent! Please follow the link in the email to reset your password.", "Reset password");
+				}
+
 				break;
 
 			case "locktopic":
@@ -932,7 +942,7 @@ EOT;
 				}
 
 				$result = lockTopic($_GET['topic']);
-				if($result === -1)
+				if($result === null)
 					break;
 
 				info(($result ? "Locked" : "Unlocked") . " topic!", "Topic controls");
@@ -975,7 +985,7 @@ EOT;
 				}
 
 				$result = stickyTopic($_GET['topic']);
-				if($result === -1)
+				if($result === null)
 					break;
 
 				info(($result ? "Sticky'd" : "Unsticky'd") . " topic!", "Topic controls");
@@ -1112,7 +1122,5 @@ EOT;
 				addToBody("<br /><a href=\"./?action=admin\">Admin</a>");
 	}
 
-	// End of possible actions, close mysql connection.
-	disconnectSQL();
 	finishPage();
 ?>

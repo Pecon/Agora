@@ -5,7 +5,7 @@
 	$end = $items_per_page;
 
 	$row = findTopicbyID($_topicID, true);
-	$creator = findUserbyID($row['creatorUserID']);
+	$creator = findUserByID($row['creatorUserID']);
 	if($row === false)
 	{
 		error("Failed to load topic.");
@@ -26,8 +26,8 @@
 
 		if($_SESSION['admin'])
 		{
-			$sql = "SELECT postID FROM posts WHERE topicID='{$_topicID}' AND threadIndex='0';";
-			$result = querySQL($sql);
+			$sql = 'SELECT `postID` FROM `posts` WHERE `topicID` = ? AND `threadIndex` = 0';
+			$result = DBConnection::execute($sql, [$_topicID]);
 			$result = $result -> fetch_assoc();
 
 			$topicControls = $topicControls . "<a href=\"./?action=stickytopic&amp;topic={$_topicID}&amp;as={$_SESSION['actionSecret']}\">" . (boolval($row['sticky']) ? "Unsticky" : "Sticky") . " topic</a> &nbsp;&nbsp; <a href=\"./?action=deletepost&amp;post={$result['postID']}&amp;as={$_SESSION['actionSecret']}\">Delete topic</a> &nbsp;&nbsp; ";
@@ -44,25 +44,30 @@
 	print('<article class="topicContainer">');
 	print("<header class=\"topicHeader\"><span>{$topicStatus}</span><h3><a href=\"./?topic={$row['topicID']}\">{$row['topicName']}</a></h3>\n<br />{$topicControls}<br />\n");
 
-	$numPosts = querySQL("SELECT COUNT(*) FROM posts WHERE topicID={$_topicID};") -> fetch_assoc()["COUNT(*)"];
+	$numPosts = DBConnection::execute('SELECT COUNT(*) AS `count` FROM `posts` WHERE `topicID` = ?', [$_topicID]) -> fetch_assoc()['count'];
 	displayPageNavigationButtons($_page, $numPosts, "topic={$_topicID}", true);
 	print("</header>");
 
 	// Get all the posts into one array
-	$sql = "SELECT * FROM posts WHERE topicID='{$_topicID}' ORDER BY threadIndex ASC LIMIT {$start}, {$end}";
-	$posts = querySQL($sql);
+	$sql = 'SELECT * FROM `posts` WHERE `topicID` = ? ORDER BY `threadIndex` ASC LIMIT ?, ?';
+	$posts = DBConnection::execute($sql, [$_topicID, $start, $end]);
 
 	$allPosts = Array();
 	while($post = $posts -> fetch_assoc())
 		array_push($allPosts, $post);
 
 	// Write one query to get all the user data we need
-	$sql = "SELECT id, username, usergroup, banned, tagline, avatarUpdated FROM users WHERE ";
+	$sql = 'SELECT `id`, `username`, `usergroup`, `banned`, `tagline`, `avatarUpdated` FROM `users` WHERE ';
+	$whereClause = Array();
+	$whereInputs = Array();
 	foreach($allPosts as $post)
-		$sql = $sql . "id = '{$post['userID']}' OR ";
+	{
+		array_push($whereClause, '`id` = ?');
+		array_push($whereInputs, $post['userID']);
+	}
 
-	$sql = $sql . " id = '-1';";
-	$users = querySQL($sql);
+	$sql .= implode(' OR ', $whereClause);
+	$users = DBConnection::execute($sql, $whereInputs);
 
 	if($users === false)
 	{
@@ -73,11 +78,15 @@
 
 	$allUsers = Array();
 	while($user = $users -> fetch_assoc())
+	{
 		array_push($allUsers, $user);
+	}
 
 	$allPostsUsers = Array();
 	foreach($allUsers as $user)
+	{
 		$allPostsUsers[$user['id']] = $user;
+	}
 
 	unset($users);
 	unset($user);
