@@ -7,7 +7,7 @@
 		http_response_code(400);
 		exit();
 	}
-	$user = getUserByID($_GET['user']);
+	$user = findUserByID($_GET['user']);
 
 	if(!$user)
 	{

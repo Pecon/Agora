@@ -127,8 +127,12 @@
 				</td>
 				<td>
 					<?php
-						$name = findUserByID($log['logUserID'])['username'];
-						print($log['logUserID'] === null ? "N/A" : '<a href="./?action=viewProfile&amp;user=' . $log['logUserID'] . '" target="_BLANK">' . $name . '</a>');
+						if($log['logUserID'])
+						{
+							$user = findUserByID($log['logUserID']);
+						}
+
+						print($user ? '<a href="./?action=viewProfile&amp;user=' . $log['logUserID'] . '" target="_BLANK">' . $user['username'] . '</a>' : 'N/A');
 					?>
 				</td>
 				<td>

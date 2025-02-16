@@ -5,12 +5,13 @@
 	$end = $items_per_page;
 
 	$row = findTopicbyID($_topicID, true);
-	$creator = findUserByID($row['creatorUserID']);
 	if($row === false)
 	{
 		error("Failed to load topic.");
 		return;
 	}
+	
+	$creator = findUserByID($row['creatorUserID']);
 	setPageTitle($row['topicName']);
 	setPageDescription("Topic {$row['topicName']} by {$creator['username']}.");
 	$topicControls = "";

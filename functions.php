@@ -371,7 +371,7 @@ EOF;
 		}
 	}
 
-	function findUserbyName(string $name): Array|false
+	function findUserByName(string $name): Array|false
 	{
 		// Speed up many requests by avoiding duplicate mysql queries
 		static $user = array();
@@ -734,7 +734,7 @@ EOF;
 
 	function createTopic(int $userID, string $topicName, string $postText): int
 	{
-		$topicName = htmlentities(html_entity_decode($topic), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
+		$topicName = htmlentities(html_entity_decode($topicName), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 
 		$sql = 'INSERT INTO `topics` (`creatorUserID`, `topicName`) VALUES (?, ?)';
 
@@ -837,12 +837,8 @@ EOF;
 		DBConnection::execute($sql, [$date, $postID, $numPosts, $topicID]);
 
 		// Update user post count
-		$user = findUserByID($userID);
-		$postCount = $user['postCount'];
-		$postCount = getUserPostcountByID($userID) + 1;
-
-		$sql = 'UPDATE `users` SET `postCount` = ? WHERE `id` = ?';
-		DBConnection::execute($sql, [$postCount, $userID]);
+		$sql = 'UPDATE `users` SET `postCount` = (SELECT COUNT(*) FROM `posts` WHERE `userID` = ?) WHERE `id` = ?';
+		DBConnection::execute($sql, [$userID, $userID]);
 
 		addLogMessage('User created a post $POSTID:' . $postID . ' in $TOPICID:' . $topicID, 'info', $userID);
 		DBConnection::commitTransaction('createPost');
@@ -981,7 +977,7 @@ EOF;
 
 	function sendMessage(string $text, string $subject, int $to, ?int $replyID): bool
 	{
-		$recipient = findUserbyName($to);
+		$recipient = findUserByName($to);
 		$subject = htmlentities(html_entity_decode($subject), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
 		$parsedText = bb_parse($text);
 		$text = htmlentities(html_entity_decode($text), ENT_SUBSTITUTE | ENT_QUOTES, "UTF-8");
