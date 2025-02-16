@@ -6,7 +6,7 @@
 	$num = $items_per_page;
 	$user = findUserByID($_SESSION['userid']);
 
-	$sql = 'SELECT * FROM `privateMessages` WHERE ' . ($sent ? '`senderID = ?`' : '`recipientID` = ?') . ($sent ? '' : ' AND `deleted` = 0') . ' ORDER BY `messageDate` DESC LIMIT ?, ?';
+	$sql = 'SELECT * FROM `privateMessages` WHERE ' . ($sent ? '`senderID` = ?' : '`recipientID` = ?') . ($sent ? '' : ' AND `deleted` = 0') . ' ORDER BY `messageDate` DESC LIMIT ?, ?';
 	$result = DBConnection::execute($sql, [$_SESSION['userid'], $start, $num]);
 
 	$description = "Message inbox for {$user['username']}.";

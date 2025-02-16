@@ -1,5 +1,6 @@
 <?php
-	require_once './functions.php';
+	require_once 'autoload.php';
+	require_once 'functions.php';
 	$userID = $_GET['user'] ?? null;
 
 	if(!$userID)
