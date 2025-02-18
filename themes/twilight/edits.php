@@ -3,7 +3,7 @@
 
 	$post = fetchSinglePost(intval($_post));
 
-	if($post['changeID'] == false)
+	if(!$post['changeID'])
 	{
 		error("There are no changes to view on this post.");
 		return;

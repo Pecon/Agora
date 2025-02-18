@@ -243,32 +243,21 @@ EOF;
 	return true;
 }
 
-function findTopicByID(): Array|false
+function findTopicByID(int $ID, bool $noCache = false): ?Array
 {
-	$numArgs = func_num_args();
-
-	if($numArgs < 1 || $numArgs > 2)
-	{
-		throw new Exception('Invalid argument count for findTopicByID(int $ID, bool $noCache)');
-	}
-
-	$ID = (int) func_get_arg(0);
-	$noCache = false;
-
-	if($numArgs > 1)
-		$noCache = (bool) func_get_arg(1);
-
 	static $topic = Array();
 
 	if(isSet($topic[$ID]) && !$noCache)
+	{
 		return $topic[$ID];
+	}
 
 	$sql = 'SELECT * FROM `topics` WHERE `topicID` = ? LIMIT 1';
 	$result = DBConnection::execute($sql, [$ID]);
 
 	if($result -> num_rows == 0)
 	{
-		return false;
+		return null;
 	}
 
 	return $result -> fetch_assoc();
@@ -698,7 +687,7 @@ function updateUserProfileText(int $ID, string $text, string $tagLine, string $w
 	return true;
 }
 
-function fetchSinglePost(int $postID): Array|false
+function fetchSinglePost(int $postID): ?Array
 {
 	static $post = array();
 
@@ -710,10 +699,17 @@ function fetchSinglePost(int $postID): Array|false
 	$result = DBConnection::execute($sql, [$postID]);
 
 	if($result === false)
-		return false;
+	{
+		return null;
+	}
+	else if($result -> num_rows == 0)
+	{
+		return null;
+	}
 
 	$row = $result -> fetch_assoc();
 	$post[$postID] = $row;
+
 	return $row;
 }
 
@@ -723,7 +719,7 @@ function getPostLink(int $postID): string|false
 
 	$post = fetchSinglePost($postID);
 
-	if($post === false)
+	if(!$post)
 		return false;
 
 	$topicPage = floor($post['threadIndex'] / $items_per_page);
@@ -754,7 +750,7 @@ function lockTopic(int $topicID): ?bool
 {
 	$topic = findTopicByID($topicID);
 
-	if($topic === false)
+	if(!$topic)
 	{
 		error("That topic does not exist.");
 		return null;
@@ -805,7 +801,7 @@ function stickyTopic(int $topicID): ?bool
 function createPost(int $userID, int $topicID, string $postText): ?int
 {
 	$topic = findTopicByID($topicID);
-	if($topic === false)
+	if(!$topic)
 	{
 		error("Could not find thread.");
 		return null;
@@ -933,7 +929,7 @@ function deletePost(int $id): bool
 {
 	try
 	{
-		$admin = new admin();
+		$admin = new Admin();
 		return $admin -> deletePost($id);
 	}
 	catch(Exception $error)
@@ -1106,7 +1102,7 @@ function bb_parse(string $text): string|false
 {
 	try
 	{
-		$parser = new bbcodeParser($text);
+		$parser = new BBCodeParser($text);
 
 		return $parser -> getParsed();
 	}

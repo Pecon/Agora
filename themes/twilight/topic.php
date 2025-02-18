@@ -5,7 +5,7 @@
 	$end = $items_per_page;
 
 	$row = findTopicbyID($_topicID, true);
-	if($row === false)
+	if(!$row)
 	{
 		error("Failed to load topic.");
 		return;

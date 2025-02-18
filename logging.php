@@ -154,7 +154,7 @@ function expandLogLinks(string $log): string
 	{
 		$id = $replacement[1];
 		$post = fetchSinglePost($id);
-		$link = '<a href="?action=gotopost&amp;post=' . $id . '" target="_BLANK">' . $id . '</a>';
+		$link = '<a href="?action=gotopost&amp;post=' . $id . '" target="_BLANK">' . ($post ? $id : '[Deleted post]') . '</a>';
 
 		$log = str_replace($replacement[0], $link, $log);
 	}
@@ -165,7 +165,7 @@ function expandLogLinks(string $log): string
 	{
 		$id = $replacement[1];
 		$topic = findTopicByID($id);
-		$link = '<a href="?topic=' . $id . '" target="_BLANK">' . $topic['topicName'] . '</a>';
+		$link = '<a href="?topic=' . $id . '" target="_BLANK">' . ($topic['topicName'] ?? '[Deleted topic]') . '</a>';
 
 		$log = str_replace($replacement[0], $link, $log);
 	}
@@ -176,7 +176,7 @@ function expandLogLinks(string $log): string
 	{
 		$id = $replacement[1];
 		$user = findUserByID($id);
-		$link = '<a href="?action=viewProfile&amp;user=' . $id . '" target="_BLANK">' . $user['username'] . '</a>';
+		$link = '<a href="?action=viewProfile&amp;user=' . $id . '" target="_BLANK">' . ($user['username'] ?? 'Deleted user') . '</a>';
 
 		$log = str_replace($replacement[0], $link, $log);
 	}

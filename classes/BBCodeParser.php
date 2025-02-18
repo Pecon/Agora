@@ -1,5 +1,5 @@
 <?php
-class bbcodeParser
+class BBCodeParser
 {
 	private $errors = Array();
 	private $parseText;

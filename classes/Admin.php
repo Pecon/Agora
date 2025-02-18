@@ -1,6 +1,6 @@
 <?php
 
-class admin
+class Admin
 {
 	private $adminLevel = 0;
 	private $verifiedAction = false;
@@ -78,7 +78,6 @@ class admin
 			// Delete just this post out of the thread
 			$post = fetchSinglePost($postID);
 			$postStuff = str_replace(array("\r", "\n"), " ", $post['postData']);
-			// $user = findUserByID($post['userID'])['username'];
 
 			DBConnection::execute('DELETE FROM `posts` WHERE `postID` = ?', [$postID]);
 
