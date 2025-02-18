@@ -1,14 +1,14 @@
 <?php 
-	require_once 'data.php';
-	require_once 'page.php';
+require_once 'data.php';
+require_once 'page.php';
 
-	setPageTitle("About Agora");
+setPageTitle("About Agora");
 
-	$info = <<<EOT
+$info = <<<EOT
 	<h1>About Agora</h1>
 	<br />
 	<div class="finetext" style="width: 400px; text-align: left">
-<pre>
+		<pre>
 Agora is a single-board forum system for online discussions.
 Copyright (C) 2025  pecon.us
 
@@ -26,11 +26,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see http://www.gnu.org/licenses/
 
 Get the source code here: <a href="https://github.com/Pecon/Agora">https://github.com/Pecon/Agora</a>
-</pre>
+		</pre>
 	</div>
 	<br />
 EOT;
 
-	addToBody($info);
-	finishPage();
-?>
+addToBody($info);
+finishPage();

@@ -1,5 +1,5 @@
 <?php
-	require_once 'autoload.php';
+	require_once 'autoloader.php';
 	require_once 'functions.php';
 	$userID = $_GET['user'] ?? null;
 

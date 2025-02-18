@@ -1,7 +1,7 @@
 <?php
-	require_once './data.php';
-	require_once './database.php';
-	require_once './logging.php';
+	require_once 'autoloader.php';
+	require_once 'data.php';
+	require_once 'logging.php';
 
 	date_default_timezone_set($site_timezone);
 

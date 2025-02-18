@@ -1,6 +1,6 @@
 <?php
 
-require_once './database.php';
+require_once './autoloader.php';
 require_once './page.php';
 
 // Return true or false depending on if they have been rate limited for the specified action
