@@ -1,7 +1,7 @@
 <?php
 
-require_once './autoloader.php';
-require_once './page.php';
+require_once 'autoloader.php';
+require_once 'page.php';
 
 // Return true or false depending on if they have been rate limited for the specified action
 function checkRateLimitAction(string $actionName, int $cooldownSeconds, int $threshold): bool

@@ -242,5 +242,3 @@ function finishPage()
 
 	exit();
 }
-
-?>
