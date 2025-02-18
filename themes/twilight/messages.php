@@ -23,19 +23,13 @@
 		<?php
 		print('<h2>' . ($sent ? "Outbox" : "Inbox") . '</h2>');
 
-		$message = $result -> fetch_all(MYSQLI_ASSOC);
+		$messages = $result -> fetch_all(MYSQLI_ASSOC);
 
 		$sql = 'SELECT COUNT(*) AS `count` FROM `privateMessages` WHERE ' . ($sent ? '`senderID`' : '`recipientID`') . ' = ?';
 		$totalMessages = DBConnection::execute($sql, [$_SESSION['userid']]) -> fetch_assoc()['count'];
 
 		displayPageNavigationButtons($page, $totalMessages, "action=" . ($sent ? "outbox" : "messaging"), true);
 		print('</div>');
-
-		$messages = Array();
-		while($row = $result -> fetch_assoc())
-			array_push($messages, $row);
-
-		array_reverse($messages);
 
 		foreach($messages as $index => $row)
 		{
@@ -84,9 +78,7 @@
 	else
 		info("No messages.", "Messaging");
 
-	//print("<a href=\"./?action=" . ($sent ? 'outbox' : 'messaging') . "\">Refresh messages</a><br /><br />");
 	print("<br /><br /><a href=\"./?action=" . ($sent ? 'messaging' : 'outbox') . "\">View " . ($sent ? 'inbox' : 'outbox') . "</a><br /><br />");
 	print("<a href=\"./?action=composemessage\">Compose message</a><br /><br />");
 
 	setPageDescription($description);
-?>
